@@ -1,0 +1,8 @@
+name: TempFly
+main: com.moneybags.tempfly.TempFly
+softdepend: [ASkyBlock, Essentials, MVdWPlaceholderAPI, PlaceholderAPI, aSkyBlock]
+version: 1.9.0
+commands:
+    tempfly:
+        description: base command
+        aliases: [tfly, tf]

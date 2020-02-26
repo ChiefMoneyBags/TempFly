@@ -1,0 +1,253 @@
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                ,--------.                       ,------.,--.                         |# 
+#|                '--.  .--',---. ,--,--,--. ,---. |  .---'|  |,--. ,--.                |# 
+#|                   |  |  | .-. :|        || .-. ||  `--, |  | \  '  /                 |# 
+#|                   |  |  \   --.|  |  |  || '-' '|  |`   |  |  \   '                  |# 
+#|                   `--'   `----'`--`--`--'|  |-' `--'    `--'.-'  /                   |# 
+#|                                          `--'               `---'                    |#
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                                       Author                                         |#
+#|                                  =---=------=---=                                    |#
+#|                                   ChiefMoneyBags                                     |#
+#|                                                                                      |#
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                            <--Commands & Permissions-->                              |#
+#|                                                                                      |#
+##------------------------------+-------------------------------------------------------##
+#| /tempfly | /fly | /tf        | Allows user to toggle the use of temp flight.         |#
+#| tempfly.toggle.self          |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf toggle [player]          | Allows user to toggle anothers use of temp flight.    |#
+#| tempfly.toggle.other         |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf speed [speed]            | Allows user to change their fly speed.                |#
+#| tempfly.speed.[speed]        |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf time                     | Allow user to view thier remaining time.              |#
+#| tempfly.time.self            |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf time [player]            | Allow user to view another players remaining time.    |#
+#| tempfly.time.other           |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf pay [player]             | Allow user to pay another player time.                |#
+#| tempfly.pay                  |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf give [player] [amount]   | Allow user to give time.     valid arguments;         |#
+#| tempfly.give                 | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+#|                              | Ex: /tf give [player] -s 30 -m 30 -h 6 -d 1           |#
+##------------------------------+-------------------------------------------------------##
+#| /tf remove [player] [amount] | Allow user to remove time.   valid arguments;         |#
+#| tempfly.remove               | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+##------------------------------+-------------------------------------------------------##
+#| /tf set [player] [amount]    | Allow user to set time.      valid arguments;         |#
+#| tempfly.set                  | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+##------------------------------+-------------------------------------------------------##
+#| /tf help                     | Allow user to see the help page.                      |#
+#| tempfly.help                 |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| tempfly.help.admin           | Ability to see admin commands.                        |#
+##------------------------------+-------------------------------------------------------##
+#| tempfly.time.infinite        | Infinite fly time                                     |#
+##------------------------------+-------------------------------------------------------##
+
+system:
+  # Time in minutes to backup data
+  backup: 5
+
+general:
+  
+  # This feature prevents conflictions with other plugins fly features.
+  # If the player has a permission listed below tempfly will not override the command /fly
+  fly_override_permissions:
+    - 'essentials.fly'
+  
+  disabled:
+    worlds:
+      - 'example_world'
+    regions:
+      - 'test'
+  
+  timer:
+    # If false the player will not lose flight time if standing on the ground with flight enabled.
+    ground: false
+    # If false the player will not lose flight time if they go idle with flight enabled.
+    idle: false
+    
+  
+  idle:
+    # The threshold in seconds to consider a player idle.
+    threshold: 300
+    # If true players tempfly will be disabled if they go idle in the sky (dropping them).
+    drop_player: false
+  
+  time:
+    # If true players can send eachother time as if it were a currency.
+    payable: true
+    # The maximum time in seconds a player is allowed to have. -1 for no limit.
+    max_time: -1
+  
+  bonus:
+    # Time in seconds given to a player when they first join the server.
+    first_join: 0
+    # Time given to a player as a daily login bonus.
+    daily_login: 0
+    
+  time_decay:
+    # If enabled a player will lose time when logged off the server.
+    # Warning: This feature will affect player time even when the server is not running.
+    enabled: false
+    # The interval in which players will lose time
+    threshold: 3600
+    # Seconds lost per interval
+    seconds_lost: 15
+    
+  # relative time is a feature that lets you control how fast time will be used in worlds and regions.
+  # this can be useful for many things, for example, making time move slower on larger
+  # planets on a space themed server due to higher gravity
+  # In the example below;
+  # - time will pass '0.5' times or 50% slower than in real time on world 'example_world'
+  # - time will pass '1.5' times or 50% faster than in real time in region 'example_region'.
+  # If the player is in both 'example_world' and 'example_region' at once the values will
+  # be factored together resulting in a value of 1 which is real time.
+  relative_time:
+    worlds:
+      example_world: 0.5
+    regions:
+      example_region: 1.5
+        
+  disable_flight:
+    # if true, flight is disabled when the player attacks another player
+    attack_player: true
+    # if true, flight is disabled when the player attacks a mob
+    attack_mob: false
+    # if true, flight is disabled when the player is attacked by a player
+    attacked_by_player: true
+    # if true, flight is disabled when the player is attacked by a mob
+    attacked_by_mob: false
+    # Time in seconds before flight can be enabled again after pvp 
+    cooldown_pvp: 10
+    # Time in seconds before flight can be enabled again after pve 
+    cooldown_pve: 5
+    # If true the player will not need to re toggle flight after combat
+    auto_enable: true
+  
+  damage:
+    # If false the player will not take fall damage if flight is disabled by command
+    flight_disabled: false
+    # If false the player will not take fall damage if flight is disabled by running out of time
+    out_of_time: true
+    # If false the player will not take fall damage if flight is disabled by combat
+    combat: true
+    
+  # The maximum y level a player can reach before flight is disabled.
+  maximum_height: 275
+    
+aesthetic:
+  # Features that allow you to easily see if a player is flying using tempfly.
+  identifier:
+    tab_list:
+      enabled: true
+      # If enabled, the players name on tab will change to this when they are in tempflight.
+      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name on tab, including prefixes etc.
+      name: '&d~{OLD_TAG}'
+    name_tag:
+      enabled: true
+      # (Not currently compatible with plugin "essentials")
+      # If enabled, the players name tag will change to this when they are in tempflight.
+      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name tag, including prefixes etc.
+      name: '&d~{OLD_TAG}'
+    particles:
+      enabled: true
+      type: 'VILLAGER_HAPPY'
+      # If true particles will not be displayed if the player is vanished.
+      # Tested with plugins SuperVanish, PremiumVanish, VanishNoPacket.
+      hide_vanish: true
+  # Title to warn players of remaining flight time
+  warning:
+    # valid placeholders {SECONDS} {MINUTES} {HOURS} {DAYS}
+    title: '&cWARNING!'
+    subtitle: '&fYou have &c{SECONDS} &fseconds of flight remaining!'
+    # Time intervals in seconds to display the title to players.
+    # ONLY use numbers
+    seconds:
+      - 30
+      - 15
+      - 10
+      - 5
+  action_bar:
+    enabled: true
+    # If true the action bar will display a progress bar display of remaining time.
+    # If false it will display the text.
+    progress_bar: false
+    text: '&6Flight meter&7: {FORMATTED_TIME}'
+    
+hooks:
+  askyblock:
+    # This setting allows you to disable the askyblock hook even if you have askyblock on the server.
+    # If you simply want to disable flight in the askyblock world use the disabled worlds
+    # setting in the base plugin.
+    enable_hook: true
+    # The feature unlockables allows you to set island requirements to allow users
+    # flight on islands and elsewhere on the server.
+    # Island level is the minimum level the players island must be to 
+    # fly in the area. Challenges is a list of challenges that must be completed
+    # to fly in the area.
+    unlockables:
+      # Requirements needed for island members to fly in specified regions
+      regions:
+        super_awesome_vip_region:
+          island_level: 950
+          challenges:
+            - 'alchemist'
+            - 'dj'
+            - 'beaconator'
+      # Requirements needed for island members to fly in specified worlds
+      worlds:
+        example_world:
+          island_level: 1
+          challenges:
+            - ''
+      # requirements to fly when not on an island.
+      wilderness:
+        island_level: 0
+        challenges:
+          - ''
+      # requirements needed for the island owner to fly on the island
+      owner:
+        island_level: 1
+        challenges:
+          - ''
+      # Requirements needed for team members to fly on the island
+      team:
+        island_level: 5
+        challenges:
+          - 'breadmaker'
+      # Requirements needed for coop players to fly on the island
+      coop:
+        island_level: 15
+        challenges:
+          - 'papermaker'
+      # Requirements needed for visitors to fly on the island
+      visitor:
+        island_level: 25
+        challenges:
+          - 'stewmaker'
+    flight_settings:
+      # If false the player cannot fly when they are not on an island
+      wilderness: true
+      base_permissions:
+        # The following settings are the default values for the tempfly's island protection panel
+        # Island owners may allow or disallow players flight on their island. Changing these values
+        # WILL NOT effect islands that have already established their settings.
+        
+        # Team members can fly on the island
+        team: true
+        # Coop players can fly on the island
+        coop: true
+        # Visitors can fly on the island
+        visitor: false
+      
+        

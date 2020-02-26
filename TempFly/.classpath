@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="C:/development/Resources/spigot/spigot-1.12.2.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/WorldEdit.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/worldguard-6.2.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/MVdWPlaceholderAPI.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/PlaceholderAPI-2.9.1.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/1-13/worldguard-legacy-7.0.0-beta-03.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/1-13/worldedit-bukkit-7.0.0-beta-05.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/askyblock.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
