@@ -93,7 +93,8 @@ public class TempFly extends JavaPlugin {
 	public void onDisable() {
 		save();
 		for (Player p : Bukkit.getOnlinePlayers()) {
-			FlyHandle.addFlightDisconnect(p);	
+			FlyHandle.addFlightDisconnect(p);
+			GuiSession.endAllSessions();
 		}
 	}
 	
