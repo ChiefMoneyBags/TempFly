@@ -99,7 +99,6 @@ public class U {
 	}
 	
 	public static ItemStack getConfigItem(FileConfiguration config, String path) {
-		String item = config.getString(path + ".item", "1");
 		String name = config.getString(path + ".name", "&cThis item is broken. :'(");
 		int amount = config.getInt(path + ".amount", 1);
 		List<String> lore = config.getStringList(path + ".lore");
