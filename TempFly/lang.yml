@@ -19,6 +19,7 @@ system:
 
 general:
   invalid:
+    island: "{PREFIX} &You must have an island to do this."
     time_other: '{PREFIX} &f{PLAYER} &chas no more flight time!'
     time_self: '{PREFIX} &cYou have no more flight time!'
     number: '{PREFIX} &cPlease enter a valid number.'
