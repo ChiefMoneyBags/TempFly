@@ -17,7 +17,7 @@ public class IslandSettings {
 	
 	public IslandSettings(Location loc) {
 		this.island = ASkyBlockAPI.getInstance().getIslandAt(loc);
-		String l = U.locToString(loc);
+		String l = U.locationToString(loc);
 		AskyblockHook hook = TempFly.getAskyblockHook();
 		FileConfiguration data = hook.getIslandData();
 		if (!data.contains("islands." + l)) {
@@ -66,12 +66,14 @@ public class IslandSettings {
 	
 	public void setVisitorCanFly(boolean b) {
 		this.visitor = b;
+		U.logS("set: " + String.valueOf(b));
 		saveSettings();
 	}
 	
 	public void saveSettings() {
 		AskyblockHook hook = TempFly.getAskyblockHook();
-		Location l = island.getCenter();
+		Location loc = island.getCenter();
+		String l = U.locationToString(loc);
 		FileConfiguration data = hook.getIslandData();
 		data.set("islands." + l + ".team", team);
 		data.set("islands." + l + ".coop", coop);
