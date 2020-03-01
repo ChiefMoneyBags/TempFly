@@ -105,7 +105,7 @@ public class U {
 		List<String> lore = config.getStringList(path + ".lore");
 		List<String> l = new ArrayList<>();
 		
-		ItemStack it = new ItemStack(U.getMaterial(item), amount, U.getMaterialData(item));
+		ItemStack it = new ItemStack(Material.STONE, amount);
 		ItemMeta meta = it.getItemMeta();
 		
 		meta.setDisplayName(cc("&r" + name));
@@ -117,63 +117,8 @@ public class U {
 		}
 		it.setItemMeta(meta);
 		it.setAmount(amount);
-		
-		ConfigurationSection csEnchants = config.getConfigurationSection(path + ".enchantments");
-		if (csEnchants != null) {
-			for (String key: csEnchants.getKeys(false)) {
-				try {
-					it.addEnchantment(getEnchantment(key), config.getInt(path + ".enchantments." + key));
-				} catch (Exception e) {}
-			}
-		}
 		return it;
 	}
 	
-	@SuppressWarnings("deprecation")
-	public static Material getMaterial(String s){
-		Material mat = Material.STONE;
-		if (s == null) {
-			return mat;
-		}
-		String[] param = s.split("-");
-		try{
-			mat = Material.getMaterial(Integer.parseInt(param[0]));
-		} catch (Exception e){
-			try{
-				mat = Material.getMaterial(param[0]);
-			} catch (Exception ee){
-				try {
-					mat = Material.valueOf(param[0]);
-				} catch (Exception eee) {}
-			}
-		}
-		if (mat == null) {
-			mat = Material.STONE;
-		}
-		return mat;
-	}
 	
-	public static byte getMaterialData(String s){
-		byte data = 0;
-		if (s == null) {
-			return data;
-		}
-		String[] param = s.split("-");
-		try{
-			data = Byte.parseByte(param[1]);
-		} catch (Exception e){}
-		return data;
-	}
-	
-	@SuppressWarnings("deprecation")
-	public static Enchantment getEnchantment(String s) {
-		try {
-			return Enchantment.getByName(s.toUpperCase());
-		} catch (Exception e) {
-			try {
-				return Enchantment.getById(Integer.parseInt(s));	
-			} catch (Exception ee) {}
-		}
-		return null;
-	}
 }
