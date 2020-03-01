@@ -1,5 +1,8 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -28,8 +31,10 @@ public class CmdGive {
 			U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
 			return;
 		}
-		
-		double amount = CommandHandle.quantifyArguments(s, args);
+		List<String> a = Arrays.asList(args);
+		a.remove(0);
+		a.remove(0);
+		double amount = CommandHandle.quantifyArguments(s, a.toArray(new String[a.size()]));
 		if (amount == 0) {
 			return;
 		}
