@@ -52,7 +52,9 @@ public class GuiSession {
 			if (sessions.containsKey(e.getPlayer())) {
 				GuiSession session = sessions.get(e.getPlayer()); 
 				Page page = session.getPage();
-				page.onClose(e);
+				if (page != null) {
+					page.onClose(e);	
+				}
 				if (!session.saveSession()) {
 					sessions.remove(e.getPlayer());	
 				}
