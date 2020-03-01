@@ -272,16 +272,12 @@ public class AskyblockHook implements Listener {
 		if (ir.getRequiredLevel() > api.getLongIslandLevel(island.getOwner())) {
 			FlyHandle.removeFlyer(p);
 			U.m(p, V.flyRequirementFail);
-			U.logS(island.getOwner().toString());
-			U.logS(String.valueOf(api.getLongIslandLevel(island.getOwner())));
-			U.logS(String.valueOf(ir.getRequiredLevel()));
 			return false;
 		}
 		Map<String, Boolean> completed = api.getChallengeStatus(p.getUniqueId());
 		for (String challenge : ir.getRequiredChallenges()) {
 			if (completed != null && completed.containsKey(challenge) && completed.get(challenge).equals(false)) {
 				FlyHandle.removeFlyer(p);
-				U.m(p, V.flyRequirementFail);
 				return false;
 			}
 		}
