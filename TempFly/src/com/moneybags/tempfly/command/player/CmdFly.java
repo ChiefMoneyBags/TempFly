@@ -71,7 +71,7 @@ public class CmdFly {
 			if (e.isCancelled()) {
 				return;
 			}
-			FlyHandle.removeDamageProtction(p.getUniqueId());
+			FlyHandle.removeDamageProtction(p);
 			FlyHandle.addFlyer(p);
 			U.m(p, V.flyEnabledSelf);
 			if (args.length > 0) {
