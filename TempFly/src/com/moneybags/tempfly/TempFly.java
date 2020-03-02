@@ -15,6 +15,7 @@ import com.moneybags.tempfly.aesthetic.MvdWAPI;
 import com.moneybags.tempfly.command.CommandHandle;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.gui.GuiSession;
+import com.moneybags.tempfly.hook.WorldGuardAPI;
 import com.moneybags.tempfly.hook.askyblock.AskyblockHook;
 import com.moneybags.tempfly.tab.TabHandle;
 import com.moneybags.tempfly.util.AutoSave;
@@ -22,7 +23,6 @@ import com.moneybags.tempfly.util.F;
 import com.moneybags.tempfly.util.ParticleTask;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.WorldGuardAPI;
 
 public class TempFly extends JavaPlugin {
 	
