@@ -2,7 +2,6 @@ package com.moneybags.tempfly.fly;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +124,8 @@ public class FlyHandle implements Listener {
 		}.runTaskLater(TempFly.plugin, 120));
 	}
 	
-	public static void removeDamageProtction(UUID u) {
+	public static void removeDamageProtction(Player p) {
+		UUID u = p.getUniqueId();
 		if (prot.containsKey(u)) {
 			prot.get(u).cancel();
 			prot.remove(u);
@@ -149,8 +149,8 @@ public class FlyHandle implements Listener {
 		return flyers.containsKey(p) ? flyers.get(p) : null;
 	}
 	
-	public static Collection<Flyer> getFlyers() {
-		return flyers.values();
+	public static Flyer[] getFlyers() {
+		return flyers.values().toArray(new Flyer[flyers.size()]);
 	}
 	
 	public static boolean flyAllowed(Location loc) {
@@ -613,6 +613,6 @@ public class FlyHandle implements Listener {
 			return;
 		}
 		e.setCancelled(true);
-		removeDamageProtction(u);
+		removeDamageProtction(p);
 	}
 }
