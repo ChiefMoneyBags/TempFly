@@ -68,8 +68,6 @@ public class TempFly extends JavaPlugin {
 					}
 				}.runTaskLater(TempFly.plugin, 1);
 			}
-		}
-		for (Player p : Bukkit.getOnlinePlayers()) {
 			FlyHandle.regainFlightDisconnect(p);	
 		}
 	}
