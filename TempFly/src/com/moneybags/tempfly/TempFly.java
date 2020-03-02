@@ -27,13 +27,20 @@ import com.moneybags.tempfly.util.V;
 public class TempFly extends JavaPlugin {
 	
 	public static TempFly plugin;
+	public static TempFlyAPI tfApi;
 	public static AskyblockHook askyblockHook = null;
 	
 	public static double version;
 	
+	public static TempFlyAPI getAPI() {
+		return tfApi;
+	}
+	
 	@Override
 	public void onEnable() {
 		plugin = this;
+		tfApi = new TempFlyAPI();
+		
 		F.createFiles(this);
 		V.loadValues();
 		
