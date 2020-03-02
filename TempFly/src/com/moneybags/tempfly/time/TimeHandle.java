@@ -48,6 +48,7 @@ public class TimeHandle {
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		double bal = f == null ? data.getDouble(path) : f.getTime();
+		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
 		
 		
