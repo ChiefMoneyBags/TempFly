@@ -90,7 +90,7 @@ public class CommandHandle implements CommandExecutor, Listener {
 		double amount = 0;
 		
 		for (int i = 0; i < args.length; i++) {
-			if (i < 3) {
+			if (i < 2) {
 				continue;
 			}
 			String arg = args[i];
