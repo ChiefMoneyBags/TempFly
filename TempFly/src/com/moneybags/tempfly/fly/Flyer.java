@@ -51,12 +51,31 @@ public class Flyer {
 		this.timer = new Timer().runTaskTimer(TempFly.plugin, 0, 20);
 	}
 	
+	
+	/**
+	 * It is not reccomended to use methods outside of this area unless you
+	 * know what you are doing.
+	 */
+	
+	
 	public boolean isFlying() {
 		return p.isFlying();
 	}
 	
 	public boolean isIdle() {
 		return idle >= V.idleThreshold;
+	}
+	
+	public void resetIdleTimer() {
+		this.idle = 0;
+	}
+	
+	public RelativeTimeRegion[] getRtEncompassing() {
+		return rtEncompassing.toArray(new RelativeTimeRegion[rtEncompassing.size()]);
+	}
+	
+	public Player getPlayer() {
+		return p;
 	}
 	
 	public double getTime() {
@@ -68,13 +87,11 @@ public class Flyer {
 		this.start = time;
 	}
 	
-	public void resetIdleTimer() {
-		this.idle = 0;
-	}
+	/*
+	 * 
+	 * 
+	 */
 	
-	public List<RelativeTimeRegion> getRtEncompassing() {
-		return rtEncompassing;
-	}
 	
 	public void asessRtWorlds() {
 		for (RelativeTimeRegion rt : FlyHandle.getRtRegions()) {
@@ -108,7 +125,7 @@ public class Flyer {
 			if ((regions.contains(rtName)) && !(rtEncompassing.contains(rt))) {
 				rtEncompassing.add(rt);
 			} else if (!(regions.contains(rtName)) && (rtEncompassing.contains(rt))) {
-			 rtEncompassing.remove(rt);	
+				rtEncompassing.remove(rt);	
 			}
 		}
 	}
@@ -123,10 +140,6 @@ public class Flyer {
 		}
 		p.setFlying(false);
 		p.setAllowFlight(false);
-	}
-	
-	public Player getPlayer() {
-		return p;
 	}
 	
 	public void playEffect() {
