@@ -14,11 +14,12 @@ import org.bukkit.scheduler.BukkitTask;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
+import com.moneybags.tempfly.hook.WorldGuardAPI;
 import com.moneybags.tempfly.time.RelativeTimeRegion;
 import com.moneybags.tempfly.time.TimeHandle;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.WorldGuardAPI;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class Flyer {
@@ -92,8 +93,11 @@ public class Flyer {
 	public void asessRtRegions() {
 		List<String> regions = new ArrayList<>();
 		if (WorldGuardAPI.isEnabled()) {
-			for(ProtectedRegion r : WorldGuardAPI.getRegionSet(p.getLocation())) {
-				regions.add(r.getId());
+			ApplicableRegionSet prot = WorldGuardAPI.getRegionSet(p.getLocation());
+			if (prot != null) {
+				for(ProtectedRegion r : prot) {
+					regions.add(r.getId());
+				}	
 			}
 		}	
 		for (RelativeTimeRegion rt : FlyHandle.getRtRegions()) {
