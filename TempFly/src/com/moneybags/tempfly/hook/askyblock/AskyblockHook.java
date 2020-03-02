@@ -36,8 +36,6 @@ import com.wasteofplastic.askyblock.events.IslandEnterEvent;
 import com.wasteofplastic.askyblock.events.IslandExitEvent;
 
 public class AskyblockHook implements Listener {
-
-	private boolean enabled;
 	
 	private File askyblockdataf;
 	
