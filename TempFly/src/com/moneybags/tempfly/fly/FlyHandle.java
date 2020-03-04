@@ -397,6 +397,9 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void addFlightDisconnect(Player p) {
+		if (!flyers.containsKey(p)) {
+			return;
+		}
 		List<String> l = null;
 		if (F.data.contains("flight_disconnect")) {
 			l = F.data.getStringList("flight_disconnect");
@@ -410,7 +413,7 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void regainFlightDisconnect(Player p) {
-		if (!flyers.containsKey(p)) {
+		if ((!flyers.containsKey(p))) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -420,7 +423,7 @@ public class FlyHandle implements Listener {
 						p.setAllowFlight(false);
 					}
 					List<String> l = F.data.getStringList("flight_disconnect");
-					if (l.contains(p.getUniqueId().toString())) {
+					if (l.contains(p.getUniqueId().toString()) && (TimeHandle.getTime(p.getUniqueId()) > 0)) {
 						addFlyer(p);
 						l.remove(p.getUniqueId().toString());
 						F.data.set("flight_disconnect", l);
