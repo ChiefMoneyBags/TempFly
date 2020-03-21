@@ -220,10 +220,10 @@ public class FlyHandle implements Listener {
 		switch (type) {
 		case TIME_FORMATTED:
 		{
-			double days = TimeHandle.formatTime(TimeUnit.DAYS, supply);
-			double hours = TimeHandle.formatTime(TimeUnit.HOURS, supply);
-			double minutes = TimeHandle.formatTime(TimeUnit.MINUTES, supply);
-			double seconds = TimeHandle.formatTime(TimeUnit.SECONDS, supply);
+			long days = TimeHandle.formatTime(TimeUnit.DAYS, supply);
+			long hours = TimeHandle.formatTime(TimeUnit.HOURS, supply);
+			long minutes = TimeHandle.formatTime(TimeUnit.MINUTES, supply);
+			long seconds = TimeHandle.formatTime(TimeUnit.SECONDS, supply);
 			String s = "";
 			boolean i = U.hasPermission(p, "tempfly.time.infinite");
 			if (days > 0) {
@@ -242,22 +242,22 @@ public class FlyHandle implements Listener {
 		}
 		case TIME_DAYS:
 		{
-			double days = TimeHandle.formatTime(TimeUnit.DAYS, supply);
+			long days = TimeHandle.formatTime(TimeUnit.DAYS, supply);
 			return String.valueOf(days);
 		}
 		case TIME_HOURS:
 		{
-			double hours = TimeHandle.formatTime(TimeUnit.HOURS, supply);
+			long hours = TimeHandle.formatTime(TimeUnit.HOURS, supply);
 			return String.valueOf(hours);
 		}
 		case TIME_MINUTES:
 		{
-			double minutes = TimeHandle.formatTime(TimeUnit.MINUTES, supply);
+			long minutes = TimeHandle.formatTime(TimeUnit.MINUTES, supply);
 			return String.valueOf(minutes);
 		}
 		case TIME_SECONDS:
 		{
-			double seconds = TimeHandle.formatTime(TimeUnit.SECONDS, supply);
+			long seconds = TimeHandle.formatTime(TimeUnit.SECONDS, supply);
 			return String.valueOf(seconds);
 		}
 		default:
