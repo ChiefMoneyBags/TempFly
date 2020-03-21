@@ -14,6 +14,7 @@ import org.bukkit.scheduler.BukkitTask;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
+import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.hook.WorldGuardAPI;
 import com.moneybags.tempfly.time.RelativeTimeRegion;
 import com.moneybags.tempfly.time.TimeHandle;
@@ -158,7 +159,7 @@ public class Flyer {
 				U.logW("A particle effect listed in the config does not exist, please ensure you are using the correct particle for your server version.: (" + V.particleType + ")");
 				particle = Particle.VILLAGER_HAPPY;
 			}
-			p.getWorld().spawnParticle(particle, p.getLocation(), 1, 0.1, 0.1, 0.1);	
+			Particles.play(p.getLocation(), Particle.REDSTONE);
 		} else {
 			Effect particle = null;
 			try {
