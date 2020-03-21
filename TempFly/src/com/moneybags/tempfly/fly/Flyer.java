@@ -159,7 +159,7 @@ public class Flyer {
 				U.logW("A particle effect listed in the config does not exist, please ensure you are using the correct particle for your server version.: (" + V.particleType + ")");
 				particle = Particle.VILLAGER_HAPPY;
 			}
-			Particles.play(p.getLocation(), Particle.REDSTONE);
+			Particles.play(p.getLocation(), particle);
 		} else {
 			Effect particle = null;
 			try {
