@@ -16,7 +16,7 @@ import com.moneybags.tempfly.util.V;
 public class CmdGiveAll {
 
 	public CmdGiveAll(CommandSender s, String[] args) {
-		if (!U.hasPermission(s, "tempfly.give")) {
+		if (!U.hasPermission(s, "tempfly.giveall")) {
 			U.m(s, V.invalidPermission);
 			return;
 		}
