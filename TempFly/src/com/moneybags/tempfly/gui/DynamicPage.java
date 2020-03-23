@@ -5,14 +5,18 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class DynamicPage {
+public abstract class DynamicPage extends Page {
 
 	//Page number
 	private int num;
 	private List<Integer> open = new ArrayList<>();
 	private int rows = 3;
 	
-	public DynamicPage(int num, int items) {
+	public DynamicPage(GuiSession session) {
+		super(session);
+	}
+	
+	public void calculateSlots(int num, int items) {
 		this.num = num;
 		
 		int skip = 21 * num;
@@ -63,6 +67,10 @@ public class DynamicPage {
 	
 	public int getPageNumber() {
 		return num;
+	}
+	
+	public void setPageNumber(int num) {
+		this.num = num;
 	}
 	
 	public List<Integer> getOpenSlots() {
