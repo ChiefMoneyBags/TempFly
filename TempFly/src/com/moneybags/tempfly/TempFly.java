@@ -15,6 +15,7 @@ import com.moneybags.tempfly.aesthetic.MvdWAPI;
 import com.moneybags.tempfly.command.CommandHandle;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.gui.GuiSession;
+import com.moneybags.tempfly.gui.pages.PageTrails;
 import com.moneybags.tempfly.hook.WorldGuardAPI;
 import com.moneybags.tempfly.hook.askyblock.AskyblockHook;
 import com.moneybags.tempfly.tab.TabHandle;
@@ -43,6 +44,7 @@ public class TempFly extends JavaPlugin {
 		
 		F.createFiles(this);
 		V.loadValues();
+		PageTrails.initialize();
 		
 		WorldGuardAPI.initialize();
 		ActionBarAPI.initialize();
