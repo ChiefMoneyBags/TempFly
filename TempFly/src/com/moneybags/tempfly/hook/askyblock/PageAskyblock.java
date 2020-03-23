@@ -17,9 +17,8 @@ import com.moneybags.tempfly.util.V;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
 
-public class PageAskyblock implements Page {
+public class PageAskyblock extends Page {
 	
-	private GuiSession session;
 	private Inventory inv;
 	
 	private static String title;
@@ -43,7 +42,7 @@ public class PageAskyblock implements Page {
 		allowed = U.getConfigItem(config, path + ".allowed");
 		disallowed = U.getConfigItem(config, path + ".disallowed");
 		
-		CompatMaterial.setType(background, CompatMaterial.LIGHT_GRAY_STAINED_GLASS_PANE);
+		CompatMaterial.setType(background, CompatMaterial.GRAY_STAINED_GLASS_PANE);
 		CompatMaterial.setType(toolbar, CompatMaterial.BLACK_STAINED_GLASS_PANE);
 		CompatMaterial.setType(team, CompatMaterial.DIAMOND);
 		CompatMaterial.setType(coop, CompatMaterial.EMERALD);
@@ -53,7 +52,7 @@ public class PageAskyblock implements Page {
 	}
 	
 	public PageAskyblock(GuiSession session) {
-		this.session = session;
+		super(session);
 		AskyblockHook hook = TempFly.getAskyblockHook();
 		Island island = ASkyBlockAPI.getInstance().getIslandOwnedBy(session.getPlayer().getUniqueId());
 		IslandSettings settings = hook.getIslandSettings(island);
@@ -119,15 +118,5 @@ public class PageAskyblock implements Page {
 			new PageAskyblock(session);
 			break;
 		}
-	}
-
-	@Override
-	public GuiSession getSession() {
-		return session;
-	}
-
-	@Override
-	public int getPageNumber() {
-		return 1;
 	}
 }
