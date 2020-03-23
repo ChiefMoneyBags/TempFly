@@ -86,26 +86,18 @@ public class FlyHandle implements Listener {
 	public static void save() {
 		FileConfiguration data = F.data;
 		for (Flyer f: flyers.values()) {
-			String path = "players." + f.getPlayer().getUniqueId().toString();
-			double time = f.getTime();
-			if (time > 0) {
-				data.set(path, time);
-			} else {
-				data.set(path, null);	
-			}
+			String path = "players." + f.getPlayer().getUniqueId().toString() + ".time";
+			double time = f.getTime();	
+			data.set(path, time);
 		}
 		F.saveData();
 	}
 	
 	public static void save(Flyer f) {
 		FileConfiguration data = F.data;
-		String path = "players." + f.getPlayer().getUniqueId().toString();
+		String path = "players." + f.getPlayer().getUniqueId().toString() + ".time";
 		double time = f.getTime();
-		if (time > 0) {
-			data.set(path, time);
-		} else {
-			data.set(path, null);	
-		}
+		data.set(path, time);
 		F.saveData();
 	}
 	
@@ -393,27 +385,19 @@ public class FlyHandle implements Listener {
 		Player p = e.getPlayer();
 		if (getFlyer(p) != null) {
 			addFlightDisconnect(p);
+			removeFlyer(p);
 		}
 	}
 	
 	public static void addFlightDisconnect(Player p) {
-		if (!flyers.containsKey(p)) {
+		if (!flyers.containsKey(p)) 
 			return;
-		}
-		List<String> l = null;
-		if (F.data.contains("flight_disconnect")) {
-			l = F.data.getStringList("flight_disconnect");
-		} else {
-			l = new ArrayList<>();
-		}
-		l.add(p.getUniqueId().toString());
-		F.data.set("flight_disconnect", l);
+		F.data.set("players." + p.getUniqueId() + ".logged_in_flight", true);
 		F.saveData();
-		removeFlyer(p);	
 	}
 	
 	public static void regainFlightDisconnect(Player p) {
-		if ((!flyers.containsKey(p))) {
+		if (!flyers.containsKey(p)) {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
@@ -422,11 +406,9 @@ public class FlyHandle implements Listener {
 						p.setFlying(false);
 						p.setAllowFlight(false);
 					}
-					List<String> l = F.data.getStringList("flight_disconnect");
-					if (l.contains(p.getUniqueId().toString()) && (TimeHandle.getTime(p.getUniqueId()) > 0)) {
+					if (F.data.getBoolean("players." + p.getUniqueId() + ".logged_in_flight") && (TimeHandle.getTime(p.getUniqueId()) > 0)) {
 						addFlyer(p);
-						l.remove(p.getUniqueId().toString());
-						F.data.set("flight_disconnect", l);
+						F.data.set("players." + p.getUniqueId() + ".logged_in_flight", false);
 						F.saveData();
 					}
 				}
