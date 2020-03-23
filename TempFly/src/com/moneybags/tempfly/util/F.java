@@ -2,11 +2,20 @@ package com.moneybags.tempfly.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
+
+import com.moneybags.tempfly.TempFly;
 
 public class F {
 
@@ -81,6 +90,7 @@ public class F {
 	    	U.logS("There is a problem inside the page.yml, If you cannot fix the issue, please contact the developer.");
 	        e1.printStackTrace();
 	    }
+	    formatDataFile();
 	}
 	
 	public static void saveData() {
@@ -89,6 +99,56 @@ public class F {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+	private static void formatDataFile() {
+		double version = data.getDouble("version", 0.0);
+		if (version < 2.0) {
+			U.logW("Your data file needs to update to support the current version. Updating to version 2.0 now...");
+			if (!createBackup()) {
+				Bukkit.getPluginManager().disablePlugin(TempFly.plugin);
+				return;
+			}
+			
+			data.set("version", 2.0);
+			ConfigurationSection csPlayers = data.getConfigurationSection("players");
+			if (csPlayers != null) {
+				Map<String, Double> time = new HashMap<>();
+				for (String key: csPlayers.getKeys(false)) {
+					time.put(key, data.getDouble("players." + key));
+				}
+				for (Entry<String, Double> entry: time.entrySet()) {
+					String uuid = entry.getKey();
+					double value = entry.getValue();
+					data.set("players." + uuid + ".time", value);
+					data.set("players." + uuid + ".logged_in_flight", false);
+					data.set("players." + uuid + ".trail", "");
+				}	
+			}
+			List<String> disco = data.getStringList("flight_disconnect");
+			if (disco != null) {
+				for (String uuid: disco) {
+					data.set("players." + uuid + ".logged_in_flight", true);
+				}
+			}
+			data.set("flight_disconnect", null);
+			saveData();
+		}
+	}
+	
+	private static boolean createBackup() {
+		U.logI("Creating a backup of your data file...");
+		File f = new File(TempFly.plugin.getDataFolder(), "data_backup_" + UUID.randomUUID().toString() + ".yml");
+		try {
+			data.save(f);
+		} catch (Exception e) {
+			U.logS(U.cc("&c-----------------------------------"));
+			U.logS("There was an error while trying to backup the data file");
+			U.logS("For your safety the plugin will disable. Please contact the developer.");
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 	
 }
