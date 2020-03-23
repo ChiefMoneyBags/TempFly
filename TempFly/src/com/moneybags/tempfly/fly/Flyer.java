@@ -3,9 +3,7 @@ package com.moneybags.tempfly.fly;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Effect;
 import org.bukkit.GameMode;
-import org.bukkit.Particle;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -26,13 +24,19 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 public class Flyer {
 	
 	private Player p;
-	private double time;
-	private double start;
 	private int idle = 0;
 	private BukkitTask timer;
-	private String listName;
-	private String tagName;
 	private List<RelativeTimeRegion> rtEncompassing = new ArrayList<>();
+	
+	private double
+		time, 
+		start;
+	
+	private String
+		listName,
+		tagName,
+		particle;
+	
 	
 	public Flyer(Player p) {
 		this.p = p;
@@ -40,6 +44,7 @@ public class Flyer {
 		this.start = time;
 		this.listName = p.getPlayerListName();
 		this.tagName = p.getDisplayName();
+		this.particle = Particles.loadTrail(p.getUniqueId());
 		p.setAllowFlight(true);
 		if (!p.isOnGround()) {
 			p.setFlying(true);	
@@ -143,7 +148,24 @@ public class Flyer {
 		p.setAllowFlight(false);
 	}
 	
-	public void playEffect() {
+	/**
+	 * This method returns a string to keep the plugin compatible through versions.
+	 * @return The enum string representation of the particle
+	 */
+	public String getTrail() {
+		return particle;
+	}
+	
+	/**
+	 *  This method requires a string to keep the plugin compatible through versions.
+	 *  The enum value of the particle as a string
+	 * @param particle
+	 */
+	public void setTrail(String particle) {
+		this.particle = particle;
+	}
+	
+	public void playTrail() {
 		if (V.hideVanish) {
 			for (MetadataValue meta : p.getMetadata("vanished")) {
 				if (meta.asBoolean()) {
@@ -151,25 +173,7 @@ public class Flyer {
 				}
 			}
 		}
-		if (!TempFly.oldParticles()) {
-			Particle particle = null;
-			try {
-				particle = Particle.valueOf(V.particleType.toUpperCase());
-			} catch (Exception e) {
-				U.logW("A particle effect listed in the config does not exist, please ensure you are using the correct particle for your server version.: (" + V.particleType + ")");
-				particle = Particle.VILLAGER_HAPPY;
-			}
-			Particles.play(p.getLocation(), particle);
-		} else {
-			Effect particle = null;
-			try {
-				particle = Effect.valueOf(V.particleType.toUpperCase());
-			} catch (Exception e) {
-				//U.logW("A particle effect listed in the config does not exist: (" + V.particleType + ")");
-				particle = Effect.valueOf("HAPPY_VILLAGER");
-			}
-			p.getWorld().playEffect(p.getLocation(), particle, 2);
-		}
+		Particles.play(p.getLocation(), particle);
 	}
 	
 	private void updateList(boolean kill) {
