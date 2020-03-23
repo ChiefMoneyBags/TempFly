@@ -15,7 +15,7 @@ public class TimeHandle {
 
 	public static double getTime(UUID u) {
 		FileConfiguration data = F.data;
-		String path = "players." + u.toString();
+		String path = "players." + u.toString() + ".time";
 		
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
@@ -28,7 +28,7 @@ public class TimeHandle {
 	
 	public static void removeTime(UUID u, double seconds) {
 		FileConfiguration data = F.data;
-		String path = "players." + u.toString();
+		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		double bal = f == null ? data.getDouble(path) : f.getTime();
@@ -44,7 +44,7 @@ public class TimeHandle {
 	
 	public static void addTime(UUID u, double seconds) {
 		FileConfiguration data = F.data;
-		String path = "players." + u.toString();
+		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		double bal = f == null ? data.getDouble(path) : f.getTime();
@@ -62,7 +62,7 @@ public class TimeHandle {
 	
 	public static void setTime(UUID u, double seconds) {
 		FileConfiguration data = F.data;
-		String path = "players." + u.toString();
+		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		if (f != null) {
