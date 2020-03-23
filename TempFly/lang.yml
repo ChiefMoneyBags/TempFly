@@ -24,7 +24,7 @@ general:
     time_self: '{PREFIX} &cYou have no more flight time!'
     number: '{PREFIX} &cPlease enter a valid number.'
     player: '{PREFIX} &cThe specified player was not found.'
-    permission: '{PREFIX} You have insufficient permissions.'
+    permission: '{PREFIX} &cYou have insufficient permissions.'
     command: '&fUnknown command. Type "/help" for help.'
     reciever: '{PREFIX} &cYou cannot pay yourself!'
     sender: '{PREFIX} &cOnly players can use this command!'
