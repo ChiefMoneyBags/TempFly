@@ -11,7 +11,7 @@ public class ParticleTask extends BukkitRunnable {
 	public void run() {
 		for (Flyer f: FlyHandle.getFlyers()) {
 			if (f.isFlying()) {
-				f.playEffect();
+				f.playTrail();
 			}
 		}
 	}
