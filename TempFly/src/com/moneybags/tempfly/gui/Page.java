@@ -4,16 +4,32 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 
 
-public interface Page {
+public abstract class Page {
 
-	abstract void runPage(int slot, InventoryClickEvent e);
+	private int num;
+	protected GuiSession session;
 	
-	abstract GuiSession getSession();
+	public Page(GuiSession session, int num) {
+		this.session = session;
+		this.num = num;
+	}
 	
-	abstract int getPageNumber();
+	public Page(GuiSession session) {
+		this.session = session;
+	}
 	
-	default void onClose(InventoryCloseEvent e) {
+	public GuiSession getSession() {
+		return session;
+	}
+	
+	public int getPageNumber() {
+		return num;
+	}
+	
+	public void onClose(InventoryCloseEvent e) {
 		return;
 	}
+	
+	public abstract void runPage(int slot, InventoryClickEvent e);
 	
 }
