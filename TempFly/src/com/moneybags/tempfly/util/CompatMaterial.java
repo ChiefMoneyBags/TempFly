@@ -5,13 +5,15 @@ import org.bukkit.inventory.ItemStack;
 
 public enum CompatMaterial {
 
-	LIGHT_GRAY_STAINED_GLASS_PANE("STAINED_GLASS_PANE", (short)7),
+	GRAY_STAINED_GLASS_PANE("STAINED_GLASS_PANE", (short)7),
 	BLACK_STAINED_GLASS_PANE("STAINED_GLASS_PANE", (short)15),
+	LIME_STAINED_GLASS("STAINED_GLASS", (short)5),
 	RED_WOOL("WOOL", (short)14),
 	LIME_WOOL("WOOL", (short)5),
 	EMERALD,
 	DIAMOND,
-	COAL;
+	COAL,
+	REDSTONE_TORCH("REDSTONE_TORCH_ON", (short)0);
 	
 	private String oldMaterial;
 	private short oldData;
@@ -25,13 +27,15 @@ public enum CompatMaterial {
 		
 	}
 	
-	public ItemStack get(CompatMaterial mat) {
+	@SuppressWarnings("deprecation")
+	public static ItemStack get(CompatMaterial mat) {
 		try {
 			return new ItemStack(Material.valueOf(mat.toString()));
 		} catch (Exception e) {}
 		try {
-			return new ItemStack(Material.valueOf(oldMaterial), oldData);
-		} catch (Exception e) {}
+			return new ItemStack(Material.valueOf(mat.oldMaterial), 1, mat.oldData);
+		} catch (Exception e) {
+		}
 		return null;
 	}
 	
