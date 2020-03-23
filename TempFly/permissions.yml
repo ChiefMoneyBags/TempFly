@@ -1,0 +1,57 @@
+##------------------------------+-------------------------------------------------------##
+#| /tempfly | /fly | /tf        | Allows user to toggle the use of temp flight.         |#
+#| tempfly.toggle.self          |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf toggle [player]          | Allows user to toggle anothers use of temp flight.    |#
+#| tempfly.toggle.other         |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf speed [speed]            | Allows user to change their fly speed.                |#
+#| tempfly.speed.[speed]        |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf time                     | Allow user to view thier remaining time.              |#
+#| tempfly.time.self            |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf time [player]            | Allow user to view another players remaining time.    |#
+#| tempfly.time.other           |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf pay [player]             | Allow user to pay another player time.                |#
+#| tempfly.pay                  |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf give [player] [amount]   | Allow user to give time.     valid arguments;         |#
+#| tempfly.give                 | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+#|                              | Ex: /tf give [player] -s 30 -m 30 -h 6 -d 1           |#
+##------------------------------+-------------------------------------------------------##
+#| /tf giveall                  | Gives all users on the server time                    |#
+#| tempfly.giveall              |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf remove [player] [amount] | Allow user to remove time.   valid arguments;         |#
+#| tempfly.remove               | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+##------------------------------+-------------------------------------------------------##
+#| /tf set [player] [amount]    | Allow user to set time.      valid arguments;         |#
+#| tempfly.set                  | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
+##------------------------------+-------------------------------------------------------##
+#| /tf help                     | Allow user to see the help page.                      |#
+#| tempfly.help                 |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| /tf trails                   | Allow user access to the praticle trail gui           |#
+#| tempfly.trails               |                                                       |#
+##------------------------------+-------------------------------------------------------##
+#| tempfly.trail.{particle}     | Gives user access to use individual trails            |#
+#+------------------------------+-------------------------------------------------------+#                              
+#|  Servers using old versions of spigot will need to use the 'Effect' list for trails  |#
+#|           OLD VERSIONS = https://helpch.at/docs/1.8/org/bukkit/Effect.html           |#
+#|                                                                                      |#
+#|                                  Newer versions                                      |#
+#|         https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html            |#
+##------------------------------+-------------------------------------------------------##
+#| tempfly.help.admin           | Ability to see admin commands.                        |#
+##------------------------------+-------------------------------------------------------##
+#| tempfly.time.infinite        | Infinite fly time                                     |#
+##------------------------------+-------------------------------------------------------##
+#|                                                                                      |#
+#|                                       Hooks                                          |#
+#|                                                                                      |#
+##------------------------------+-------------------------------------------------------##
+#| /tf settings                 | Allows island owners to adjust fly settings on        |#
+#| tempfly.askyblock.panel      | their island.                                         |#
+##------------------------------+-------------------------------------------------------##
