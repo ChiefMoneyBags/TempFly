@@ -2,7 +2,6 @@ package com.moneybags.tempfly.command;
 
 import java.util.Arrays;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 
 import com.moneybags.tempfly.command.admin.CmdGive;
+import com.moneybags.tempfly.command.admin.CmdGiveAll;
 import com.moneybags.tempfly.command.admin.CmdReload;
 import com.moneybags.tempfly.command.admin.CmdRemove;
 import com.moneybags.tempfly.command.admin.CmdSet;
@@ -22,6 +22,7 @@ import com.moneybags.tempfly.command.player.CmdHelp;
 import com.moneybags.tempfly.command.player.CmdPay;
 import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
+import com.moneybags.tempfly.command.player.CmdTrails;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -45,6 +46,9 @@ public class CommandHandle implements CommandExecutor, Listener {
 			case "add":
 				new CmdGive(s, args);
 				break;
+			case "giveall":
+				new CmdGiveAll(s, args);
+				break;
 			case "remove":
 			case "take":
 				new CmdRemove(s, args);
@@ -67,6 +71,11 @@ public class CommandHandle implements CommandExecutor, Listener {
 			case "speed":
 			case "momentum":
 				new CmdSpeed(s, args);
+				break;
+			case "trail":
+			case "trails":
+			case "particle":
+				new CmdTrails(s);
 				break;
 			case "reload":
 				new CmdReload(s);
