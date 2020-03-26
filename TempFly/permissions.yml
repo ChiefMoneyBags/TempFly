@@ -32,7 +32,7 @@ tempfly.give:
 
 tempfly.giveall:
   desc: Gives all users on the server time
-  command: /tf giveall
+  command: /tf giveall [player] [amount]
 
 tempfly.remove:
   desc: Allow user to remove time. valid arguments; [s {secs}] [m {mins}] [h {hours}] [d {days}]
