@@ -205,6 +205,24 @@ aesthetic:
     progress_bar: false
     text: '&6Flight meter&7: {FORMATTED_TIME}'
     
+shop:
+  general:
+    # If false the built in shop will not exist.
+    enabled: false
+  # You can add as many options with any name you want
+  options:
+    five_mins:
+      # The time to give the player in seconds
+      time: 300
+      # The cost of the time, right now only vault is supported.
+      cost: 7500
+    thirty_mins:
+      time: 1800
+      cost: 30000
+    one_hour:
+      time: 3600
+      cost: 50000
+
 hooks:
   askyblock:
     # This setting allows you to disable the askyblock hook even if you have askyblock on the server.
