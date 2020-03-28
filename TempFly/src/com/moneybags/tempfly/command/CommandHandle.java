@@ -20,6 +20,7 @@ import com.moneybags.tempfly.command.player.CmdAskyblock;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
 import com.moneybags.tempfly.command.player.CmdPay;
+import com.moneybags.tempfly.command.player.CmdShop;
 import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
@@ -76,6 +77,11 @@ public class CommandHandle implements CommandExecutor, Listener {
 			case "trails":
 			case "particle":
 				new CmdTrails(s);
+				break;
+			case "shop":
+			case "buy":
+			case "purchase":
+				new CmdShop(s);
 				break;
 			case "reload":
 				new CmdReload(s);
