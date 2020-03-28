@@ -91,11 +91,17 @@ public class PageTrails extends DynamicPage {
 		particles = particles.subList(21 * num, particles.size());
 		Iterator<String> itp = particles.iterator();
 		Iterator<Integer> its = super.getOpenSlots().iterator();
+		String current = Particles.loadTrail(session.getPlayer().getUniqueId());
 		while (its.hasNext() && itp.hasNext()) {
 			int slot = its.next();
 			String particle = itp.next();
 			layout.put(slot, particle);
-			ItemStack display = CompatMaterial.get(CompatMaterial.LIME_STAINED_GLASS);
+			ItemStack display;
+			if (particle.equalsIgnoreCase(current)) {
+				display = CompatMaterial.get(CompatMaterial.LIME_STAINED_GLASS);
+			} else {
+				display = CompatMaterial.get(CompatMaterial.WHITE_STAINED_GLASS);
+			}
 			ItemMeta meta = display.getItemMeta();
 			meta.setDisplayName(U.cc("&a" + particle.toLowerCase().replaceAll("\\_", " ")));
 			display.setItemMeta(meta);
@@ -119,6 +125,7 @@ public class PageTrails extends DynamicPage {
 			Flyer f = FlyHandle.getFlyer(session.getPlayer());
 			if (f != null) {
 				f.setTrail(s);
+				new PageTrails(session, getPageNumber());
 			}
 		} else if (slot == 53 && allParticles.size() > (getPageNumber()+1)*21) {
 			new PageTrails(session, getPageNumber()+1);
