@@ -10,5 +10,7 @@
 	<classpathentry kind="lib" path="C:/development/Resources/1-13/worldedit-bukkit-7.0.0-beta-05.jar"/>
 	<classpathentry kind="lib" path="C:/development/Resources/askyblock.jar"/>
 	<classpathentry kind="lib" path="C:/grinder/spigot-1.15.2.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/db/mysql-connector-java-8.0.19.jar"/>
+	<classpathentry kind="lib" path="C:/development/Resources/1-15/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
