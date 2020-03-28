@@ -31,6 +31,7 @@ general:
     flyer_self: '{PREFIX} &cYou are not flying!'
     zone_self: '{PREFIX} &cYou cannot use tempfly here!'
     zone_other: '{PRFIX} &f{PLAYER} &ccannot currently use tempfly!'
+    funds: '{PREFIX} &cThis costs &f{COST}&c! You do not have enough money!'
     
   time:
     format: '&f{QUANTITY}&f{UNIT}'
@@ -47,6 +48,7 @@ general:
     decay: '{PREFIX} &cYou lost {FORMATTED_TIME} &cfor inactivity!'
     first_join: '{PREFIX} &aYou recieved {FORMATTED_TIME} &aof flight time. Fly with &f/tf&a.'
     daily_login: '{PREFIX} &aYou recieved a daily bonus of {FORMATTED_TIME}&a!'
+    purchased: '{PREFIX} &aYou purchased {FORMATTED_TIME} &afor &e${COST}&a!'
   
   info:
     header: '&8&m--------&dTime&8&m--------'
