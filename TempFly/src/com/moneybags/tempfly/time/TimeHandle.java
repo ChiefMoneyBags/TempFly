@@ -36,10 +36,9 @@ public class TimeHandle {
 		
 		if (f != null) {
 			f.setTime(remaining);
-		} else {
-			data.set(path, remaining);
-			F.saveData();
-		}
+		} 
+		data.set(path, remaining);
+		F.saveData();
 	}
 	
 	public static void addTime(UUID u, double seconds) {
@@ -54,10 +53,9 @@ public class TimeHandle {
 		
 		if (f != null) {
 			f.setTime(remaining);
-		} else {
-			data.set(path, remaining);
-			F.saveData();
 		}
+		data.set(path, remaining);
+		F.saveData();
 	}
 	
 	public static void setTime(UUID u, double seconds) {
@@ -67,10 +65,10 @@ public class TimeHandle {
 		
 		if (f != null) {
 			f.setTime(seconds);
-		} else {
-			data.set(path, seconds);
-			F.saveData();
+			
 		}
+		data.set(path, seconds);
+		F.saveData();
 	}
 	
 	public static String regexString(String s, double seconds) {
