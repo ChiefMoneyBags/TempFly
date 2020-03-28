@@ -50,6 +50,10 @@ tempfly.help.admin:
   desc: Allow user to see the help page with admin commands.
   command: /tf help
 
+tempfly.shop:
+  desc: Allow user to open the tempfly shop
+  command: /tf shop
+
 tempfly.time.infinite:
   desc: Infinite fly time
 
