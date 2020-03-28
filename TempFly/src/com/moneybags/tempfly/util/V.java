@@ -26,6 +26,7 @@ public class V {
 	invalidZoneOther,
 	invalidZoneSelf,
 	invalidIsland,
+	invalidFunds,
 	
 	timeGivenOther,
 	timeGivenSelf,
@@ -39,6 +40,7 @@ public class V {
 	timeMaxSelf,
 	timeDecayLost,
 	timeFormat,
+	timePurchased,
 	firstJoin,
 	dailyLogin,
 	
@@ -94,7 +96,8 @@ public class V {
 	permaTimer,
 	timeDecay,
 	flightToggle,
-	hideVanish;
+	hideVanish,
+	shop;
 	
 	public static int
 	idleThreshold,
@@ -138,6 +141,7 @@ public class V {
 		invalidZoneOther	= st(C.LANG, "general.invalid.zone_other");
 		invalidZoneSelf		= st(C.LANG, "general.invalid.zone_self");
 		invalidIsland		= st(C.LANG, "general.invalid.island");
+		invalidFunds		= st(C.LANG, "general.invalid.funds");
 		
 		timeGivenOther		= st(C.LANG, "general.time.given_other");
 		timeGivenSelf		= st(C.LANG, "general.time.given_self");
@@ -151,6 +155,7 @@ public class V {
 		timeMaxSelf			= st(C.LANG, "general.time.max_self");
 		timeDecayLost		= st(C.LANG, "general.time.decay");
 		timeFormat			= st(C.LANG, "general.time.format");
+		timePurchased		= st(C.LANG, "general.time.purchased");
 		firstJoin			= st(C.LANG, "general.time.first_join");
 		dailyLogin			= st(C.LANG, "general.time.daily_login");
 		
@@ -246,6 +251,7 @@ public class V {
 		decayAmount			= config.getDouble("general.time_decay.seconds_lost", 15);
 		firstJoinTime		= config.getLong("general.bonus.first_join", 0);
 		dailyLoginTime		= config.getLong("general.bonus.daily_login", 0);
+		shop				= config.getBoolean("shop.general.enabled", false);
 		
 		protCommand			= config.getBoolean("general.damage.flight_disabled");
 		protTime			= config.getBoolean("general.damage.out_of_time");
