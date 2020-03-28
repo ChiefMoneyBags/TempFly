@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -15,6 +16,7 @@ import com.moneybags.tempfly.aesthetic.MvdWAPI;
 import com.moneybags.tempfly.command.CommandHandle;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.gui.GuiSession;
+import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.gui.pages.PageTrails;
 import com.moneybags.tempfly.hook.WorldGuardAPI;
 import com.moneybags.tempfly.hook.askyblock.AskyblockHook;
@@ -25,11 +27,14 @@ import com.moneybags.tempfly.util.ParticleTask;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
+import net.milkbowl.vault.economy.Economy;
+
 public class TempFly extends JavaPlugin {
 	
 	public static TempFly plugin;
 	public static TempFlyAPI tfApi;
 	public static AskyblockHook askyblockHook = null;
+	public static Economy eco = null;
 	
 	public static double version;
 	
@@ -45,9 +50,11 @@ public class TempFly extends JavaPlugin {
 		F.createFiles(this);
 		V.loadValues();
 		PageTrails.initialize();
+		PageShop.initialize();
 		
 		WorldGuardAPI.initialize();
 		ActionBarAPI.initialize();
+		setupEconomy();
 		
 		FlyHandle.initialize();
 		registerListeners();
@@ -80,6 +87,18 @@ public class TempFly extends JavaPlugin {
 			FlyHandle.regainFlightDisconnect(p);	
 		}
 	}
+	
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        eco = rsp.getProvider();
+        return eco != null;
+    }
 	
 	private static void initializeHooks() {
 		new AskyblockHook();
