@@ -89,14 +89,11 @@ public class PageAskyblock extends Page {
 		switch(slot) {
 		case 11:
 		case 20:
-			U.logS("click visitor");
 			if (settings.getVisitorCanFly()) {
-				U.logS("visitor true");
 				settings.setVisitorCanFly(false);
 			} else {
 				settings.setVisitorCanFly(true);
 			}
-			U.logS(String.valueOf(settings.getVisitorCanFly()));
 			new PageAskyblock(session);
 			break;
 		case 13:
