@@ -13,7 +13,7 @@ public class IslandRequirements {
 	
 	public IslandRequirements(String path, String name) {
 		challenges = F.config.getStringList(path + ".challenges");
-		islandLevel = F.config.getLong(path + ".island_level");
+		islandLevel = F.config.getLong(path + ".island_level", 0);
 		this.name = name;
 	}
 	
