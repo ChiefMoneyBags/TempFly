@@ -101,7 +101,9 @@ public class TempFly extends JavaPlugin {
     }
 	
 	private static void initializeHooks() {
-		new AskyblockHook();
+		if (F.config.getBoolean("hooks.askyblock.enable_hook", false)) {
+			new AskyblockHook();	
+		}
 	}
 	
 	private static void initializeAesthetics() {
