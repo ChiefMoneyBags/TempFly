@@ -1,7 +1,5 @@
 package com.moneybags.tempfly.command.player;
 
-import java.util.Arrays;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
