@@ -57,6 +57,7 @@ public class V {
 	flyEnabledSelf,
 	flyDisabledOther,
 	flyDisabledSelf,
+	flySpeedOther,
 	flySpeedSelf,
 	flyCooldownDeny,
 	flyCooldownOver,
@@ -172,6 +173,7 @@ public class V {
 		flyEnabledSelf	    = st(C.LANG, "general.fly.enabled_self");
 		flyDisabledOther	= st(C.LANG, "general.fly.disabled_other");
 		flyDisabledSelf 	= st(C.LANG, "general.fly.disabled_self");
+		flySpeedOther		= st(C.LANG, "general.fly.speed_other");
 		flySpeedSelf		= st(C.LANG, "general.fly.speed_self");
 		flyCooldownDeny		= st(C.LANG, "general.fly.cooldown_deny");
 		flyCooldownOver		= st(C.LANG, "general.fly.cooldown_over");
