@@ -153,7 +153,7 @@ public class Flyer {
 	 * @return The enum string representation of the particle
 	 */
 	public String getTrail() {
-		return particle;
+		return particle != null ? particle: V.particleType;
 	}
 	
 	/**
