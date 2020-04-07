@@ -39,7 +39,7 @@ public class Particles {
 		} else {
 			Effect particle = null;
 			// This effect value crashes clients and prevents them from joining the server again.
-			if (s.equalsIgnoreCase("ITEM_BREAK")) {
+			if (s != null && s.equalsIgnoreCase("ITEM_BREAK")) {
 				s = "HAPPY_VILLAGER";
 			}
 			try {
