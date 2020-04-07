@@ -65,6 +65,7 @@ general:
     enabled_self: '{PREFIX} &aYour flight was enabled!'
     disabled_other: '{PREFIX} &f{PLAYER} &cis no longer flying!'
     disabled_self: '{PREFIX} &cYour flight was disabled!'
+    speed_other: '{PREFIX} &f{PLAYER} &ahad their speed set to {SPEED}&a.'
     speed_self: '{PREFIX} &aYour fly speed was set to &f{SPEED}&a.'
     cooldown_deny: '{PREFIX} &cYou are currently combat tagged!'
     cooldown_over: '{PREFIX} &aYou are no longer cobat tagged, fly away!'
