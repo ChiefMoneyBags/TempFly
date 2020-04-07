@@ -10,9 +10,16 @@ tempfly.toggle.other:
   desc: Allows user to toggle anothers use of temp flight.
   command: /tf toggle [player]
 
-tempfly.speed.[speed]:
-  desc: Allows user to change their fly speed.
+tempfly.speed.self:
+  desc: Allows user to set their fly speed.
   command: /tf speed [speed]
+
+tempfly.speed.other:
+  desc: Allows user to set another users fly speed.
+  command: /tf speed [player] [speed]
+
+tempfly.speed.[speed]:
+  desc: Define the users max fly speed.
 
 tempfly.time.self:
   desc: Allow user to view thier remaining time.
