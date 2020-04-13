@@ -26,16 +26,19 @@ public class Particles {
 			}
 			
 			Class<?> c = particle.getDataType();
-			if (DustOptions.class.equals(c)) {
-				Random rand = new Random();
-				loc.getWorld().spawnParticle(particle, loc, 1, new DustOptions(Color.fromRGB(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)), 2f));	
-				
-			} else if (BlockData.class.equals(c)) {
-				loc.getWorld().spawnParticle(particle, loc, 1, Material.STONE.createBlockData());	
-			} else {
+			try {
+				if (DustOptions.class.equals(c)) {
+					Random rand = new Random();
+					loc.getWorld().spawnParticle(particle, loc, 1, new DustOptions(Color.fromRGB(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)), 2f));	
+					
+				} else if (BlockData.class.equals(c)) {
+					loc.getWorld().spawnParticle(particle, loc, 1, Material.STONE.createBlockData());	
+				} else {
+					loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0.1);
+				}
+			} catch (Exception e) {
 				loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0.1);
 			}
-			
 		} else {
 			Effect particle = null;
 			// This effect value crashes clients and prevents them from joining the server again.
