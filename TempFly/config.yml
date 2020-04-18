@@ -173,12 +173,14 @@ aesthetic:
       enabled: true
       # If enabled, the players name on tab will change to this when they are in tempflight.
       # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name on tab, including prefixes etc.
+      # Supports placeholders for time
       name: '&d~{OLD_TAG}'
     name_tag:
       enabled: true
       # (Not currently compatible with plugin "essentials")
       # If enabled, the players name tag will change to this when they are in tempflight.
       # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name tag, including prefixes etc.
+      # Supports placeholders for time      
       name: '&d~{OLD_TAG}'
     particles:
       enabled: true
