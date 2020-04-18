@@ -99,7 +99,7 @@ public class TempFlyAPI {
 	 * @param victim The entity that got attacked
 	 * @param actor The attacking entity
 	 */
-	public void processCombatTag(Entity victim, Entity actor) {
+	public void processCombat(Entity victim, Entity actor) {
 		FlyHandle.processCombat(victim, actor);
 	}
 } 
