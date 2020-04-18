@@ -15,6 +15,7 @@ import com.moneybags.tempfly.aesthetic.ClipAPI;
 import com.moneybags.tempfly.aesthetic.MvdWAPI;
 import com.moneybags.tempfly.command.CommandHandle;
 import com.moneybags.tempfly.fly.FlyHandle;
+import com.moneybags.tempfly.fly.Flyer;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.gui.pages.PageTrails;
@@ -123,6 +124,9 @@ public class TempFly extends JavaPlugin {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			FlyHandle.addFlightDisconnect(p);
 			GuiSession.endAllSessions();
+		}
+		for (Flyer f: FlyHandle.getFlyers()) {
+			f.removeFlyer();
 		}
 	}
 	
