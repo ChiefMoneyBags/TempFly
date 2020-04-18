@@ -176,29 +176,29 @@ public class Flyer {
 		Particles.play(p.getLocation(), particle);
 	}
 	
-	private void updateList(boolean kill) {
+	private void updateList(boolean reset) {
 		if (!V.list) {
 			return;
 		}
-		if (!isFlying() || kill) {
+		if (!isFlying() || reset) {
 			p.setPlayerListName(listName);
 		} else {
-			p.setPlayerListName(V.listName
+			p.setPlayerListName(TimeHandle.regexString(V.listName
 					.replaceAll("\\{PLAYER}", p.getName())
-					.replaceAll("\\{OLD_TAG}", listName));
+					.replaceAll("\\{OLD_TAG}", listName), time));
 		}
 	}
 	
-	private void updateName(boolean kill) {
+	private void updateName(boolean reset) {
 		if (!V.tag) {
 			return;
 		}
-		if (!isFlying() || kill) {
+		if (!isFlying() || reset) {
 			p.setDisplayName(tagName);
 		} else {
-			p.setDisplayName(V.tagName
+			p.setDisplayName(TimeHandle.regexString(V.tagName
 					.replaceAll("\\{PLAYER}", p.getName())
-					.replaceAll("\\{OLD_TAG}", tagName));
+					.replaceAll("\\{OLD_TAG}", tagName), time));
 		}
 	}
 	
