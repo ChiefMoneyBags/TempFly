@@ -3,6 +3,7 @@ package com.moneybags.tempfly;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.fly.FlyHandle;
@@ -85,5 +86,20 @@ public class TempFlyAPI {
 			FlyHandle.removeDamageProtction(p);
 			FlyHandle.addFlyer(p);
 		}
+	}
+	
+	/**
+	 * Force TempFly to process a combat tag.
+	 * This will use all the settings in the config like normal combat.
+	 * Useful for plugins that manually handle entity damage and do not
+	 * allow entities to directly harm each other. For instance, if a plugin
+	 * has a custom health system and deals damage on combat with .damage(), TempFly
+	 * would have no way to know this combat occured unless you use this.
+	 * 
+	 * @param victim The entity that got attacked
+	 * @param actor The attacking entity
+	 */
+	public void processCombatTag(Entity victim, Entity actor) {
+		FlyHandle.processCombat(victim, actor);
 	}
 } 
