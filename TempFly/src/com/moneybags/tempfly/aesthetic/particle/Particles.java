@@ -27,7 +27,7 @@ public class Particles {
 			
 			Class<?> c = particle.getDataType();
 			try {
-				if (DustOptions.class.equals(c)) {
+				if (Class.forName("org.bukkit.Particle$DustOptions").equals(c)) {
 					Random rand = new Random();
 					loc.getWorld().spawnParticle(particle, loc, 1, new DustOptions(Color.fromRGB(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)), 2f));	
 					
