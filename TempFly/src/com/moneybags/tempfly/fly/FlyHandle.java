@@ -406,8 +406,10 @@ public class FlyHandle implements Listener {
 						p.setFlying(false);
 						p.setAllowFlight(false);
 					}
-					if (F.data.getBoolean("players." + p.getUniqueId() + ".logged_in_flight") && (TimeHandle.getTime(p.getUniqueId()) > 0)) {
-						addFlyer(p);
+					if (F.data.getBoolean("players." + p.getUniqueId() + ".logged_in_flight")) {
+						if ((TimeHandle.getTime(p.getUniqueId()) > 0) && (!p.isOnGround())) {
+							addFlyer(p);	
+						}
 						F.data.set("players." + p.getUniqueId() + ".logged_in_flight", false);
 						F.saveData();
 					}
@@ -476,110 +478,82 @@ public class FlyHandle implements Listener {
 		flyers.get(p).resetIdleTimer();
 	}
 	
+	public static enum CombatType {
+		PLAYER_ATTACKS_FLYER(true),
+		MOB_ATTACKS_FLYER(false),
+		FLYER_ATTACKS_PLAYER(true),
+		FLYER_ATTACKS_MOB(false);
+		
+		private boolean pvp;
+		
+		private CombatType(boolean pvp) {
+			this.pvp = pvp;
+		}
+		
+		public boolean isPvp() {
+			return pvp;
+		}
+	}
+	
+	public static void processCombat(Entity vic, Entity act) {
+		if (act instanceof Arrow) {
+			if (!(((Arrow)act).getShooter() instanceof Entity)) {
+				return;
+			}
+			act = (Entity) ((Arrow)act).getShooter();
+		}
+		if (vic instanceof Player) {
+			if (act instanceof Player) {
+				onCombat(CombatType.PLAYER_ATTACKS_FLYER, vic, act);
+				onCombat(CombatType.FLYER_ATTACKS_PLAYER, vic, act);
+			} else if (act instanceof LivingEntity) {
+				onCombat(CombatType.MOB_ATTACKS_FLYER, vic, act);
+			}
+		} else if (vic instanceof LivingEntity) {
+			if (act instanceof Player) {
+				onCombat(CombatType.FLYER_ATTACKS_MOB, vic, act);
+			}
+		}
+	}		
+	
+	public static void onCombat(CombatType type, Entity vic, Entity act) {
+		if (!combatDisable(type)) {
+			return;
+		}
+		
+		Player p = (type == CombatType.FLYER_ATTACKS_MOB || type == CombatType.FLYER_ATTACKS_PLAYER) ? (Player)act : (Player)vic;
+		Flyer f = getFlyer(p);
+		
+		if (f != null) {
+			if (!V.protCombat) {
+				FlyHandle.addDamageProtection(p);
+			}
+			removeFlyer(p);
+			f.removeFlyer();
+			U.m(p, V.flyDisabledSelf);	
+		}
+		addCooldown(p, type.isPvp() ? V.cooldownPvp : V.cooldownPve, f != null);
+	}
+	
+	public static boolean combatDisable(CombatType type) {
+		switch (type) {
+		case FLYER_ATTACKS_MOB:
+			return V.attackM;
+		case FLYER_ATTACKS_PLAYER:
+			return V.attackP;
+		case MOB_ATTACKS_FLYER:
+			return V.attackedM;
+		case PLAYER_ATTACKS_FLYER:
+			return V.attackedP;
+		}
+		return false;
+	}
+	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(EntityDamageByEntityEvent e) {
 		Entity vic = e.getEntity();
 		Entity act = e.getDamager();
-		if (vic instanceof Player) {
-			Player p = (Player)vic;
-			Flyer f = getFlyer(p);
-			if (act instanceof Player) {
-				if (!V.attackedP) {
-					return;
-				}
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPvp, f != null);
-				return;
-			} else if ((vic instanceof LivingEntity) && V.attackedM) {
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPve, f != null);
-			} else {
-				return;
-			}
-		} else if (act instanceof Player) {
-			Player p = (Player)act;
-			Flyer f = getFlyer(p);
-			if (vic instanceof Player) {
-				if (!V.attackP) {
-					return;
-				}
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPvp, f != null);
-				return;
-			} else if ((vic instanceof LivingEntity) && V.attackM) {
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPve, f != null);
-				return;
-			} else {
-				return;
-			}
-		} else if (act instanceof Arrow) {
-			if (!(((Arrow)act).getShooter() instanceof LivingEntity)) {
-				return;
-			}
-			LivingEntity shooter = (LivingEntity) ((Arrow)e.getDamager()).getShooter();
-			if (!(shooter instanceof Player)) {
-				return;
-			}
-			Player p = (Player) shooter;
-			Flyer f = getFlyer(p);
-			if (vic instanceof Player) {
-				if (!V.attackP) {
-					return;
-				}
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPvp, f != null);
-				return;
-			} else if ((vic instanceof LivingEntity) && V.attackM) {
-				if (f != null) {
-					if (!V.protCombat) {
-						FlyHandle.addDamageProtection(p);	
-					}
-					removeFlyer(p);
-					f.removeFlyer();
-					U.m(p, V.flyDisabledSelf);	
-				}
-				addCooldown(p, V.cooldownPve, f != null);
-				return;
-			} else {
-				return;
-			}
-		}
+		processCombat(vic, act);
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
