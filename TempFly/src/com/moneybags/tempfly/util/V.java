@@ -1,8 +1,11 @@
 package com.moneybags.tempfly.util;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import com.moneybags.tempfly.util.F.C;
@@ -43,6 +46,11 @@ public class V {
 	timePurchased,
 	firstJoin,
 	dailyLogin,
+	
+	unitSeconds,
+	unitMinutes,
+	unitHours,
+	unitDays,
 	
 	infoHeader,
 	infoPlayer,
@@ -111,7 +119,7 @@ public class V {
 	public static double
 	maxTime,
 	firstJoinTime,
-	dailyLoginTime,
+	legacyBonus,
 	decayAmount;
 	
 	public static List<String>
@@ -123,6 +131,9 @@ public class V {
 	
 	public static List<Long> 
 	warningTimes;
+	
+	public static Map<String, Double>
+	dailyBonus = new HashMap<>();
 
 	public static void loadValues() {
 		FileConfiguration config = F.config;
@@ -159,6 +170,11 @@ public class V {
 		timePurchased		= st(C.LANG, "general.time.purchased");
 		firstJoin			= st(C.LANG, "general.time.first_join");
 		dailyLogin			= st(C.LANG, "general.time.daily_login");
+		
+		unitSeconds			= st(C.LANG, "general.unit.seconds", "s");
+		unitMinutes			= st(C.LANG, "general.unit.minutes", "m");
+		unitHours			= st(C.LANG, "general.unit.hours", "h");
+		unitDays			= st(C.LANG, "general.unit.days", "d");
 		
 		infoHeader			= st(C.LANG, "general.info.header");
 		infoPlayer			= st(C.LANG, "general.info.player");
@@ -252,7 +268,7 @@ public class V {
 		decayThresh			= config.getInt("general.time_decay.threshold", 3600);
 		decayAmount			= config.getDouble("general.time_decay.seconds_lost", 15);
 		firstJoinTime		= config.getLong("general.bonus.first_join", 0);
-		dailyLoginTime		= config.getLong("general.bonus.daily_login", 0);
+		legacyBonus			= config.getLong("general.bonus.daily_login", 0);
 		shop				= config.getBoolean("shop.general.enabled", false);
 		
 		protCommand			= config.getBoolean("general.damage.flight_disabled");
@@ -265,6 +281,19 @@ public class V {
 		
 		maxY				= config.getInt("general.maximum_height");
 		
+		double legacyBonus 	= config.getDouble("general.bonus.daily_login");
+		if (legacyBonus == 0) {
+			
+			ConfigurationSection csPerms = config.getConfigurationSection("general.bonus.daily_login");
+			if (csPerms != null) {
+				for (String key: csPerms.getKeys(false)) {
+					double value = config.getDouble("general.bonus.daily_login." + key);
+					if (value > 0 && !dailyBonus.containsKey(key)) {
+						dailyBonus.put(key, value);
+					}
+				}
+			}	
+		}
 	}
 	
 	private static String st(C file, String key){
@@ -281,6 +310,24 @@ public class V {
 		} catch (Exception e) {
 			U.logW("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
 			return U.cc("&cThis message is broken! :(");
+		}
+	}
+	
+	
+	private static String st(C file, String key, String def){
+		try{
+			switch (file)
+			{
+			case CONFIG:
+				return U.cc(F.config.getString(key)).replaceAll("\\{PREFIX}", prefix);
+			case LANG:
+				return U.cc(F.lang.getString(key)).replaceAll("\\{PREFIX}", prefix);
+			default:
+				return "";
+			}
+		} catch (Exception e) {
+			U.logW("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
+			return U.cc(def);
 		}
 	}
 }
