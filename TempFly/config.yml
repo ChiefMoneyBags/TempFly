@@ -113,8 +113,14 @@ general:
   bonus:
     # Time in seconds given to a player when they first join the server.
     first_join: 0
-    # Time given to a player as a daily login bonus.
-    daily_login: 0
+    # Permission based time given to a player as a daily login bonus.
+    # The permission is "tempfly.bonus.{your_perm_here}"
+    # Time will stack for all permissions a player has, they do not override eachother
+    daily_login: 
+      # Example: players with "tempfly.bonus.member" will recieve the time listed here daily.
+      member: 0
+      vip: 0
+
     
   time_decay:
     # If enabled a player will lose time when logged off the server.
