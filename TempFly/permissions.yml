@@ -64,6 +64,9 @@ tempfly.shop:
 tempfly.time.infinite:
   desc: Infinite fly time
 
+tempfly.bonus.{group}:
+  desc: Gives user the bonus defined for this group in the config daily.
+
 #  Servers using old versions of spigot will need to use the 'Effect' list for trails  
 #           OLD VERSIONS = https://helpch.at/docs/1.8/org/bukkit/Effect.html           
 #                                                                                      
@@ -79,4 +82,4 @@ tempfly.trail.{particle}:
 
 tempfly.askyblock.panel:
   desc: Allows island owners to adjust fly settings
-  command: /tf settings                
+  command: /tf settings               
