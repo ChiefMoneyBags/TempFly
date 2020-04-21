@@ -80,16 +80,16 @@ public class TimeHandle {
 		String fin = "";
 		if (days > 0) fin = fin.concat(V.timeFormat
 				.replaceAll("\\{QUANTITY}", String.valueOf(days))
-				.replaceAll("\\{UNIT}", "d") + " ");
+				.replaceAll("\\{UNIT}", V.unitDays) + " ");
 		if (hours > 0) fin = fin.concat(V.timeFormat
 				.replaceAll("\\{QUANTITY}", String.valueOf(hours))
-				.replaceAll("\\{UNIT}", "h") + " ");
+				.replaceAll("\\{UNIT}", V.unitHours) + " ");
 		if (minutes > 0) fin = fin.concat(V.timeFormat
 				.replaceAll("\\{QUANTITY}", String.valueOf(minutes))
-				.replaceAll("\\{UNIT}", "m") + " ");
+				.replaceAll("\\{UNIT}", V.unitMinutes) + " ");
 		if (secs > 0 || fin.length() == 0) fin = fin.concat(V.timeFormat
 				.replaceAll("\\{QUANTITY}", String.valueOf(secs))
-				.replaceAll("\\{UNIT}", "s") + " ");
+				.replaceAll("\\{UNIT}", V.unitSeconds) + " ");
 		if ((fin.length() > 0) && (String.valueOf(fin.charAt(fin.length() - 1)).equals(" "))) {
 			fin = fin.substring(0, fin.length()-1);
 		}
