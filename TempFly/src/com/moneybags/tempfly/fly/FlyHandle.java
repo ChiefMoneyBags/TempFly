@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -340,10 +341,13 @@ public class FlyHandle implements Listener {
 		}.runTaskLater(TempFly.plugin, 1);
 	}
 	
+	//TODO some rand is using methods here depricated in 1997
 	@SuppressWarnings("deprecation")
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
+		
+		
 		if (V.timeDecay && p.hasPlayedBefore()) {
 			long offline = (System.currentTimeMillis() - p.getLastPlayed()) / 1000;
 			double lost = (offline / V.decayThresh) * V.decayAmount;
@@ -356,26 +360,44 @@ public class FlyHandle implements Listener {
 				U.m(p, TimeHandle.regexString(V.timeDecayLost, lost));	
 			}
 		}
+		
+		
 		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
 			TimeHandle.addTime(p.getUniqueId(), V.firstJoinTime);
 			U.m(p, TimeHandle.regexString(V.firstJoin, V.firstJoinTime));
 		}
 		
+		
 		Date lj = new Date(p.getLastPlayed());
 		Date ct = new Date(System.currentTimeMillis());
-		
-		if ((V.dailyLoginTime > 0) && ((lj.getDate() != ct.getDate())
-				|| ((lj.getDate() == ct.getDate()) && (lj.getMonth() != ct.getMonth())))) {
-			TimeHandle.addTime(p.getUniqueId(), V.dailyLoginTime);
-			U.m(p, TimeHandle.regexString(V.dailyLogin, V.dailyLoginTime));
+		if ((lj.getDate() != ct.getDate())
+				|| ((lj.getDate() == ct.getDate()) && (lj.getMonth() != ct.getMonth()))) {
+			if (V.legacyBonus > 0) {
+				TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
+				U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
+			} else if (V.dailyBonus.size() > 0) {
+				double time = 0;
+				
+				for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
+					if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
+						time += entry.getValue();
+					}
+				}
+				
+				if (time > 0) {
+					TimeHandle.addTime(p.getUniqueId(), time);
+					U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
+				}
+			}
 		}
+		
 		
 		GameMode m = p.getGameMode();
 		if (!(m.equals(GameMode.CREATIVE)) && !(m.equals(GameMode.SPECTATOR))) {
 			p.setFlying(false);
 			p.setAllowFlight(false);
 		}
-	
+		
 		DateFormat.getDateInstance().format(0);
 		regainFlightDisconnect(p);
 	}
