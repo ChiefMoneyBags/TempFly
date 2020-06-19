@@ -3,8 +3,8 @@ package com.moneybags.tempfly.command.player;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 
+import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -57,39 +57,11 @@ public class CmdSpeed {
 			return;
 		}
 		
-		
-		if (speed < 0) {
-			speed = 0;
-		} else if (speed > 10) {
-			speed = 10;
+		float max = FlyHandle.getMaxSpeed(p);
+		if (speed > max) {
+			speed = max;
 		}
-		
-		if (!p.isOp()) {
-			float max = 1;
-			for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
-				String perm = info.getPermission();
-				if (perm.startsWith("tempfly.speed")) {
-					String[] split = perm.split("\\.");
-					try {
-						float found = Float.parseFloat(split[2]);
-						if (found > max) {
-							max = found;
-						}
-					} catch (Exception e) {
-						continue;
-					}
-				}
-			}
-			if (speed > max) {
-				speed = max;
-			}
-			if (speed > 10) {
-				speed = 10;
-			}
-		}
-		
-		float fin = (float)(speed * 0.1);
-		p.setFlySpeed(fin);
+		p.setFlySpeed((float) (speed * 0.1));
 		U.m(p, V.flySpeedSelf
 				.replaceAll("\\{SPEED}", String.valueOf(speed)));
 		if (!s.equals(p)) {
