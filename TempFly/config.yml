@@ -96,7 +96,10 @@ general:
     ground: false
     # If false the player will not lose flight time if they go idle with flight enabled.
     idle: false
-    
+  
+  flight:
+    # Set the default maximum speed players can fly unless otherwise specified by the tempfly.speed.[speed] permission.
+    default_speed: 1
   
   idle:
     # The threshold in seconds to consider a player idle.
