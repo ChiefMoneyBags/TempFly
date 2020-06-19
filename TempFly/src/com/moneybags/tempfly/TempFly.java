@@ -77,6 +77,7 @@ public class TempFly extends JavaPlugin {
 				
 				p.setFlying(false);
 				p.setAllowFlight(false);
+				
 				new BukkitRunnable() {
 					@Override
 					public void run() {
