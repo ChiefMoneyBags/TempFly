@@ -120,7 +120,8 @@ public class V {
 	maxTime,
 	firstJoinTime,
 	legacyBonus,
-	decayAmount;
+	decayAmount,
+	defaultSpeed;
 	
 	public static List<String>
 	help = new ArrayList<>(),
@@ -270,6 +271,8 @@ public class V {
 		firstJoinTime		= config.getLong("general.bonus.first_join", 0);
 		legacyBonus			= config.getLong("general.bonus.daily_login", 0);
 		shop				= config.getBoolean("shop.general.enabled", false);
+		defaultSpeed		= config.getDouble("general.flight.default_speed", 1);
+		
 		
 		protCommand			= config.getBoolean("general.damage.flight_disabled");
 		protTime			= config.getBoolean("general.damage.out_of_time");
