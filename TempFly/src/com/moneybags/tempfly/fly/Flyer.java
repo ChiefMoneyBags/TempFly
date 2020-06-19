@@ -51,7 +51,17 @@ public class Flyer {
 		} else {
 			p.setFlying(false);
 		}
-		
+		float maxSpeed = FlyHandle.getMaxSpeed(p);
+		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					if (p.isOnline()) {
+						p.setFlySpeed(maxSpeed * 0.1f);	
+					}
+				}
+			}.runTaskLater(TempFly.plugin, 10);
+		}
 		asessRtRegions();
 		asessRtWorlds();
 		this.timer = new Timer().runTaskTimer(TempFly.plugin, 0, 20);
