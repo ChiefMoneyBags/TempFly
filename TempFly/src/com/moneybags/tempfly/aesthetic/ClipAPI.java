@@ -2,6 +2,7 @@ package com.moneybags.tempfly.aesthetic;
 
 import org.bukkit.entity.Player;
 
+import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.fly.FlyHandle.Placeholder;
 
@@ -14,6 +15,17 @@ public class ClipAPI {
 	}
 	
 	public static class PlaceHolders extends PlaceholderExpansion {
+		
+		@Override
+		public boolean persist() {
+			return true;
+		}
+		
+	    @Override
+	    public boolean canRegister(){
+	        return true;
+	    }
+		
 		@Override
 		public String getAuthor() {
 			return "ChiefMoneyBags";
@@ -26,7 +38,7 @@ public class ClipAPI {
 
 		@Override
 		public String getVersion() {
-			return "1.0";
+			return TempFly.plugin.getDescription().getVersion();
 		}
 		
 		@Override
