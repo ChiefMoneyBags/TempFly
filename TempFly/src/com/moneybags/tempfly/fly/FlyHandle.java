@@ -1,6 +1,5 @@
 package com.moneybags.tempfly.fly;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -35,6 +34,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -58,6 +58,8 @@ public class FlyHandle implements Listener {
 	
 	private static List<String> blackRegion = new ArrayList<>();
 	
+	private static BukkitTask dailyTask;
+	
 	public static void wipe() {
 		flyers = new HashMap<>();
 	}
@@ -78,6 +80,7 @@ public class FlyHandle implements Listener {
 						F.config.getDouble("general.relative_time.regions." + s, 1), false, s));
 			}
 		}
+		dailyTask = new DailyTask().runTaskTimer(TempFly.plugin, 0, 1);
 	}
 	
 	public static List<RelativeTimeRegion> getRtRegions() {
@@ -88,7 +91,7 @@ public class FlyHandle implements Listener {
 		FileConfiguration data = F.data;
 		for (Flyer f: flyers.values()) {
 			String path = "players." + f.getPlayer().getUniqueId().toString() + ".time";
-			double time = f.getTime();	
+			double time = f.getTime();
 			data.set(path, time);
 		}
 		F.saveData();
@@ -168,6 +171,31 @@ public class FlyHandle implements Listener {
 		return true;
 	}
 	
+	public static float getMaxSpeed(Player p) {
+		float speed = (float) ((V.defaultSpeed < 0) ? 0f : (p.isOp() || V.defaultSpeed > 10) ? 10f : V.defaultSpeed);
+		if (!p.isOp()) {
+			float max = speed;
+			for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
+				String perm = info.getPermission();
+				if (perm.startsWith("tempfly.speed")) {
+					String[] split = perm.split("\\.");
+					try {
+						float found = Float.parseFloat(split[2]);
+						if (found > max) {
+							max = found;
+						}
+					} catch (Exception e) {
+						continue;
+					}
+				}
+			}
+			if (speed < max) {
+				speed = max;
+			}
+		}
+		return speed;
+	}
+	
 	public static boolean onCooldown(Player p) {
 		return cooldown.containsKey(p.getUniqueId());
 	}
@@ -218,18 +246,21 @@ public class FlyHandle implements Listener {
 			long minutes = TimeHandle.formatTime(TimeUnit.MINUTES, supply);
 			long seconds = TimeHandle.formatTime(TimeUnit.SECONDS, supply);
 			String s = "";
-			boolean i = U.hasPermission(p, "tempfly.time.infinite");
-			if (days > 0) {
-				s = s.concat(V.fbDays.replaceAll("\\{DAYS}", i ? String.valueOf(V.infinity) : String.valueOf(days)));
-			}
-			if (hours > 0) {
-				s = s.concat(V.fbHours.replaceAll("\\{HOURS}", i ? String.valueOf(V.infinity) : String.valueOf(hours)));
-			}
-			if (minutes > 0) {
-				s = s.concat(V.fbMinutes.replaceAll("\\{MINUTES}", i ? String.valueOf(V.infinity) : String.valueOf(minutes)));
-			}
-			if (seconds > 0) {
-				s = s.concat(V.fbSeconds.replaceAll("\\{SECONDS}", i ? String.valueOf(V.infinity) : String.valueOf(seconds)));
+			if (U.hasPermission(p, "tempfly.time.infinite")) {
+				s = V.infinity;
+			} else {
+				if (days > 0) {
+					s = s.concat(V.fbDays.replaceAll("\\{DAYS}", String.valueOf(days)));
+				}
+				if (hours > 0) {
+					s = s.concat(V.fbHours.replaceAll("\\{HOURS}", String.valueOf(hours)));
+				}
+				if (minutes > 0) {
+					s = s.concat(V.fbMinutes.replaceAll("\\{MINUTES}", String.valueOf(minutes)));
+				}
+				if (seconds > 0 || s.length() == 0) {
+					s = s.concat(V.fbSeconds.replaceAll("\\{SECONDS}", String.valueOf(seconds)));
+				}
 			}
 			return s;
 		}
@@ -341,7 +372,7 @@ public class FlyHandle implements Listener {
 		}.runTaskLater(TempFly.plugin, 1);
 	}
 	
-	//TODO some rand is using methods here depricated in 1997
+	//TODO some rand is using methods here deprecated in 1997
 	@SuppressWarnings("deprecation")
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerJoinEvent e) {
@@ -372,23 +403,7 @@ public class FlyHandle implements Listener {
 		Date ct = new Date(System.currentTimeMillis());
 		if ((lj.getDate() != ct.getDate())
 				|| ((lj.getDate() == ct.getDate()) && (lj.getMonth() != ct.getMonth()))) {
-			if (V.legacyBonus > 0) {
-				TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
-				U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
-			} else if (V.dailyBonus.size() > 0) {
-				double time = 0;
-				
-				for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
-					if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
-						time += entry.getValue();
-					}
-				}
-				
-				if (time > 0) {
-					TimeHandle.addTime(p.getUniqueId(), time);
-					U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
-				}
-			}
+			loginBonus(p);
 		}
 		
 		
@@ -398,7 +413,6 @@ public class FlyHandle implements Listener {
 			p.setAllowFlight(false);
 		}
 		
-		DateFormat.getDateInstance().format(0);
 		regainFlightDisconnect(p);
 	}
 	
@@ -437,6 +451,26 @@ public class FlyHandle implements Listener {
 					}
 				}
 			}.runTaskLater(TempFly.plugin, 1);
+		}
+	}
+	
+	public static void loginBonus(Player p) {
+		if (V.legacyBonus > 0) {
+			TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
+			U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
+		} else if (V.dailyBonus.size() > 0) {
+			double time = 0;
+			
+			for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
+				if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
+					time += entry.getValue();
+				}
+			}
+			
+			if (time > 0) {
+				TimeHandle.addTime(p.getUniqueId(), time);
+				U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
+			}
 		}
 	}
 	
@@ -595,5 +629,31 @@ public class FlyHandle implements Listener {
 		}
 		e.setCancelled(true);
 		removeDamageProtction(p);
+	}
+	
+
+	 
+	//TODO If a player joins on the same tick that a new day starts they will receive the daily login bonus 2 times.
+	// Very rare, almost impossible.
+	
+	// If the player is on through midnight and receive the bonus through the task, they cannot relog and get the
+	// bonus again as their last played time will be the same day, not a new day.
+	public static class DailyTask extends BukkitRunnable {
+
+		@SuppressWarnings("deprecation")
+		@Override
+		public void run() {
+			Date lj = new Date(System.currentTimeMillis() - 1000);
+			Date ct = new Date(System.currentTimeMillis());
+			if (lj.getDate() != ct.getDate()) {
+				for (Player p: Bukkit.getOnlinePlayers()) {
+					loginBonus(p);
+				}
+			}
+		}
+	}
+	
+	public static BukkitTask getDailyTask() {
+		return dailyTask;
 	}
 }
