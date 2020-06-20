@@ -3,9 +3,12 @@ package com.moneybags.tempfly.fly;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -80,7 +83,7 @@ public class FlyHandle implements Listener {
 						F.config.getDouble("general.relative_time.regions." + s, 1), false, s));
 			}
 		}
-		dailyTask = new DailyTask().runTaskTimer(TempFly.plugin, 0, 1);
+		dailyTask = new DailyTask().runTaskTimer(TempFly.plugin, 0, 200);
 	}
 	
 	public static List<RelativeTimeRegion> getRtRegions() {
@@ -454,26 +457,6 @@ public class FlyHandle implements Listener {
 		}
 	}
 	
-	public static void loginBonus(Player p) {
-		if (V.legacyBonus > 0) {
-			TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
-			U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
-		} else if (V.dailyBonus.size() > 0) {
-			double time = 0;
-			
-			for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
-				if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
-					time += entry.getValue();
-				}
-			}
-			
-			if (time > 0) {
-				TimeHandle.addTime(p.getUniqueId(), time);
-				U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
-			}
-		}
-	}
-	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerMoveEvent e) {
 		if (e.getFrom().getBlock().equals(e.getTo().getBlock())) {
@@ -632,23 +615,51 @@ public class FlyHandle implements Listener {
 	}
 	
 
-	 
-	//TODO If a player joins on the same tick that a new day starts they will receive the daily login bonus 2 times.
-	// Very rare, almost impossible.
+	// Prevents a player from logging in during the first 10 seconds of the day and getting the
+	// daily bonus twice.
+	private static List<UUID> bonusProt = new LinkedList<>();
 	
-	// If the player is on through midnight and receive the bonus through the task, they cannot relog and get the
-	// bonus again as their last played time will be the same day, not a new day.
+	/**
+	 *  Give players the daily bonus if they are online through midnight, that way
+	 *  they don't need to relog to get the bonus.
+	 *  
+	 */
 	public static class DailyTask extends BukkitRunnable {
-
+		
 		@SuppressWarnings("deprecation")
 		@Override
 		public void run() {
-			Date lj = new Date(System.currentTimeMillis() - 1000);
+			Date lj = new Date(System.currentTimeMillis() - 10000);
 			Date ct = new Date(System.currentTimeMillis());
 			if (lj.getDate() != ct.getDate()) {
 				for (Player p: Bukkit.getOnlinePlayers()) {
 					loginBonus(p);
 				}
+			}
+			bonusProt.clear();
+		}
+	}
+	
+	public static void loginBonus(Player p) {
+		if (bonusProt.contains(p.getUniqueId())) {
+			return;
+		}
+		bonusProt.add(p.getUniqueId());
+		if (V.legacyBonus > 0) {
+			TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
+			U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
+		} else if (V.dailyBonus.size() > 0) {
+			double time = 0;
+			
+			for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
+				if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
+					time += entry.getValue();
+				}
+			}
+			
+			if (time > 0) {
+				TimeHandle.addTime(p.getUniqueId(), time);
+				U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
 			}
 		}
 	}
