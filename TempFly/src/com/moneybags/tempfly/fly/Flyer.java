@@ -46,11 +46,8 @@ public class Flyer {
 		this.tagName = p.getDisplayName();
 		this.particle = Particles.loadTrail(p.getUniqueId());
 		p.setAllowFlight(true);
-		if (!p.isOnGround()) {
-			p.setFlying(true);	
-		} else {
-			p.setFlying(false);
-		}
+		p.setFlying(!p.isOnGround());
+		
 		float maxSpeed = FlyHandle.getMaxSpeed(p);
 		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
 			new BukkitRunnable() {
