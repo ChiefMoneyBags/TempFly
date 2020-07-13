@@ -30,7 +30,7 @@ public class Particles {
 			try {
 				particle = Particle.valueOf(s.toUpperCase());
 			} catch (Exception e) {
-				particle = Particle.valueOf("VILLAGER_HAPPY");
+				particle = Particle.VILLAGER_HAPPY;
 			}
 			
 			Class<?> c = particle.getDataType();
@@ -44,7 +44,7 @@ public class Particles {
 					loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0.1);
 				}
 			} catch (Exception e) {
-				loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0.1);
+				loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 1, 0, 0, 0, 0.1);
 			}
 		} else {
 			Effect particle = null;
