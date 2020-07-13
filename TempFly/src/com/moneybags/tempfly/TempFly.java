@@ -13,6 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.ClipAPI;
 import com.moneybags.tempfly.aesthetic.MvdWAPI;
+import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.command.CommandHandle;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.fly.Flyer;
@@ -50,6 +51,7 @@ public class TempFly extends JavaPlugin {
 		
 		F.createFiles(this);
 		V.loadValues();
+		Particles.initialize();
 		PageTrails.initialize();
 		PageShop.initialize();
 		
