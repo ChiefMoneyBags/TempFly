@@ -3,12 +3,10 @@ package com.moneybags.tempfly.fly;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -326,6 +324,7 @@ public class FlyHandle implements Listener {
 		Player p = e.getPlayer();
 		Flyer f = getFlyer(p);
 		if (f != null) {
+			f.applySpeedCorrect();
 			f.asessRtRegions();
 		}
 	}
@@ -338,6 +337,7 @@ public class FlyHandle implements Listener {
 		Flyer f = getFlyer(p);
 		if (f != null) {
 			f.asessRtRegions();
+			f.applySpeedCorrect();
 			if (!from.getWorld().equals(to.getWorld())) {
 				f.asessRtWorlds();
 			}
@@ -354,9 +354,10 @@ public class FlyHandle implements Listener {
 		Flyer f = getFlyer(p);
 		if (!flyAllowed(p.getLocation())) {
 			disableFlyer(f);
+		} else {
+			f.applySpeedCorrect();
 		}
 		f.asessRtWorlds();
-		
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -456,7 +457,7 @@ public class FlyHandle implements Listener {
 			}.runTaskLater(TempFly.plugin, 1);
 		}
 	}
-	
+
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerMoveEvent e) {
 		if (e.getFrom().getBlock().equals(e.getTo().getBlock())) {

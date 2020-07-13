@@ -48,6 +48,14 @@ public class Flyer {
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
 		
+		applySpeedCorrect();
+		
+		asessRtRegions();
+		asessRtWorlds();
+		this.timer = new Timer().runTaskTimer(TempFly.plugin, 0, 20);
+	}
+	
+	public void applySpeedCorrect() {
 		float maxSpeed = FlyHandle.getMaxSpeed(p);
 		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
 			new BukkitRunnable() {
@@ -59,11 +67,7 @@ public class Flyer {
 				}
 			}.runTaskLater(TempFly.plugin, 10);
 		}
-		asessRtRegions();
-		asessRtWorlds();
-		this.timer = new Timer().runTaskTimer(TempFly.plugin, 0, 20);
 	}
-	
 	
 	/**
 	 * It is not reccomended to use methods outside of this area unless you
