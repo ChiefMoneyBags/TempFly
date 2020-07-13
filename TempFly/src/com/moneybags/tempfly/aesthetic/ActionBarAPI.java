@@ -9,10 +9,12 @@ import com.moneybags.tempfly.event.ActionBarSendEvent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.UUID;
 
 public class ActionBarAPI {
     private static String nmsver;
     private static boolean useOldMethods = false;
+    private static boolean newConstructor = false;
 
     public static void initialize() {
 
@@ -21,7 +23,10 @@ public class ActionBarAPI {
 
         if (nmsver.equalsIgnoreCase("v1_8_R1") || nmsver.startsWith("v1_7_")) {
             useOldMethods = true;
+        } else if (nmsver.startsWith("v1_16_")) {
+        	newConstructor = true;
         }
+        
     }
 
     public static void sendActionBar(Player player, String message) {
@@ -59,11 +64,16 @@ public class ActionBarAPI {
                         }
                     }
                     Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
-                    packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);
+                    if (newConstructor) {
+                    	packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass, UUID.class}).newInstance(chatCompontentText, chatMessageType, UUID.randomUUID());
+                    } else {
+                    	packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);	
+                    }
                 } catch (ClassNotFoundException cnfe) {
                     Object chatCompontentText = chatComponentTextClass.getConstructor(new Class<?>[]{String.class}).newInstance(message);
                     packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(chatCompontentText, (byte) 2);
                 }
+                
             }
             Method craftPlayerHandleMethod = craftPlayerClass.getDeclaredMethod("getHandle");
             Object craftPlayerHandle = craftPlayerHandleMethod.invoke(craftPlayer);
