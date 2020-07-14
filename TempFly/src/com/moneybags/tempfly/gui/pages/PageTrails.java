@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
+import com.moneybags.tempfly.command.admin.CmdTrailRemove;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.fly.Flyer;
 import com.moneybags.tempfly.gui.DynamicPage;
@@ -29,10 +30,12 @@ import com.moneybags.tempfly.util.U;
 public class PageTrails extends DynamicPage {
 	
 	private static String title;
-	private static ItemStack background;
-	private static ItemStack toolbar;
-	private static ItemStack next;
-	private static ItemStack prev;
+	private static ItemStack
+		background,
+		toolbar,
+		next,
+		prev,
+		remove;
 	
 	public static void initialize() {
 		FileConfiguration config = F.page;
@@ -42,18 +45,21 @@ public class PageTrails extends DynamicPage {
 		toolbar = U.getConfigItem(config, path + ".toolbar");
 		next = U.getConfigItem(config, path + ".next");
 		prev = U.getConfigItem(config, path + ".prev");
+		remove = U.getConfigItem(config, path + ".remove");
 		
 		CompatMaterial.setType(background, CompatMaterial.GRAY_STAINED_GLASS_PANE);
 		CompatMaterial.setType(toolbar, CompatMaterial.BLACK_STAINED_GLASS_PANE);
 		CompatMaterial.setType(next, CompatMaterial.REDSTONE_TORCH);
 		CompatMaterial.setType(prev, CompatMaterial.REDSTONE_TORCH);
+		CompatMaterial.setType(remove, CompatMaterial.LAVA_BUCKET);
+		
 	}
 	
 	private Inventory inv;
 	private Map<Integer, String> layout = new HashMap<>();
 	private List<String> allParticles;
 	
-	public PageTrails(GuiSession session, int num) {
+	public PageTrails(GuiSession session, int num, boolean bookmark) {
 		super(session);
 		
 		this.inv = Bukkit.createInventory(null, 54, title);
@@ -78,20 +84,27 @@ public class PageTrails extends DynamicPage {
 			}
 		} else {
 			for (Particle particle: Particle.values()) {
+				if (particle.toString().contains("LEGACY")) {
+					continue;
+				}
 				if (p.hasPermission("tempfly.trail." + particle.toString())) {
 					particles.add(particle.toString());
 				}
 			}
 		}
 		allParticles = particles;
+		String current = Particles.loadTrail(session.getPlayer().getUniqueId());
+		if (bookmark && particles.contains(current)) {
+			num = (int) Math.floor(particles.indexOf(current) / 21);
+		}
 		super.calculateSlots(num, particles.size());
 		if (particles.size() < 21*num) {
 			num = 0;
 		}
+		
 		particles = particles.subList(21 * num, particles.size());
 		Iterator<String> itp = particles.iterator();
 		Iterator<Integer> its = super.getOpenSlots().iterator();
-		String current = Particles.loadTrail(session.getPlayer().getUniqueId());
 		while (its.hasNext() && itp.hasNext()) {
 			int slot = its.next();
 			String particle = itp.next();
@@ -113,6 +126,9 @@ public class PageTrails extends DynamicPage {
 		if (getPageNumber() > 0) {
 			inv.setItem(45, prev);
 		}
+		if (p.hasPermission("tempfly.trails.remove")) {
+			inv.setItem(49, remove);
+		}
 		
 		session.newPage(this, inv);
 	}
@@ -125,12 +141,14 @@ public class PageTrails extends DynamicPage {
 			Flyer f = FlyHandle.getFlyer(session.getPlayer());
 			if (f != null) {
 				f.setTrail(s);
-				new PageTrails(session, getPageNumber());
+				new PageTrails(session, getPageNumber(), false);
 			}
 		} else if (slot == 53 && allParticles.size() > (getPageNumber()+1)*21) {
-			new PageTrails(session, getPageNumber()+1);
+			new PageTrails(session, getPageNumber()+1, false);
 		} else if (slot == 45 && getPageNumber() > 0) {
-			new PageTrails(session, getPageNumber()-1);
+			new PageTrails(session, getPageNumber()-1, false);
+		} else if (slot == 49 && session.getPlayer().hasPermission("tempfly.trails.remove.self")) {
+			new CmdTrailRemove(session.getPlayer());
 		}
 	}
 }
