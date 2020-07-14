@@ -10,6 +10,8 @@ page:
       name: '&fNext page'
     prev:
       name: '&fPrevious page'
+    remove:
+      name: '&cRemove trail'
 
   shop:
     title: '&dTempfly Shop'
