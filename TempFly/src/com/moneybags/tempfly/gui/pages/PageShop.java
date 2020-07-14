@@ -113,9 +113,9 @@ public class PageShop extends DynamicPage {
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));	
 			}
 		} else if (slot == 53 && allOptions.size() > (getPageNumber()+1)*21) {
-			new PageTrails(session, getPageNumber()+1);
+			new PageShop(session, getPageNumber()+1);
 		} else if (slot == 45 && getPageNumber() > 0) {
-			new PageTrails(session, getPageNumber()-1);
+			new PageShop(session, getPageNumber()-1);
 		}
 	}
 
