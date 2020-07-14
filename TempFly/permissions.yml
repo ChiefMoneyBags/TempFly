@@ -77,6 +77,12 @@ tempfly.trails:
   desc: Allow user access to the praticle trail gui
   command: /tf trails
 
+tempfly.trails.remove.self:
+  desc: Allow user to remove their trail.
+
+tempfly.trails.remove.other:
+  desc: Allow user to remove another players trail.
+
 tempfly.trail.{particle}: 
   desc: Gives user access to use individual trails
 
