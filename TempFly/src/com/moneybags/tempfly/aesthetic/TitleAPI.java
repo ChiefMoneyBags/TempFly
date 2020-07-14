@@ -40,8 +40,7 @@ public class TitleAPI {
             Object e;
             Object chatTitle;
             Object chatSubtitle;
-            @SuppressWarnings("rawtypes")
-			Constructor subtitleConstructor;
+			Constructor<?> subtitleConstructor;
             Object titlePacket;
             Object subtitlePacket;
 
@@ -78,8 +77,8 @@ public class TitleAPI {
                 subtitlePacket = subtitleConstructor.newInstance(new Object[]{e, chatSubtitle, fadeIn, stay, fadeOut});
                 sendPacket(player, subtitlePacket);
             }
-        } catch (Exception var11) {
-            var11.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
