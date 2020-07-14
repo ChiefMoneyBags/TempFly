@@ -19,6 +19,6 @@ public class CmdTrails {
 			U.m(s, V.invalidPermission);
 			return;
 		}
-		new PageTrails(GuiSession.newGuiSession((Player)s), 0);
+		new PageTrails(GuiSession.newGuiSession((Player)s), 0, true);
 	}
 }
