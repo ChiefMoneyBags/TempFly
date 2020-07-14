@@ -177,6 +177,9 @@ public class Flyer {
 	}
 	
 	public void playTrail() {
+		if (particle == null || particle.length() == 0) {
+			return;
+		}
 		if (V.hideVanish) {
 			for (MetadataValue meta : p.getMetadata("vanished")) {
 				if (meta.asBoolean()) {
