@@ -5,17 +5,36 @@ import org.bukkit.inventory.ItemStack;
 
 public enum CompatMaterial {
 
-	GRAY_STAINED_GLASS_PANE("STAINED_GLASS_PANE", (short)7),
-	BLACK_STAINED_GLASS_PANE("STAINED_GLASS_PANE", (short)15),
-	LIME_STAINED_GLASS("STAINED_GLASS", (short)5),
-	WHITE_STAINED_GLASS("STAINED_GLASS", (short)0),
-	RED_WOOL("WOOL", (short)14),
-	LIME_WOOL("WOOL", (short)5),
+	GRAY_STAINED_GLASS_PANE(
+			"STAINED_GLASS_PANE", (short) 7),
+	
+	BLACK_STAINED_GLASS_PANE(
+			"STAINED_GLASS_PANE", (short) 15),
+	
+	LIME_STAINED_GLASS(
+			"STAINED_GLASS", (short) 5),
+	
+	WHITE_STAINED_GLASS(
+			"STAINED_GLASS", (short) 0),
+	
+	RED_WOOL(
+			"WOOL", (short) 14),
+	
+	LIME_WOOL(
+			"WOOL", (short) 5),
+	
 	EMERALD,
+	
 	DIAMOND,
+	
 	COAL,
-	REDSTONE_TORCH("REDSTONE_TORCH_ON", (short)0),
-	FEATHER;
+	
+	REDSTONE_TORCH(
+			"REDSTONE_TORCH_ON", (short)0),
+	
+	FEATHER,
+	
+	LAVA_BUCKET;
 	
 	private String oldMaterial;
 	private short oldData;
