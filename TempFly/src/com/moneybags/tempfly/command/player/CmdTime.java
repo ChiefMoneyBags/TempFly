@@ -43,10 +43,9 @@ public class CmdTime {
 		double time = TimeHandle.getTime(p.getUniqueId());
 		U.m(s, TimeHandle.regexString(V.infoHeader, time));
 		U.m(s, TimeHandle.regexString(V.infoPlayer, time).replaceAll("\\{PLAYER}", p.getName()));
-		if (p.isOnline() && (((Player)p).hasPermission("tempfly.time.infinite"))) {
+		final boolean infinite = p.isOnline() && (((Player)p).hasPermission("tempfly.time.infinite")); 
+		if (infinite) {
 			U.m(s, V.infoInfinite);
-			U.m(s, TimeHandle.regexString(V.infoFooter, time));
-			return;
 		}
 		long days = TimeHandle.formatTime(TimeUnit.DAYS, time);
 		if (days > 0) {
@@ -54,16 +53,19 @@ public class CmdTime {
 		}
 		
 		double hours = TimeHandle.formatTime(TimeUnit.HOURS, time);
-		if (hours > 0 || days > 0) {
+		if (hours > 0) {
 			U.m(s, TimeHandle.regexString(V.infoHours, time));	
 		}
 		
 		double minutes = TimeHandle.formatTime(TimeUnit.MINUTES, time);
-		if (minutes > 0 || hours > 0 || days > 0) {
+		if (minutes > 0) {
 			U.m(s, TimeHandle.regexString(V.infoMinutes, time));	
 		}
 		
-		U.m(s, TimeHandle.regexString(V.infoSeconds, time));
+		double seconds = TimeHandle.formatTime(TimeUnit.SECONDS, time);
+		if (seconds > 0 || (seconds == 0 && days == 0 && hours == 0 && minutes == 0 && !infinite)) {
+			U.m(s, TimeHandle.regexString(V.infoSeconds, time));	
+		}
 		U.m(s, TimeHandle.regexString(V.infoFooter, time));
 	}
 }
