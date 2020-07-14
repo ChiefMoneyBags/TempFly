@@ -83,7 +83,12 @@ public class V {
 	warningTitle,
 	warningSubtitle,
 	
-	actionText;
+	actionText,
+	
+	trailRemovedSelf,
+	trailRemovedOther,
+	trailSetSelf,
+	trailSetOther;
 
 	public static boolean
 	groundTimer,
@@ -206,6 +211,11 @@ public class V {
 		warningSubtitle		= st(C.CONFIG, "aesthetic.warning.subtitle");
 		
 		actionText			= st(C.CONFIG, "aesthetic.action_bar.text");
+		
+		trailRemovedSelf	= st(C.LANG, "aesthetic.trail.removed_self");
+		trailRemovedOther	= st(C.LANG, "aesthetic.trail.removed_other");
+		trailSetSelf		= st(C.LANG, "aesthetic.trail.set_self");
+		trailSetOther		= st(C.LANG, "aesthetic.trail.set_other");
 		
 		List<String> h 		= F.lang.getStringList("system.help");
 		if (h != null) {
