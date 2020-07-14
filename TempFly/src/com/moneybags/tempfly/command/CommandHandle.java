@@ -16,6 +16,7 @@ import com.moneybags.tempfly.command.admin.CmdGiveAll;
 import com.moneybags.tempfly.command.admin.CmdReload;
 import com.moneybags.tempfly.command.admin.CmdRemove;
 import com.moneybags.tempfly.command.admin.CmdSet;
+import com.moneybags.tempfly.command.admin.CmdTrailRemove;
 import com.moneybags.tempfly.command.player.CmdAskyblock;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
@@ -35,6 +36,7 @@ public class CommandHandle implements CommandExecutor, Listener {
 			new CmdFly(s, args);
 			return true;
 		} else {
+			s0:
 			switch (args[0]) {
 			case "help":
 			case "commands":
@@ -74,6 +76,14 @@ public class CommandHandle implements CommandExecutor, Listener {
 				new CmdSpeed(s, args);
 				break;
 			case "trail":
+				if (args.length > 1) {
+					switch (args[1]) {
+					case "remove":
+					case "delete":
+						new CmdTrailRemove(s, args);
+						break s0;
+					}
+				}
 			case "trails":
 			case "particle":
 				new CmdTrails(s);
