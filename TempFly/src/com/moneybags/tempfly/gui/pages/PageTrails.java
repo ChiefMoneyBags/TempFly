@@ -1,6 +1,7 @@
 package com.moneybags.tempfly.gui.pages;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -117,6 +118,9 @@ public class PageTrails extends DynamicPage {
 			}
 			ItemMeta meta = display.getItemMeta();
 			meta.setDisplayName(U.cc("&a" + particle.toLowerCase().replaceAll("\\_", " ")));
+			if (p.isOp()) {
+				meta.setLore(Arrays.asList(U.cc("&fPermission: &etempfly.trail." + particle)));
+			}
 			display.setItemMeta(meta);
 			inv.setItem(slot, display);
 		}
