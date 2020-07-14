@@ -207,7 +207,6 @@ aesthetic:
     seconds:
       - 30
       - 15
-      - 10
       - 5
   action_bar:
     enabled: true
