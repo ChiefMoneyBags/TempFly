@@ -60,11 +60,11 @@ general:
   info:
     header: '&8&m--------&dTime&8&m--------'
     player: '&fPlayer&7: &e{PLAYER}'
+    infinite: '&fInfinite: &c&lUser has unlimited flight!'
     days: '&fDays&7: &e{DAYS}'
     hours: '&fHours&7: &e{HOURS}'
     minutes: '&fMinutes&7: &e{MINUTES}'
     seconds: '&fSeconds&7: &e{SECONDS}'
-    infinite: '&eUnlimited Time'
     footer: '&8&m-------------------'
     
   fly:
