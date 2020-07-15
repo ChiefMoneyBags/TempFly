@@ -100,9 +100,13 @@ public class PageShop extends DynamicPage {
 	public void runPage(int slot, InventoryClickEvent e) {
 		if (layout.containsKey(slot)) {
 			Player p = session.getPlayer();
+			ShopOption option = layout.get(slot);
+			if (TimeHandle.getTime(p.getUniqueId()) + option.getTime() > V.maxTime) {
+				U.m(p, V.timeMaxSelf);
+				return;
+			}
 			Economy eco = TempFly.eco;
 			double balance = eco.getBalance(p);
-			ShopOption option = layout.get(slot);
 			if (option.getCost() > balance) {
 				U.m(p, TimeHandle.regexString(V.invalidFunds, option.getTime())
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));
