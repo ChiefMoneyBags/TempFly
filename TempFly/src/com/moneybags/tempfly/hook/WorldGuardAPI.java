@@ -25,13 +25,13 @@ public class WorldGuardAPI {
     private static Constructor<?> vectorConstructor = null;
     private static Method vectorConstructorAsAMethodBecauseWhyNot = null;
 
-    public static boolean isEnabled() {
+    public boolean isEnabled() {
         return worldGuardPlugin != null || worldGuard != null;
     }
     
 
 
-    public static void initialize() {
+    public WorldGuardAPI() {
         try {
             Class<?> worldGuardClass = Class.forName("com.sk89q.worldguard.WorldGuard");
             Method getInstanceMethod = worldGuardClass.getMethod("getInstance");
@@ -86,7 +86,7 @@ public class WorldGuardAPI {
     }
 
     @Nullable
-    public static RegionManager getRegionManager(World world) {
+    public RegionManager getRegionManager(World world) {
         if (regionContainer == null || regionContainerGetMethod == null) return null;
         RegionManager regionManager = null;
         try {
@@ -103,7 +103,7 @@ public class WorldGuardAPI {
     }
 
     @Nullable
-    public static ApplicableRegionSet getRegionSet(Location location) {
+    public ApplicableRegionSet getRegionSet(Location location) {
         RegionManager regionManager = getRegionManager(location.getWorld());
         if (regionManager == null) return null;
         try {
