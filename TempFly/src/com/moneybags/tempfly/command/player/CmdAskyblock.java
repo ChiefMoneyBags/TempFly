@@ -5,7 +5,8 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.gui.GuiSession;
-import com.moneybags.tempfly.hook.askyblock.PageAskyblock;
+import com.moneybags.tempfly.hook.TempFlyHooks.Hook;
+import com.moneybags.tempfly.hook.skyblock.a.PageAskyblock;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -17,7 +18,7 @@ public class CmdAskyblock {
 			return;
 		}
 		Player p = (Player) s;
-		if (TempFly.getAskyblockHook() == null) {
+		if (!TempFly.getHooks().getHook(Hook.ASKYBLOCK).isEnabled()) {
 			U.m(s, V.invalidCommand);
 			return;
 		} else if (!p.hasPermission("tempfly.askyblock.panel")) {
