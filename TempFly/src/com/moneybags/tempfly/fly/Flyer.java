@@ -69,11 +69,6 @@ public class Flyer {
 		}
 	}
 	
-	/**
-	 * It is not reccomended to use methods outside of this area unless you
-	 * know what you are doing.
-	 */
-	
 	
 	public boolean isFlying() {
 		return p.isFlying();
@@ -103,11 +98,6 @@ public class Flyer {
 		this.time = time;
 		this.start = time;
 	}
-	
-	/*
-	 * 
-	 * 
-	 */
 	
 	
 	public void asessRtWorlds() {
