@@ -28,7 +28,6 @@ public class V {
 	invalidFlyerSelf,
 	invalidZoneOther,
 	invalidZoneSelf,
-	invalidIsland,
 	invalidFunds,
 	
 	timeGivenOther,
@@ -158,7 +157,6 @@ public class V {
 		invalidFlyerSelf	= st(C.LANG, "general.invalid.flyer_self");
 		invalidZoneOther	= st(C.LANG, "general.invalid.zone_other");
 		invalidZoneSelf		= st(C.LANG, "general.invalid.zone_self");
-		invalidIsland		= st(C.LANG, "general.invalid.island");
 		invalidFunds		= st(C.LANG, "general.invalid.funds");
 		
 		timeGivenOther		= st(C.LANG, "general.time.given_other");
@@ -326,6 +324,14 @@ public class V {
 		}
 	}
 	
+	public static String st(FileConfiguration config, String key){
+		try{
+			return U.cc(config.getString(key)).replaceAll("\\{PREFIX}", prefix);
+		} catch (Exception e) {
+			U.logW("There is a missing message in the file: (" + config.getName() + ") | Path: (" + key + ")");
+			return U.cc("&cThis message is broken! :(");
+		}
+	}
 	
 	private static String st(C file, String key, String def){
 		try{

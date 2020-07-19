@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import com.moneybags.tempfly.event.FlightEnabledEvent;
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.fly.Flyer;
+import com.moneybags.tempfly.hook.FlightResult;
 import com.moneybags.tempfly.time.TimeHandle;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -83,11 +84,19 @@ public class CmdFly {
 		}
 		
 		
-		Flyer f = FlyHandle.getFlyer(p);
+		Flyer f = FlyHandle.getFlyer(p);                 //lmao what ?? TODO
 		if (toggle && toggleVal || !toggle && !toggleVal && f == null) {
-			if (f != null) {
+			if (f != null) { //<----
 				return;
 			}
+			if ((FlyHandle.onCooldown(p)) && (args.length < 1)) {
+				U.m(s, V.flyCooldownDeny);
+				return;
+			}
+			
+			/*
+			 * Time check 
+			 */
 			double time = TimeHandle.getTime(p.getUniqueId());
 			if ((time <= 0) && (!p.hasPermission("tempfly.time.infinite"))) {
 				if (!s.equals(p)) {
@@ -97,24 +106,31 @@ public class CmdFly {
 				}
 				return;
 			}
-			if (!FlyHandle.flyAllowed(p.getLocation())) {
+			
+			/*
+			 * Region, world and requirements check 
+			 */
+			FlightResult result = FlyHandle.inquireFlight(p, p.getLocation(), true);
+			if (!result.isAllowed()) {
 				if (!s.equals(p)) {
 					U.m(s, V.invalidZoneOther.replaceAll("\\{PLAYER}", p.getName()));
 					return;
 				} else {
-					U.m(s, V.invalidZoneSelf);
+					U.m(s, result.getMessage());
 					return;
 				}	
 			}
-			if ((FlyHandle.onCooldown(p)) && (args.length < 1)) {
-				U.m(s, V.flyCooldownDeny);
-				return;
-			}
+			
+			/*
+			 * Event check 
+			 */
 			FlightEnabledEvent e = new FlightEnabledEvent(p);
 			Bukkit.getPluginManager().callEvent(e);
 			if (e.isCancelled()) {
 				return;
 			}
+			
+			
 			FlyHandle.removeDamageProtction(p);
 			FlyHandle.addFlyer(p);
 			U.m(p, V.flyEnabledSelf);
@@ -125,8 +141,7 @@ public class CmdFly {
 			if (!V.protCommand) {
 				FlyHandle.addDamageProtection(p);	
 			}
-			FlyHandle.removeFlyer(p);
-			U.m(p, V.flyDisabledSelf);
+			FlyHandle.removeFlyer(f);
 			if (!s.equals(p)) {
 				U.m(s, V.flyDisabledOther.replaceAll("\\{PLAYER}", p.getName()));	
 			}

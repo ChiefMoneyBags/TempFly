@@ -126,8 +126,8 @@ public class Flyer {
 	
 	public void asessRtRegions() {
 		List<String> regions = new ArrayList<>();
-		if (WorldGuardAPI.isEnabled()) {
-			ApplicableRegionSet prot = WorldGuardAPI.getRegionSet(p.getLocation());
+		if (TempFly.getHooks().getWorldGuard().isEnabled()) {
+			ApplicableRegionSet prot = TempFly.getHooks().getWorldGuard().getRegionSet(p.getLocation());
 			if (prot != null) {
 				for(ProtectedRegion r : prot) {
 					regions.add(r.getId());
@@ -147,16 +147,16 @@ public class Flyer {
 		}
 	}
 	
-	public void removeFlyer() {
+	
+	public void onFlightDisabled(boolean drop) {
 		timer.cancel();
 		GameMode m = p.getGameMode();
 		updateList(true);
 		updateName(true);
-		if ((m.equals(GameMode.CREATIVE)) || (m.equals(GameMode.SPECTATOR))) {
-			return;
+		if (drop && (m != GameMode.CREATIVE || m != GameMode.SPECTATOR)) {
+			p.setFlying(false);
+			p.setAllowFlight(false);
 		}
-		p.setFlying(false);
-		p.setAllowFlight(false);
 	}
 	
 	/**

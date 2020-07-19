@@ -3,12 +3,16 @@ package com.moneybags.tempfly;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.fly.FlyHandle;
 import com.moneybags.tempfly.fly.Flyer;
+import com.moneybags.tempfly.hook.FlightResult;
 import com.moneybags.tempfly.time.TimeHandle;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 public class TempFlyAPI {
 	
@@ -47,12 +51,72 @@ public class TempFlyAPI {
 	}
 	
 	/**
+	 * @deprecated Since 3.0, checking if fly is allowed at a given location should now be done with the
+	 * method that includes the player and location as parameters. This is due to the integration of the
+	 * many hooks introduced in version 3.0 that contain conditional requirements based on many factors
+	 * about the player other than just the location.
+	 * 
+	 * The method will still work as it used to by checking disabled regions and worlds, but may not function
+	 * as intended with hooks enabled.
 	 * 
 	 * @param loc The location to check
 	 * @return True if a player is allowed to fly at the given location.
 	 */
+	@Deprecated
 	public boolean canFlyAt(Location loc) {
 		return FlyHandle.flyAllowed(loc);
+	}
+	
+	/**
+	 * Check if a player is allowed to fly at the given location. This will check all worlds and regions,
+	 * as well as conditions implemented by TempFlyHooks, such as island requirements in skyblock.
+	 * 
+	 * @param p The player
+	 * @param loc The location to check.
+	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
+	 * @return
+	 */
+	public FlightResult canFlyAt(Player p, Location loc, boolean invokeHooks) {
+		return FlyHandle.inquireFlight(p, loc, invokeHooks);
+	}
+	
+	/**
+	 * Check if a player is allowed to fly in the given world.
+	 * Will check conditions implemented by TempFlyHooks, such as island requirements in skyblock.
+	 * 
+	 * @param p The player
+	 * @param loc The location to check.
+	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
+	 * @return
+	 */
+	public FlightResult canFlyAy(Player p, World world, boolean invokeHooks) {
+		return FlyHandle.inquireFlight(p, world, invokeHooks);
+	}
+	
+	/**
+	 * Check if a player is allowed to fly in the given region.
+	 * Will check conditions implemented by TempFlyHooks, such as island requirements in skyblock.
+	 * 
+	 * @param p The player
+	 * @param loc The location to check.
+	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
+	 * @return
+	 */
+	public FlightResult canFlyAt(Player p, ProtectedRegion region, boolean invokeHooks) {
+		return FlyHandle.inquireFlight(p, region, invokeHooks);
+	}
+	
+	/**
+	 * Check if a player is allowed to fly in the given ApplicableRegionSet.
+	 * Will check conditions implemented by TempFlyHooks, such as island requirements in skyblock.
+	 * 
+	 * @param p The player
+	 * @param loc The location to check.
+	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
+	 * @return
+	 */
+	public FlightResult canFlyAt(Player p, ApplicableRegionSet regions, boolean invokeHooks) {
+		return FlyHandle.inquireFlight(p, regions, invokeHooks);
 	}
 	
 	/**

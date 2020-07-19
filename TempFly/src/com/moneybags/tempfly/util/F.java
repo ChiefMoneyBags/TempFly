@@ -1,7 +1,10 @@
 package com.moneybags.tempfly.util;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +102,13 @@ public class F {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+	public static void createConfig(InputStream stream, File file) throws IOException {
+		byte[] buffer = new byte[stream.available()];
+		stream.read(buffer);
+		OutputStream outStream = new FileOutputStream(file);
+		outStream.write(buffer);
 	}
 	
 	private static void formatDataFile() {

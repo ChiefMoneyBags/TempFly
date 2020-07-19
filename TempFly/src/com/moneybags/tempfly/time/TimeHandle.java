@@ -71,6 +71,7 @@ public class TimeHandle {
 		F.saveData();
 	}
 	
+	// Absolute trash
 	public static String regexString(String s, double seconds) {
 		long days = formatTime(TimeUnit.DAYS, Math.ceil(seconds));
 		long hours = formatTime(TimeUnit.HOURS, Math.ceil(seconds));

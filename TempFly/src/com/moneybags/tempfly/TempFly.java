@@ -1,5 +1,9 @@
 package com.moneybags.tempfly;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandExecutor;
@@ -20,8 +24,9 @@ import com.moneybags.tempfly.fly.Flyer;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.gui.pages.PageTrails;
+import com.moneybags.tempfly.hook.TempFlyHooks;
 import com.moneybags.tempfly.hook.WorldGuardAPI;
-import com.moneybags.tempfly.hook.askyblock.AskyblockHook;
+import com.moneybags.tempfly.hook.skyblock.a.AskyblockHook;
 import com.moneybags.tempfly.tab.TabHandle;
 import com.moneybags.tempfly.util.AutoSave;
 import com.moneybags.tempfly.util.F;
@@ -35,15 +40,19 @@ public class TempFly extends JavaPlugin {
 	
 	public static TempFly plugin;
 	public static TempFlyAPI tfApi;
-	public static AskyblockHook askyblockHook = null;
-	public static Economy eco = null;
+	private static TempFlyHooks hooks;
 	
 	public static double version;
+	
 	
 	public static TempFlyAPI getAPI() {
 		return tfApi;
 	}
 	
+	public static TempFlyHooks getHooks() {
+		return hooks;
+	}
+
 	@Override
 	public void onEnable() {
 		plugin = this;
@@ -55,15 +64,42 @@ public class TempFly extends JavaPlugin {
 		PageTrails.initialize();
 		PageShop.initialize();
 		
-		WorldGuardAPI.initialize();
 		ActionBarAPI.initialize();
-		setupEconomy();
+		
+		hooks = new TempFlyHooks(this);
 		
 		FlyHandle.initialize();
 		registerListeners();
 		registerCommands();
 		initializeAesthetics();
-		initializeHooks();
+		
+		try {
+			Metrics metrics = new Metrics(this, 8196);
+			
+			// Hooks
+	        metrics.addCustomChart(new Metrics.DrilldownPie("gamemode_hooks", () -> {
+	        	
+	            Map<String, Map<String, Integer>> map = new HashMap<>();
+	            Map<String, Integer> entry = new HashMap<>();
+	            boolean hook = false;
+	            /**
+	            if (askyblockHook != null) {
+	            	entry.put("ASkyBlock", 1);
+	            	map.put("ASkyBlock Hook", entry);
+	            	hook = true;
+	            }
+	            */
+	            if (!hook) {
+	            	entry.put("No Hooks", 1);
+	            	map.put("No Hooks", entry);
+	            }
+	            return map;
+	        }));
+	        
+	        
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		new AutoSave().runTaskTimer(this, 0, V.save * 20 * 60);
 		if (V.particles) {
@@ -77,36 +113,16 @@ public class TempFly extends JavaPlugin {
 					continue;
 				}
 				
-				p.setFlying(false);
-				p.setAllowFlight(false);
 				
 				new BukkitRunnable() {
 					@Override
 					public void run() {
-						p.setAllowFlight(false);
-						p.setFlying(false);
+						if (!FlyHandle.regainFlightDisconnect(p)) {
+							FlyHandle.enforceDisabledFlight(p);
+						}
 					}
 				}.runTaskLater(TempFly.plugin, 1);
-			}
-			FlyHandle.regainFlightDisconnect(p);	
-		}
-	}
-	
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
-        eco = rsp.getProvider();
-        return eco != null;
-    }
-	
-	private static void initializeHooks() {
-		if (F.config.getBoolean("hooks.askyblock.enable_hook", false)) {
-			new AskyblockHook();	
+			}	
 		}
 	}
 	
@@ -123,14 +139,7 @@ public class TempFly extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
-		save();
-		for (Player p : Bukkit.getOnlinePlayers()) {
-			FlyHandle.addFlightDisconnect(p);
-			GuiSession.endAllSessions();
-		}
-		for (Flyer f: FlyHandle.getFlyers()) {
-			f.removeFlyer();
-		}
+		FlyHandle.onDisable();
 	}
 	
 	public static boolean oldParticles() {
@@ -150,19 +159,6 @@ public class TempFly extends JavaPlugin {
 		TabCompleter t = new TabHandle();
 		getCommand("tempfly").setExecutor(c);
 		getCommand("tempfly").setTabCompleter(t);
-	}
-	
-	public static void save() {
-		FlyHandle.save();
-	}
-	
-	public static AskyblockHook getAskyblockHook() {
-		return askyblockHook;
-	}
-	
-	public void enableAskyblock(AskyblockHook hook) {
-		askyblockHook = hook;
-		getServer().getPluginManager().registerEvents(hook, this);
 	}
 	
 }
