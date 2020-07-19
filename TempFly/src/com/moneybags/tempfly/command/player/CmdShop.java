@@ -12,7 +12,7 @@ import com.moneybags.tempfly.util.V;
 public class CmdShop {
 
 	public CmdShop(CommandSender s) {
-		if (!V.shop || TempFly.eco == null) {
+		if (!V.shop || TempFly.getHooks().getEconomy() == null) {
 			U.m(s, V.invalidCommand);
 			return;
 		}

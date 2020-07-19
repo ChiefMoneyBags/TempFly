@@ -105,7 +105,7 @@ public class PageShop extends DynamicPage {
 				U.m(p, V.timeMaxSelf);
 				return;
 			}
-			Economy eco = TempFly.eco;
+			Economy eco = TempFly.getHooks().getEconomy();
 			double balance = eco.getBalance(p);
 			if (option.getCost() > balance) {
 				U.m(p, TimeHandle.regexString(V.invalidFunds, option.getTime())
