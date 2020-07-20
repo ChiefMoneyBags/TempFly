@@ -521,7 +521,7 @@ public class FlyHandle implements Listener {
 	public static void addFlightDisconnect(Player p) {
 		if (!flyers.containsKey(p)) return;
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
-		 bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString(), true);
+		 bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, true, p.getUniqueId().toString());
 		 bridge.commit(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString());
 	}
 	
@@ -544,7 +544,7 @@ public class FlyHandle implements Listener {
 								enforceDisabledFlight(p);
 							}
 						}
-						bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString(), false);
+						bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, false, p.getUniqueId().toString());
 					}
 				}.runTaskLater(TempFly.getInstance(), 1);
 				return logged;

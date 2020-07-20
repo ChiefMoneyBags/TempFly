@@ -66,7 +66,8 @@ public class Particles {
 	}
 	
 	public static void setTrail(UUID u, String s) {
-		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, u.toString(), s);
+		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, s, u.toString());
+		
 	}
 	
 }

@@ -43,7 +43,7 @@ public class IslandSettings {
 	
 	public void setCanFly(String rank, boolean canFly) {
 		settings.put(rank, canFly);
-		TempFly.getInstance().getDataBridge().stageChange(DataValue.ISLAND_SETTING, island.getIdentifier(), rank, canFly);
+		TempFly.getInstance().getDataBridge().stageChange(DataValue.ISLAND_SETTING, canFly, island.getIdentifier(), rank);
 	}
 	
 	public void toggleCanFly(String rank) {

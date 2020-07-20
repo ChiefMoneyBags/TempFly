@@ -21,42 +21,48 @@ public class TimeHandle {
 		if (f != null) {
 			return f.getTime();
 		}
-		return (double) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TIME, u.toString());
+		return (double) TempFly.getInstance().getDataBridge().getOrDefault(DataValue.PLAYER_TIME, 0d, u.toString());
 	}
 	
 	public static void removeTime(UUID u, double seconds) {
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
-		double bal = f == null ? (double) bridge.getValue(DataValue.PLAYER_TIME, u.toString()) : f.getTime();
+		double bal = f == null ? (double) bridge.getOrDefault(DataValue.PLAYER_TIME, 0d, u.toString()) : f.getTime();
 		double remaining = (((bal-seconds) >= 0) ? (bal-seconds) : 0);
 		
 		if (f != null) {
 			f.setTime(remaining);
+			bridge.stageChange(DataValue.PLAYER_TIME, remaining, u.toString());
+		} else {
+			bridge.stageAndCommit(DataValue.PLAYER_TIME, remaining, u.toString());
 		}
-		bridge.stageChange(DataValue.PLAYER_TIME, u.toString(), remaining);
 	}
 	
 	public static void addTime(UUID u, double seconds) {
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
-		double bal = f == null ? (double) bridge.getValue(DataValue.PLAYER_TIME, u.toString()) : f.getTime();
+		double bal = f == null ? (double) bridge.getOrDefault(DataValue.PLAYER_TIME, 0d, u.toString()) : f.getTime();
 		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
 		
 		
 		if (f != null) {
 			f.setTime(remaining);
+			bridge.stageChange(DataValue.PLAYER_TIME, remaining, u.toString());
+		} else {
+			bridge.stageAndCommit(DataValue.PLAYER_TIME, remaining, u.toString());
 		}
-		bridge.stageChange(DataValue.PLAYER_TIME, u.toString(), remaining);
 	}
 	
 	public static void setTime(UUID u, double seconds) {
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		if (f != null) {
-			f.setTime(seconds);	
+			f.setTime(seconds);
+			TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TIME, seconds, u.toString());
+		} else {
+			TempFly.getInstance().getDataBridge().stageAndCommit(DataValue.PLAYER_TIME, seconds, u.toString());
 		}
-		TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TIME, u.toString(), seconds);
 	}
 	
 	// Absolute trash

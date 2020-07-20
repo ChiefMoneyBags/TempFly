@@ -70,13 +70,15 @@ public class TempFly extends JavaPlugin {
 		
 		Files.createFiles(this);
 		V.loadValues();
+		this.bridge = new DataBridge(this);
+		
 		Particles.initialize();
 		PageTrails.initialize();
 		PageShop.initialize();
 		
 		ActionBarAPI.initialize();
 		
-		hooks = new HookManager(this);
+		this.hooks = new HookManager(this);
 		
 		FlyHandle.initialize();
 		registerListeners();
@@ -108,7 +110,8 @@ public class TempFly extends JavaPlugin {
 			e.printStackTrace();
 		}
 		
-		new AutoSave().runTaskTimer(this, 0, V.save * 20 * 60);
+		new AutoSave().runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
+		
 		if (V.particles) {
 			new ParticleTask().runTaskTimer(this, 0, 5);	
 		}

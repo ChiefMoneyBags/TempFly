@@ -15,6 +15,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.util.U;
+import moneybags.tempfly.util.data.DataBridge.DataTable;
 import moneybags.tempfly.util.data.Files;
 
 public abstract class TempFlyHook {
@@ -76,9 +77,11 @@ public abstract class TempFlyHook {
 	    
 	   FileConfiguration hookConfig = new YamlConfiguration();
     	hookConfig.load(hookConfigf);
-		if (!hookConfig.getBoolean("enable_hook")) return;
+		if (!hookConfig.getBoolean("enable_hook")) {
+			return;
+		}
 		
-		plugin.getDataBridge().initializeHookData(this, plugin);
+		plugin.getDataBridge().initializeHookData(this, plugin, DataTable.ISLAND_SETTINGS);
 	}
 
 	public abstract FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions);

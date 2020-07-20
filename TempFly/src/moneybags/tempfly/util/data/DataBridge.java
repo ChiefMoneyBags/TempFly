@@ -3,6 +3,8 @@ package moneybags.tempfly.util.data;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -37,8 +39,8 @@ public class DataBridge {
 	private File dataf;
 	private static FileConfiguration data;
 	
-	private Map<HookType, File> hookFiles;
-	private static Map<HookType, FileConfiguration> hookData;
+	private Map<HookType, File> hookFiles = new HashMap<>();
+	private static Map<HookType, FileConfiguration> hookData = new HashMap<>();
 	
 	private List<StagedChange> changes = new CopyOnWriteArrayList<>();
 	
@@ -50,9 +52,13 @@ public class DataBridge {
 			name = Files.config.getString("system.sql.name"),
 			user = Files.config.getString("system.sql.user"),
 			pass = Files.config.getString("system.sql.pass");
-		
-			
-		
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+				connection = DriverManager.getConnection(
+						"jdbc:mysql://" + host + ":"+ port + "/" + name, user, pass);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		
 		// If connection is null we will default to yaml storage.
@@ -133,7 +139,7 @@ public class DataBridge {
 		try { data.save(dataf); } catch (Exception e) { e.printStackTrace(); };
 	}
 	
-	public void initializeHookData(TempFlyHook hook, TempFly plugin) throws IOException, InvalidConfigurationException {
+	public void initializeHookData(TempFlyHook hook, TempFly plugin, DataTable table) throws IOException, InvalidConfigurationException, SQLException {
 		HookType hookType = hook.getHookType();
 		String target = hook.getHookedPlugin();
 		if (connection == null) {
@@ -145,6 +151,12 @@ public class DataBridge {
 		    FileConfiguration hookData = new YamlConfiguration();
 		    hookData.load(hookDataf);	
 		} else {
+			DatabaseMetaData meta = connection.getMetaData();
+			ResultSet results = meta.getTables(null, null, table.getSqlTable(), null);
+			if (!results.next()) {
+				PreparedStatement statement = connection.prepareStatement("create table if not exists " + table.getSqlTable());
+				statement.executeQuery();
+			}
 			
 		}
 	}
@@ -156,36 +168,33 @@ public class DataBridge {
 	 * @param data the new value
 	 * @throws DataFormatException
 	 */
-	public synchronized void stageChange(DataValue value, String row, Object data) {
-		if (value.hasDynamicPath()) {
-			try {
-				throw new DataFormatException("The data value (" + value + ") requires a dynamic column paremeter but none was given!");
-			} catch (DataFormatException e) {
-				e.printStackTrace();
-				return;
+	public synchronized void stageChange(DataValue value, Object data, String... path) {
+		for (StagedChange change: changes) {
+			if (change.isDuplicate(value, path)) {
+				changes.remove(change);
 			}
 		}
-		String column = connection == null ? value.getYamlPath() : value.getSqlCollumn();
-		stageChange(value, row, column);
+		changes.add(new StagedChange(value, data, path));
 	}
 	
 	/**
 	 * Stage a change to be sent to the database later.
 	 * @param value the type of data value
 	 * @param row the row to affect
-	 * @param column the column to affect
 	 * @param data the new value
 	 * @throws DataFormatException
 	 */
-	public synchronized void stageChange(DataValue value, String row, String column, Object data) {
+	public synchronized void stageAndCommit(DataValue value, Object data, String... path) {
 		for (StagedChange change: changes) {
-			if (change.isDuplicate(value, row, column)) {
+			if (change.isDuplicate(value, path)) {
 				changes.remove(change);
+				break;
 			}
 		}
-		changes.add(new StagedChange(value, row, column, data));
+		changes.add(new StagedChange(value, data, path));
+		commit(value, path);
 	}
-	
+
 	/**
 	 * Commit all changes to the database or yaml if applicable.
 	 * This method is usually called by async threads, it will wait for staged changes to be finished before committing
@@ -196,23 +205,52 @@ public class DataBridge {
 			commit.addAll(changes);
 			changes.clear();
 		}
+		
 		for (StagedChange change: commit) {
-			setValue(change.getValue(), change.getRow(), change.getCollum(), change.getData());
+			setValue(change.getValue(), change.getData(), change.getPath());
+		}
+		
+		if (connection == null) {
+			synchronized (this) {
+				for (Entry<HookType, FileConfiguration> dat: hookData.entrySet()) {
+					try {dat.getValue().save(hookFiles.get(dat.getKey()));} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+				}
+				try {data.save(dataf);} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
-	public void commit(DataValue value, String row) {
+	public void commit(DataValue value, String... path) {
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized (this) {
 			for (StagedChange change: changes) {
-				if (change.getRow().equals(row)) {
+				if (change.getPath().equals(path)) {
 					commit.add(change);
 					changes.remove(change);
 				}
 			}	
 		}
 		for (StagedChange change: commit) {
-			setValue(value, change.getRow(), change.getCollum(), change.getData());
+			setValue(value, change.getData(), change.getPath());
+		}
+		
+		if (connection == null) {
+			synchronized (this) {
+				for (Entry<HookType, FileConfiguration> dat: hookData.entrySet()) {
+					try {dat.getValue().save(hookFiles.get(dat.getKey()));} catch (Exception e) {
+						e.printStackTrace();
+						continue;
+					}
+				}
+				try {data.save(dataf);} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 	
@@ -221,51 +259,43 @@ public class DataBridge {
 	}
 	
 	/**
-	 * Get a value from the table in the given row
+	 * Get a value from the table
 	 * @param value
 	 * @param row
 	 * @return
 	 * @throws DataFormatException
 	 */
-	public Object getValue(DataValue value, String row) {
-		if (value.hasDynamicPath()) {
-			try {
-				throw new DataFormatException("The data value (" + value + ") requires a dynamic column paremeter but none was given!");
-			} catch (DataFormatException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
-		String column = connection == null ? value.getYamlPath() : value.getSqlCollumn();
-		return getValue(value, row, column);
-	}
-	
-	public Object getValue(DataValue value, String row, String column) {
+	public Object getValue(DataValue value, String... path) {
 		synchronized (this) {
 			for (StagedChange change: changes) {
-				if (change.isDuplicate(value, row, column)) {
+				if (change.isDuplicate(value, path)) {
 					return change.getData();
 				}
 			}
 		}
-		// yaml or sql
-		if (connection == null) {
-			
-		} else {
-			try {
-				PreparedStatement ps = connection.prepareStatement("select " + column + " from " + value.getTable() + " where IDENTIFIER = " + row);
-				ResultSet rs = ps.executeQuery();
-				if (rs.next()) {
-					return (rs.getObject(column));
-				}
-				return null;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
 		
+		if (connection == null) {
+			int index = 0;
+			StringBuilder sb = new StringBuilder();
+			for (String s: value.getYamlPath()) {
+				sb.append((sb.length() > 0 ? "." : "") + s);
+				if (path.length > index) {
+					sb.append("." + path[index]);
+				}
+				index++;
+			}
+			U.logS("-----------" + sb.toString());
+			U.logS("---------" + String.valueOf(value.getTable().getYaml()));
+			return value.getTable().getYaml().get(sb.toString());
+		} else {
+			//TODO sql
+		}
 		return null;
+	}
+	
+	public Object getOrDefault(DataValue value, Object def, String... path) {
+		Object object = getValue(value, path);
+		return object == null ? def : object;
 	}
 	
 	/**
@@ -308,32 +338,29 @@ public class DataBridge {
 		return values;
 	}
 	
-	public void setValue(DataValue value, String row, Object data) {
-		if (value.hasDynamicPath()) {
-			try {
-				throw new DataFormatException("The data value (" + value + ") requires a dynamic column paremeter but none was given!");	
-			} catch (DataFormatException e) {
-				e.printStackTrace();
-				return;
-			}
-		}
-		String column = connection == null ? value.getYamlPath() : value.getSqlCollumn();
-		setValue(value, row, column, data);
-	}
-	
-	public void setValue(DataValue value, String row, String column, Object data) {
-		// yaml or sql
+	public void setValue(DataValue value, Object data, String... path) {
 		if (connection == null) {
-			
-		} else {
-			try {
-				PreparedStatement ps = connection.prepareStatement("");
-				//TODO save to db
-			} catch (Exception e) {
-				e.printStackTrace();
+			int index = 0;
+			StringBuilder sb = new StringBuilder();
+			for (String s: value.getYamlPath()) {
+				sb.append((sb.length() > 0 ? "." : "") + s);
+				if (path.length > index) {
+					sb.append("." + path[index]);
+				}
+				index++;
 			}
+			U.logS("setting " + sb.toString() + " to " + String.valueOf(data));
+			FileConfiguration yaml = value.getTable().getYaml();
+			if (!yaml.contains(sb.toString())) {
+				U.logS("not exist");
+				yaml.createSection(sb.toString());
+			}
+			yaml.set(sb.toString(), data);
+		} else {
+			//TODO sql
 		}
 	}
+
 	
 	public static enum DataTable {
 		TEMPFLY_DATA,
@@ -371,25 +398,25 @@ public class DataBridge {
 				DataTable.TEMPFLY_DATA,
 				Long.class,
 				"BALANCE",
-				"time",
+				new String[] {"players", "time"},
 				false),
 		PLAYER_FLIGHT_LOG(
 				DataTable.TEMPFLY_DATA,
 				Boolean.class,
 				"LOGGED_IN_FLIGHT",
-				"logged_in_flight",
+				new String[] {"players", "logged_in_flight"},
 				false),
 		PLAYER_DAILY_BONUS(
 				DataTable.TEMPFLY_DATA,
 				Long.class,
 				"LAST_DAILY_BONUS",
-				"last_daily_bonus",
+				new String[] {"players", "last_daily_bonus"},
 				false),
 		PLAYER_TRAIL(
 				DataTable.TEMPFLY_DATA,
 				String.class,
 				"TRAIL",
-				"trail",
+				new String[] {"players", "trail"},
 				false),
 		
 		
@@ -405,14 +432,16 @@ public class DataBridge {
 		private DataTable table;
 		private Class<?> type;
 		private String
-		sqlCollumn,
+		sqlColumn;
+		
+		private String[]
 		yamlPath;
 		private boolean dynamic;
 		
-		private DataValue(DataTable table, Class<?> type, String sqlCollumn, String yamlPath, boolean dynamic) {
+		private DataValue(DataTable table, Class<?> type, String sqlColumn, String[] yamlPath, boolean dynamic) {
 			this.table = table;
 			this.type = type;
-			this.sqlCollumn = sqlCollumn;
+			this.sqlColumn = sqlColumn;
 			this.yamlPath = yamlPath;
 			this.dynamic = dynamic;
 		}
@@ -425,11 +454,11 @@ public class DataBridge {
 			return type;
 		}
 		
-		public String getSqlCollumn() {
-			return sqlCollumn;
+		public String getSqlColumn() {
+			return sqlColumn;
 		}
 		
-		public String getYamlPath() {
+		public String[] getYamlPath() {
 			return yamlPath;
 		}
 		
@@ -441,14 +470,12 @@ public class DataBridge {
 	protected class StagedChange {
 		
 		DataValue value;
-		String row;
-		String column;
+		String[] path;
 		Object data;
 		
-		public StagedChange(DataValue value, String row, String column, Object data) {
+		public StagedChange(DataValue value, Object data, String... path) {
 			this.value = value;
-			this.row = row;
-			this.column = column;
+			this.path = path;
 			this.data = data;
 		}
 		
@@ -456,22 +483,17 @@ public class DataBridge {
 			return value;
 		}
 		
-		public String getRow() {
-			return row;
-		}
-		
-		public String getCollum() {
-			return column;
+		public String[] getPath() {
+			return path;
 		}
 		
 		public Object getData() {
 			return data;
 		}
 		
-		public boolean isDuplicate(DataValue value, String row, String column) {
-			return this.value == value
-					&& this.row == row
-					&& this.column == column;
+		public boolean isDuplicate(DataValue value, String[] path) {
+			return this.value.equals(value)
+					&& this.path.equals(path);
 		}
 	}
 
