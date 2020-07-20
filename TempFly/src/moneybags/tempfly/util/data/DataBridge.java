@@ -29,17 +29,16 @@ import moneybags.tempfly.hook.HookManager.Genre;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.util.U;
-import net.minecraft.server.v1_15_R1.GeneratorSettingsDefault;
 
 
 public class DataBridge {
 
 	private Connection connection;
 	
-	private File dataf;
+	private static File dataf;
 	private static FileConfiguration data;
 	
-	private Map<HookType, File> hookFiles = new HashMap<>();
+	private static Map<HookType, File> hookFiles = new HashMap<>();
 	private static Map<HookType, FileConfiguration> hookData = new HashMap<>();
 	
 	private List<StagedChange> changes = new CopyOnWriteArrayList<>();
@@ -168,7 +167,7 @@ public class DataBridge {
 	 * @param data the new value
 	 * @throws DataFormatException
 	 */
-	public synchronized void stageChange(DataValue value, Object data, String... path) {
+	public synchronized void stageChange(DataValue value, Object data, String[] path) {
 		for (StagedChange change: changes) {
 			if (change.isDuplicate(value, path)) {
 				changes.remove(change);
@@ -184,7 +183,7 @@ public class DataBridge {
 	 * @param data the new value
 	 * @throws DataFormatException
 	 */
-	public synchronized void stageAndCommit(DataValue value, Object data, String... path) {
+	public synchronized void stageAndCommit(DataValue value, Object data, String[] path) {
 		for (StagedChange change: changes) {
 			if (change.isDuplicate(value, path)) {
 				changes.remove(change);
@@ -225,29 +224,27 @@ public class DataBridge {
 		}
 	}
 	
-	public void commit(DataValue value, String... path) {
+	public void commit(DataValue value, String[] path) {
+		U.logS("Attempting to commit: " + value.toString() + " | " + path.toString());
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized (this) {
 			for (StagedChange change: changes) {
-				if (change.getPath().equals(path)) {
+				U.logS("staged change iterator");
+				if (change.isDuplicate(value, path)) {
+					U.logS("found a staged change: " + change.getData());
 					commit.add(change);
 					changes.remove(change);
 				}
 			}	
 		}
 		for (StagedChange change: commit) {
+			U.logS("setValue for change");
 			setValue(value, change.getData(), change.getPath());
 		}
 		
 		if (connection == null) {
 			synchronized (this) {
-				for (Entry<HookType, FileConfiguration> dat: hookData.entrySet()) {
-					try {dat.getValue().save(hookFiles.get(dat.getKey()));} catch (Exception e) {
-						e.printStackTrace();
-						continue;
-					}
-				}
-				try {data.save(dataf);} catch (Exception e) {
+				try { U.logS("saving data"); value.getTable().getYaml().save(value.getTable().getFile()); } catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -265,7 +262,7 @@ public class DataBridge {
 	 * @return
 	 * @throws DataFormatException
 	 */
-	public Object getValue(DataValue value, String... path) {
+	public Object getValue(DataValue value, String[] path) {
 		synchronized (this) {
 			for (StagedChange change: changes) {
 				if (change.isDuplicate(value, path)) {
@@ -293,7 +290,7 @@ public class DataBridge {
 		return null;
 	}
 	
-	public Object getOrDefault(DataValue value, Object def, String... path) {
+	public Object getOrDefault(DataValue value, Object def, String[] path) {
 		Object object = getValue(value, path);
 		return object == null ? def : object;
 	}
@@ -338,7 +335,7 @@ public class DataBridge {
 		return values;
 	}
 	
-	public void setValue(DataValue value, Object data, String... path) {
+	public void setValue(DataValue value, Object data, String[] path) {
 		if (connection == null) {
 			int index = 0;
 			StringBuilder sb = new StringBuilder();
@@ -372,6 +369,21 @@ public class DataBridge {
 				return data;
 			case ISLAND_SETTINGS:
 				for (Entry<HookType, FileConfiguration> entry: hookData.entrySet()) {
+					if (entry.getKey().getGenre() == Genre.SKYBLOCK) {
+						return entry.getValue();
+					}
+				}
+			default:
+				return null;
+			}
+		}
+		
+		public File getFile() {
+			switch (this) {
+			case TEMPFLY_DATA:
+				return dataf;
+			case ISLAND_SETTINGS:
+				for (Entry<HookType, File> entry: hookFiles.entrySet()) {
 					if (entry.getKey().getGenre() == Genre.SKYBLOCK) {
 						return entry.getValue();
 					}
@@ -473,7 +485,7 @@ public class DataBridge {
 		String[] path;
 		Object data;
 		
-		public StagedChange(DataValue value, Object data, String... path) {
+		public StagedChange(DataValue value, Object data, String[] path) {
 			this.value = value;
 			this.path = path;
 			this.data = data;
@@ -492,8 +504,15 @@ public class DataBridge {
 		}
 		
 		public boolean isDuplicate(DataValue value, String[] path) {
-			return this.value.equals(value)
-					&& this.path.equals(path);
+			if (!value.equals(this.value) || path.length != this.path.length) {
+				return false;
+			}
+			for (int index = 0; path.length > index && this.path.length > index; index++) {
+				if (!path[index].equals(this.path[index])) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 

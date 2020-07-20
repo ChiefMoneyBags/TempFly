@@ -1,12 +1,16 @@
 package moneybags.tempfly.fly;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Timer;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.DataFormatException;
@@ -50,6 +54,7 @@ import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.FlightResult.DenyReason;
 import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
+import moneybags.tempfly.util.DailyDate;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge;
@@ -63,14 +68,7 @@ public class FlyHandle implements Listener {
 	private static Map<UUID, BukkitTask> prot = new HashMap<>();
 	
 	private static List<RelativeTimeRegion> rtRegions = new ArrayList<>();
-	
 	private static List<String> blackRegion = new ArrayList<>();
-	
-	private static BukkitTask dailyTask;
-	
-	public static void wipe() {
-		flyers = new HashMap<>();
-	}
 	
 	public static void initialize() {
 		blackRegion = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
@@ -88,8 +86,8 @@ public class FlyHandle implements Listener {
 						Files.config.getDouble("general.relative_time.regions." + s, 1), false, s));
 			}
 		}
-		dailyTask = new DailyTask().runTaskTimer(TempFly.getInstance(), 0, 200);
 	}
+	
 	
 	public static List<RelativeTimeRegion> getRtRegions() {
 		return rtRegions;
@@ -102,10 +100,9 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void save(Flyer f) {
-		String row = f.getPlayer().getUniqueId().toString();
-		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_TIME, row);
-		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_FLIGHT_LOG, row);
-		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_DAILY_BONUS, row);
+		U.logS("save flyer.......");
+		DataBridge bridge = TempFly.getInstance().getDataBridge();
+		bridge.commit(DataValue.PLAYER_TIME, new String[] {f.getPlayer().getUniqueId().toString()});
 	}
 	
 	public static void addDamageProtection(Player p) {
@@ -490,14 +487,7 @@ public class FlyHandle implements Listener {
 			U.m(p, TimeHandle.regexString(V.firstJoin, V.firstJoinTime));
 		}
 		
-		
-		Date lj = new Date(p.getLastPlayed());
-		Date ct = new Date(System.currentTimeMillis());
-		if ((lj.getDate() != ct.getDate())
-				|| ((lj.getDate() == ct.getDate()) && (lj.getMonth() != ct.getMonth()))) {
-			loginBonus(p);
-		}
-		
+		loginBonus(p);
 		
 		GameMode m = p.getGameMode();
 		if (!(m.equals(GameMode.CREATIVE)) && !(m.equals(GameMode.SPECTATOR))) {
@@ -521,30 +511,26 @@ public class FlyHandle implements Listener {
 	public static void addFlightDisconnect(Player p) {
 		if (!flyers.containsKey(p)) return;
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
-		 bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, true, p.getUniqueId().toString());
-		 bridge.commit(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString());
+		bridge.stageAndCommit(DataValue.PLAYER_FLIGHT_LOG, true, new String[] {p.getUniqueId().toString()});
 	}
 	
 	public static boolean regainFlightDisconnect(Player p) {
-		U.logS("regain flight");
 		if (!flyers.containsKey(p)) {
 			DataBridge bridge = TempFly.getInstance().getDataBridge();
 			try {
-				final boolean logged = (boolean) bridge.getValue(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString());
+				final boolean logged = (boolean) bridge.getOrDefault(DataValue.PLAYER_FLIGHT_LOG, false, new String[] {p.getUniqueId().toString()});
 				new BukkitRunnable() {
 					@Override
 					public void run() {
 					
 						if (!flyers.containsKey(p) && logged) {
 							if (p.hasPermission("tempfly.time.infinite") || TimeHandle.getTime(p.getUniqueId()) > 0) {
-								U.logS("add flyer");
 								addFlyer(p);
 							} else {
-								U.logS("enforce disable");
 								enforceDisabledFlight(p);
 							}
 						}
-						bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, false, p.getUniqueId().toString());
+						bridge.stageAndCommit(DataValue.PLAYER_FLIGHT_LOG, false, new String[] {p.getUniqueId().toString()});
 					}
 				}.runTaskLater(TempFly.getInstance(), 1);
 				return logged;
@@ -710,40 +696,19 @@ public class FlyHandle implements Listener {
 		removeDamageProtction(p);
 	}
 	
-
-	// Prevents a player from logging in during the first 10 seconds of the day and getting the
-	// daily bonus twice.
-	private static List<UUID> bonusProt = new LinkedList<>();
-	
-	/**
-	 *  Give players the daily bonus if they are online through midnight, that way
-	 *  they don't need to relog to get the bonus.
-	 *  
-	 */
-	public static class DailyTask extends BukkitRunnable {
-		
-		@SuppressWarnings("deprecation")
-		@Override
-		public void run() {
-			Date lj = new Date(System.currentTimeMillis() - 10000);
-			Date ct = new Date(System.currentTimeMillis());
-			if (lj.getDate() != ct.getDate()) {
-				for (Player p: Bukkit.getOnlinePlayers()) {
-					loginBonus(p);
-				}
-			}
-			bonusProt.clear();
-		}
-	}
-	
 	public static void loginBonus(Player p) {
-		if (bonusProt.contains(p.getUniqueId())) {
+		DataBridge bridge = TempFly.getInstance().getDataBridge();
+		long lastBonus = (long) bridge.getOrDefault(DataValue.PLAYER_DAILY_BONUS, 0L, new String[] {p.getUniqueId().toString()});
+		long sys = System.currentTimeMillis();
+		
+		if (new DailyDate(lastBonus).equals(new DailyDate(sys))) {
 			return;
 		}
-		bonusProt.add(p.getUniqueId());
+		
 		if (V.legacyBonus > 0) {
 			TimeHandle.addTime(p.getUniqueId(), V.legacyBonus);
-			U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));	
+			U.m(p, TimeHandle.regexString(V.dailyLogin, V.legacyBonus));
+			bridge.stageAndCommit(DataValue.PLAYER_DAILY_BONUS, sys, new String[] {p.getUniqueId().toString()});
 		} else if (V.dailyBonus.size() > 0) {
 			double time = 0;
 			
@@ -756,11 +721,8 @@ public class FlyHandle implements Listener {
 			if (time > 0) {
 				TimeHandle.addTime(p.getUniqueId(), time);
 				U.m(p, TimeHandle.regexString(V.dailyLogin, time));	
+				bridge.stageAndCommit(DataValue.PLAYER_DAILY_BONUS, sys, new String[] {p.getUniqueId().toString()});
 			}
 		}
-	}
-	
-	public static BukkitTask getDailyTask() {
-		return dailyTask;
 	}
 }

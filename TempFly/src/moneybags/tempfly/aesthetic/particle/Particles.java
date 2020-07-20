@@ -62,11 +62,12 @@ public class Particles {
 	}
 	
 	public static String loadTrail(UUID u) {
-		return (String) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TRAIL, u.toString());
+		return (String) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TRAIL, new String[]{u.toString()});
+		
 	}
 	
 	public static void setTrail(UUID u, String s) {
-		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, s, u.toString());
+		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, s, new String[]{u.toString()});
 		
 	}
 	

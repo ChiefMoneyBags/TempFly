@@ -21,6 +21,7 @@ import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class Flyer {
 	
@@ -152,6 +153,7 @@ public class Flyer {
 			p.setFlying(false);
 			p.setAllowFlight(false);
 		}
+		
 	}
 	
 	/**
@@ -222,25 +224,21 @@ public class Flyer {
 			idle++;
 			updateList(false);
 			updateName(false);
-			if (isIdle()) {
-				if (V.idleDrop) {
-					FlyHandle.removeFlyer(p);
-				}
-				if (!V.idleTimer) {
-					return;
-				}
-			}
-			if (!(isFlying()) && (!V.groundTimer)) {
+			
+			if (checkIdle() || (!isFlying() && !V.groundTimer)) {
 				return;
 			}
+			
 			if (time > 0) {
 				double cost = 1;
 				for (RelativeTimeRegion rtr : rtEncompassing) {
-					cost = cost*rtr.getFactor();
+					cost *= rtr.getFactor();
 				}
+			
+				time = time-cost <= 0 ? 0 : time-cost;
+				TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TIME, time, new String[]{p.getUniqueId().toString()});
 				
-				time = time-cost;
-				if (time <= 0) {
+				if (time == 0) {
 					if (!V.protTime) {
 						FlyHandle.addDamageProtection(p);	
 					}
@@ -249,28 +247,12 @@ public class Flyer {
 				}
 				
 				if (V.warningTimes.contains((long)time)) {
-					String title = TimeHandle.regexString(V.warningTitle, time);
-					String subtitle = TimeHandle.regexString(V.warningSubtitle, time);
-					TitleAPI.sendTitle(p, 15, 30, 15, title, subtitle);
+					TitleAPI.sendTitle(p, 15, 30, 15,
+							TimeHandle.regexString(V.warningTitle, time),
+							TimeHandle.regexString(V.warningSubtitle, time));
 				}
 				if (V.actionBar) {
-					if (V.actionProgress) {
-						double percent = (((float)time/start)*100);
-						String bar = "";
-						bar = bar.concat("&8[&a");
-						boolean neg = true;
-						for (double i = 0; i < 100; i += 7.69) {
-							if ((percent <= i) && (neg)) {
-								bar = bar.concat("&c");
-								neg = false;
-							}
-							bar = bar.concat("=");
-						}
-						bar = bar.concat("&8]");
-						ActionBarAPI.sendActionBar(p, U.cc(bar));
-					} else {
-						ActionBarAPI.sendActionBar(p, TimeHandle.regexString(V.actionText, getTime()));
-					}
+					doActionBar();
 				}
 			} else {
 				if (!V.protTime) {
@@ -278,6 +260,39 @@ public class Flyer {
 				}
 				FlyHandle.removeFlyer(p);
 				U.m(p, V.invalidTimeSelf);
+			}
+		}
+		
+		private boolean checkIdle() {
+			if (isIdle()) {
+				if (V.idleDrop) {
+					FlyHandle.removeFlyer(p);
+					return true;
+				}
+				if (!V.idleTimer) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		private void doActionBar() {
+			if (V.actionProgress) {
+				double percent = (((float)time/start)*100);
+				StringBuilder bar = new StringBuilder();
+				bar.append("&8[&a");
+				boolean neg = true;
+				for (double i = 0; i < 100; i += 7.69) {
+					if ((percent <= i) && (neg)) {
+						bar.append("&c");
+						neg = false;
+					}
+					bar.append("=");
+				}
+				bar.append("&8]");
+				ActionBarAPI.sendActionBar(p, U.cc(bar.toString()));
+			} else {
+				ActionBarAPI.sendActionBar(p, TimeHandle.regexString(V.actionText, getTime()));
 			}
 		}
 	}
