@@ -1,5 +1,5 @@
 name: TempFly
-main: com.moneybags.tempfly.TempFly
+main: moneybags.tempfly.TempFly
 softdepend: [ASkyBlock, Essentials, MVdWPlaceholderAPI, PlaceholderAPI, aSkyBlock, Vault]
 api-version: 1.13
 version: 2.0.8

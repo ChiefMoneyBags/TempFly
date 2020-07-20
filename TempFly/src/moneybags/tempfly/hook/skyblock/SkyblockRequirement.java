@@ -1,0 +1,47 @@
+package moneybags.tempfly.hook.skyblock;
+
+import java.util.List;
+
+import javax.annotation.Nullable;
+
+import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook.RequirementType;
+
+public class SkyblockRequirement {
+
+	private RequirementType type;
+	private long islandLevel;
+	@Nullable
+	private String[] challenges;
+	@Nullable
+	private String name;
+	
+	public SkyblockRequirement(List<String> challenges, long islandLevel, String name, RequirementType type) {
+		this.type = type;
+		this.name = name;
+		this.challenges = challenges == null ? null : challenges.toArray(new String[challenges.size()]);
+		this.islandLevel = islandLevel;
+	}
+	
+	public SkyblockRequirement(List<String> challenges, long islandLevel, RequirementType type) {
+		this.type = type;
+	}
+	
+	@Nullable
+	public String getName() {
+		return name;
+	}
+	
+	public long getRequiredLevel() {
+		return islandLevel;
+	}
+	
+	@Nullable
+	public String[] getRequiredChallenges() {
+		return challenges;
+	}
+	
+	public RequirementType getType() {
+		return type;
+	}
+	
+}
