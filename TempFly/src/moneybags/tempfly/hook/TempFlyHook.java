@@ -14,8 +14,8 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.U;
+import moneybags.tempfly.util.data.Files;
 
 public abstract class TempFlyHook {
 
@@ -29,22 +29,22 @@ public abstract class TempFlyHook {
 	hookDataf,
 	hookConfigf;
 	
-	private FileConfiguration
-	hookData,
-	hookConfig;
+	private FileConfiguration hookConfig;
 	
-	public TempFlyHook(HookType type, TempFly plugin) {
-		this.target = type.getPluginName();
+	public TempFlyHook(HookType hookType, TempFly plugin) {
+		this.target = hookType.getPluginName();
 		if (Bukkit.getPluginManager().getPlugin(target) == null) {
 			return;
 		}
+		
 		U.logI("Initializing (" + target + ") hook...");
+		this.hookType = hookType;
+		this.plugin = plugin;
 		try { initializeFiles(); } catch (Exception e) {
 			U.logS("An error occured while trying to initilize the (" + target + ") hook.");
 			e.printStackTrace();
 			return;
 		}
-		this.plugin = plugin;
 	}
 	
 	public String getHookedPlugin() {
@@ -59,38 +59,26 @@ public abstract class TempFlyHook {
 		return enabled;
 	}
 	
-	public FileConfiguration getData() {
-		return hookData;
-	}
-	
 	public HookType getHookType() {
 		return hookType;
 	}
 	
 	public void saveData() {
-		try { hookData.save(hookDataf); } catch (IOException e) {
-			e.printStackTrace();
-		}
+		//TODO
 	}
 	
 	private void initializeFiles() throws Exception {
-		hookConfigf = new File(hookType.getGenre().getDirectory(), target + "_config.yml");
+		File hookConfigf = new File(hookType.getGenre().getDirectory(), target + "_config.yml");
 	    if (!hookConfigf.exists()) {
 	    	hookConfigf.getParentFile().mkdirs();
-	    	F.createConfig(plugin.getResource("skyblock_config.yml"), hookConfigf);
+	    	Files.createConfig(plugin.getResource("skyblock_config.yml"), hookConfigf);
 	    }
 	    
-	    hookConfig = new YamlConfiguration();
+	   FileConfiguration hookConfig = new YamlConfiguration();
     	hookConfig.load(hookConfigf);
 		if (!hookConfig.getBoolean("enable_hook")) return;
 		
-		hookDataf = new File(hookType.getGenre().getDirectory(), target + "_data.yml");
-	    if (!hookDataf.exists()) {
-	    	hookDataf.getParentFile().mkdirs();
-	    	hookDataf.createNewFile();
-	    }
-	    hookData = new YamlConfiguration();
-	    hookData.load(hookDataf);
+		plugin.getDataBridge().initializeHookData(this, plugin);
 	}
 
 	public abstract FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions);

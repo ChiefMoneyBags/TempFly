@@ -84,7 +84,7 @@ public class HookManager {
 		}
 		
 		public String getDirectory() {
-			return TempFly.plugin.getDataFolder() + File.separator + "hooks" + File.separator + folder;
+			return TempFly.getInstance().getDataFolder() + File.separator + "hooks" + File.separator + folder;
 		}
 	}
 	

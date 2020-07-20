@@ -16,6 +16,7 @@ import moneybags.tempfly.TempFly;
 import moneybags.tempfly.aesthetic.ActionBarAPI;
 import moneybags.tempfly.aesthetic.TitleAPI;
 import moneybags.tempfly.aesthetic.particle.Particles;
+import moneybags.tempfly.hook.HookManager;
 import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
 import moneybags.tempfly.util.U;
@@ -52,7 +53,7 @@ public class Flyer {
 		
 		asessRtRegions();
 		asessRtWorlds();
-		this.timer = new Timer().runTaskTimer(TempFly.plugin, 0, 20);
+		this.timer = new Timer().runTaskTimer(TempFly.getInstance(), 0, 20);
 	}
 	
 	public void applySpeedCorrect() {
@@ -65,7 +66,7 @@ public class Flyer {
 						p.setFlySpeed(maxSpeed * 0.1f);	
 					}
 				}
-			}.runTaskLater(TempFly.plugin, 10);
+			}.runTaskLater(TempFly.getInstance(), 10);
 		}
 	}
 	
@@ -116,8 +117,9 @@ public class Flyer {
 	
 	public void asessRtRegions() {
 		List<String> regions = new ArrayList<>();
-		if (TempFly.getHookManager().getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = TempFly.getHookManager().getWorldGuard().getRegionSet(p.getLocation());
+		HookManager hooks = TempFly.getInstance().getHookManager();
+		if (hooks.getWorldGuard().isEnabled()) {
+			ApplicableRegionSet prot = hooks.getWorldGuard().getRegionSet(p.getLocation());
 			if (prot != null) {
 				for(ProtectedRegion r : prot) {
 					regions.add(r.getId());
@@ -137,7 +139,10 @@ public class Flyer {
 		}
 	}
 	
-	
+	/**
+	 * Internal method, used to tell the flyer object when when it is being removed so it can clean itself up.
+	 * @param drop
+	 */
 	public void onFlightDisabled(boolean drop) {
 		timer.cancel();
 		GameMode m = p.getGameMode();

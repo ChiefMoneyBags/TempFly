@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.DataFormatException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -49,9 +50,11 @@ import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.FlightResult.DenyReason;
 import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.DataBridge;
+import moneybags.tempfly.util.data.DataBridge.DataValue;
+import moneybags.tempfly.util.data.Files;
 
 public class FlyHandle implements Listener {
 
@@ -70,22 +73,22 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void initialize() {
-		blackRegion = F.config.contains("general.disabled.regions") ? F.config.getStringList("general.disabled.regions") : new ArrayList<>();
-		ConfigurationSection csRtW = F.config.getConfigurationSection("general.relative_time.worlds");
+		blackRegion = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
+		ConfigurationSection csRtW = Files.config.getConfigurationSection("general.relative_time.worlds");
 		if (csRtW != null) {
 			for (String s : csRtW.getKeys(false)) {
 				rtRegions.add(new RelativeTimeRegion(
-						F.config.getDouble("general.relative_time.worlds." + s, 1), true, s));
+						Files.config.getDouble("general.relative_time.worlds." + s, 1), true, s));
 			}
 		}
-		ConfigurationSection csRtR = F.config.getConfigurationSection("general.relative_time.regions");
+		ConfigurationSection csRtR = Files.config.getConfigurationSection("general.relative_time.regions");
 		if (csRtW != null) {
 			for (String s : csRtR.getKeys(false)) {
 				rtRegions.add(new RelativeTimeRegion(
-						F.config.getDouble("general.relative_time.regions." + s, 1), false, s));
+						Files.config.getDouble("general.relative_time.regions." + s, 1), false, s));
 			}
 		}
-		dailyTask = new DailyTask().runTaskTimer(TempFly.plugin, 0, 200);
+		dailyTask = new DailyTask().runTaskTimer(TempFly.getInstance(), 0, 200);
 	}
 	
 	public static List<RelativeTimeRegion> getRtRegions() {
@@ -93,21 +96,16 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void save() {
-		FileConfiguration data = F.data;
 		for (Flyer f: flyers.values()) {
-			String path = "players." + f.getPlayer().getUniqueId().toString() + ".time";
-			double time = f.getTime();
-			data.set(path, time);
+			save(f);
 		}
-		F.saveData();
 	}
 	
 	public static void save(Flyer f) {
-		FileConfiguration data = F.data;
-		String path = "players." + f.getPlayer().getUniqueId().toString() + ".time";
-		double time = f.getTime();
-		data.set(path, time);
-		F.saveData();
+		String row = f.getPlayer().getUniqueId().toString();
+		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_TIME, row);
+		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_FLIGHT_LOG, row);
+		TempFly.getInstance().getDataBridge().commit(DataValue.PLAYER_DAILY_BONUS, row);
 	}
 	
 	public static void addDamageProtection(Player p) {
@@ -118,7 +116,7 @@ public class FlyHandle implements Listener {
 			public void run() {
 				prot.remove(u);
 			}
-		}.runTaskLater(TempFly.plugin, 120));
+		}.runTaskLater(TempFly.getInstance(), 120));
 	}
 	
 	public static void removeDamageProtction(Player p) {
@@ -171,7 +169,7 @@ public class FlyHandle implements Listener {
 			public void run() {
 				enforceDisabledFlight(p);
 			}
-		}.runTaskLater(TempFly.plugin, delay);
+		}.runTaskLater(TempFly.getInstance(), delay);
 	}
 	
 	public static void enforceDisabledFlight(Player p) {
@@ -199,7 +197,7 @@ public class FlyHandle implements Listener {
 			}	
 		}
 		if (invokeHooks) {
-			for (TempFlyHook hook: TempFly.getHookManager().getEnabled()) {
+			for (TempFlyHook hook: TempFly.getInstance().getHookManager().getEnabled()) {
 				FlightResult result = hook.handleFlightInquiry(p, regions);
 				if (!result.isAllowed()) {
 					return result;
@@ -214,7 +212,7 @@ public class FlyHandle implements Listener {
 			return new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf);
 		}
 		if (invokeHooks) {
-			for (TempFlyHook hook: TempFly.getHookManager().getEnabled()) {
+			for (TempFlyHook hook: TempFly.getInstance().getHookManager().getEnabled()) {
 				FlightResult result = hook.handleFlightInquiry(p, r);
 				if (!result.isAllowed()) {
 					return result;
@@ -229,7 +227,7 @@ public class FlyHandle implements Listener {
 			return new FlightResult(false, DenyReason.DISABLED_WORLD, V.invalidZoneSelf);
 		}
 		if (invokeHooks) {
-			for (TempFlyHook hook: TempFly.getHookManager().getEnabled()) {
+			for (TempFlyHook hook: TempFly.getInstance().getHookManager().getEnabled()) {
 				FlightResult result = hook.handleFlightInquiry(p, world);
 				if (!result.isAllowed()) {
 					return result;
@@ -245,8 +243,8 @@ public class FlyHandle implements Listener {
 			return worldResult;
 		}
 		
-		if (TempFly.getHookManager().getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = TempFly.getHookManager().getWorldGuard().getRegionSet(loc);
+		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
+			ApplicableRegionSet prot = TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(loc);
 			if (prot != null) {
 				FlightResult result = inquireFlight(p, prot, invokeHooks);
 				if (!result.isAllowed()) {
@@ -256,7 +254,7 @@ public class FlyHandle implements Listener {
 		}	
 		
 		if (invokeHooks) {
-			for (TempFlyHook hook: TempFly.getHookManager().getEnabled()) {
+			for (TempFlyHook hook: TempFly.getInstance().getHookManager().getEnabled()) {
 				FlightResult hookResult = hook.handleFlightInquiry(p, loc);
 				if (!hookResult.isAllowed()) {
 					return hookResult;
@@ -269,8 +267,8 @@ public class FlyHandle implements Listener {
 	
 	@Deprecated
 	public static boolean flyAllowed(Location loc) {
-		if (TempFly.getHookManager().getWorldGuard().isEnabled()) {
-			for (ProtectedRegion r: TempFly.getHookManager().getWorldGuard().getRegionSet(loc)) {
+		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
+			for (ProtectedRegion r: TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(loc)) {
 				if (blackRegion.contains(r.getId())) {
 					return false;
 				}
@@ -333,7 +331,7 @@ public class FlyHandle implements Listener {
 					cooldown.remove(u);
 				}
 			}
-		}.runTaskLater(TempFly.plugin, time);
+		}.runTaskLater(TempFly.getInstance(), time);
 	}
 	
 	public static String getPlaceHolder(Player p, Placeholder type) {
@@ -466,7 +464,7 @@ public class FlyHandle implements Listener {
 				p.setAllowFlight(true);
 				p.setFlying(true);
 			}
-		}.runTaskLater(TempFly.plugin, 1);
+		}.runTaskLater(TempFly.getInstance(), 1);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -522,32 +520,39 @@ public class FlyHandle implements Listener {
 	
 	public static void addFlightDisconnect(Player p) {
 		if (!flyers.containsKey(p)) return;
-		F.data.set("players." + p.getUniqueId() + ".logged_in_flight", true);
-		F.saveData();
+		DataBridge bridge = TempFly.getInstance().getDataBridge();
+		 bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString(), true);
+		 bridge.commit(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString());
 	}
 	
 	public static boolean regainFlightDisconnect(Player p) {
 		U.logS("regain flight");
 		if (!flyers.containsKey(p)) {
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					U.logS("run...");
-					if (!flyers.containsKey(p) && F.data.getBoolean("players." + p.getUniqueId() + ".logged_in_flight")) {
-						if (p.hasPermission("tempfly.time.infinite") || TimeHandle.getTime(p.getUniqueId()) > 0) {
-							U.logS("add flyer");
-							addFlyer(p);
-						} else {
-							U.logS("enforce disable");
-							enforceDisabledFlight(p);
+			DataBridge bridge = TempFly.getInstance().getDataBridge();
+			try {
+				final boolean logged = (boolean) bridge.getValue(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString());
+				new BukkitRunnable() {
+					@Override
+					public void run() {
+					
+						if (!flyers.containsKey(p) && logged) {
+							if (p.hasPermission("tempfly.time.infinite") || TimeHandle.getTime(p.getUniqueId()) > 0) {
+								U.logS("add flyer");
+								addFlyer(p);
+							} else {
+								U.logS("enforce disable");
+								enforceDisabledFlight(p);
+							}
 						}
-						F.data.set("players." + p.getUniqueId() + ".logged_in_flight", false);
-						F.saveData();
+						bridge.stageChange(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString(), false);
 					}
-				}
-			}.runTaskLater(TempFly.plugin, 1);
+				}.runTaskLater(TempFly.getInstance(), 1);
+				return logged;
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
-		return F.data.getBoolean("players." + p.getUniqueId() + ".logged_in_flight");
+		return false;
 	}
 
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -565,8 +570,8 @@ public class FlyHandle implements Listener {
 			p.setFlying(false);
 		}
 		
-		if (TempFly.getHookManager().getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = TempFly.getHookManager().getWorldGuard().getRegionSet(e.getTo());
+		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
+			ApplicableRegionSet prot = TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(e.getTo());
 			if (prot != null) {
 				FlightResult result = inquireFlight(p, prot, true);
 				if (!result.isAllowed()) {

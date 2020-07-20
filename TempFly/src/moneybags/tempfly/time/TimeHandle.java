@@ -2,51 +2,44 @@ package moneybags.tempfly.time;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.DataFormatException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import moneybags.tempfly.TempFly;
 import moneybags.tempfly.fly.FlyHandle;
 import moneybags.tempfly.fly.Flyer;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.DataBridge;
+import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class TimeHandle {
 
 	public static double getTime(UUID u) {
-		FileConfiguration data = F.data;
-		String path = "players." + u.toString() + ".time";
-		
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
-		
 		if (f != null) {
 			return f.getTime();
-		} else {
-			return data.getInt(path);
 		}
+		return (double) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TIME, u.toString());
 	}
 	
 	public static void removeTime(UUID u, double seconds) {
-		FileConfiguration data = F.data;
-		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
-		
-		double bal = f == null ? data.getDouble(path) : f.getTime();
+		DataBridge bridge = TempFly.getInstance().getDataBridge();
+		double bal = f == null ? (double) bridge.getValue(DataValue.PLAYER_TIME, u.toString()) : f.getTime();
 		double remaining = (((bal-seconds) >= 0) ? (bal-seconds) : 0);
 		
 		if (f != null) {
 			f.setTime(remaining);
-		} 
-		data.set(path, remaining);
-		F.saveData();
+		}
+		bridge.stageChange(DataValue.PLAYER_TIME, u.toString(), remaining);
 	}
 	
 	public static void addTime(UUID u, double seconds) {
-		FileConfiguration data = F.data;
-		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
-		
-		double bal = f == null ? data.getDouble(path) : f.getTime();
+		DataBridge bridge = TempFly.getInstance().getDataBridge();
+		double bal = f == null ? (double) bridge.getValue(DataValue.PLAYER_TIME, u.toString()) : f.getTime();
 		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
 		
@@ -54,21 +47,16 @@ public class TimeHandle {
 		if (f != null) {
 			f.setTime(remaining);
 		}
-		data.set(path, remaining);
-		F.saveData();
+		bridge.stageChange(DataValue.PLAYER_TIME, u.toString(), remaining);
 	}
 	
 	public static void setTime(UUID u, double seconds) {
-		FileConfiguration data = F.data;
-		String path = "players." + u.toString() + ".time";
 		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
 		
 		if (f != null) {
-			f.setTime(seconds);
-			
+			f.setTime(seconds);	
 		}
-		data.set(path, seconds);
-		F.saveData();
+		TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TIME, u.toString(), seconds);
 	}
 	
 	// Absolute trash

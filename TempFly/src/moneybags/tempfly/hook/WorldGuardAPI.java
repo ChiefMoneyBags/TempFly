@@ -38,7 +38,7 @@ public class WorldGuardAPI {
             Method getInstanceMethod = worldGuardClass.getMethod("getInstance");
             worldGuard = getInstanceMethod.invoke(null);
         } catch (Exception ex) {
-    		Plugin plugin = TempFly.plugin.getServer().getPluginManager().getPlugin("WorldGuard");
+    		Plugin plugin = TempFly.getInstance().getServer().getPluginManager().getPlugin("WorldGuard");
     		if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
     			return;
     		}

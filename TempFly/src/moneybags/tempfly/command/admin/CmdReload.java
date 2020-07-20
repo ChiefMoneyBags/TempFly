@@ -6,9 +6,9 @@ import moneybags.tempfly.TempFly;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.pages.PageShop;
 import moneybags.tempfly.gui.pages.PageTrails;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.Files;
 
 public class CmdReload {
 
@@ -18,7 +18,7 @@ public class CmdReload {
 			return;
 		}
 		U.m(s, V.reload);
-		F.createFiles(TempFly.plugin);
+		Files.createFiles(TempFly.getInstance());
 		V.loadValues();
 		GuiSession.endAllSessions();
 		PageTrails.initialize();

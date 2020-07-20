@@ -30,27 +30,37 @@ import moneybags.tempfly.hook.WorldGuardAPI;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.tab.TabHandle;
 import moneybags.tempfly.util.AutoSave;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.ParticleTask;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.DataBridge;
+import moneybags.tempfly.util.data.Files;
 import net.milkbowl.vault.economy.Economy;
 
 public class TempFly extends JavaPlugin {
 	
-	public static TempFly plugin;
-	public static TempFlyAPI tfApi;
-	private static HookManager hooks;
-	
-	public static double version;
-	
+	// static abusers unite
+	private static TempFly plugin;
+	private static TempFlyAPI tfApi;
+	public static TempFly getInstance() {
+		return plugin;
+	}
 	
 	public static TempFlyAPI getAPI() {
 		return tfApi;
 	}
 	
-	public static HookManager getHookManager() {
+	
+	public static double version;
+	private HookManager hooks;
+	private DataBridge bridge;
+	
+	public HookManager getHookManager() {
 		return hooks;
+	}
+	
+	public DataBridge getDataBridge() {
+		return bridge;
 	}
 
 	@Override
@@ -58,7 +68,7 @@ public class TempFly extends JavaPlugin {
 		plugin = this;
 		tfApi = new TempFlyAPI();
 		
-		F.createFiles(this);
+		Files.createFiles(this);
 		V.loadValues();
 		Particles.initialize();
 		PageTrails.initialize();
@@ -79,9 +89,7 @@ public class TempFly extends JavaPlugin {
 			// Hooks
 	        metrics.addCustomChart(new Metrics.DrilldownPie("gamemode_hooks", () -> {
 	        	
-	        	//TODO this aint right...
 	            Map<String, Map<String, Integer>> map = new HashMap<>();
-	            //?
 	            Map<String, Integer> entry = new HashMap<>();
 	            
 	            for (TempFlyHook hook: hooks.getEnabled()) {

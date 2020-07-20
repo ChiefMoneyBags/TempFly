@@ -25,7 +25,6 @@ import moneybags.tempfly.gui.abstraction.Page;
 import moneybags.tempfly.hook.HookManager.Genre;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.util.CompatMaterial;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 

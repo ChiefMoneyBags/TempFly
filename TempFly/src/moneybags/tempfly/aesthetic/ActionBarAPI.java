@@ -95,7 +95,7 @@ public class ActionBarAPI {
                 public void run() {
                     sendActionBar(player, "");
                 }
-            }.runTaskLater(TempFly.plugin, duration + 1);
+            }.runTaskLater(TempFly.getInstance(), duration + 1);
         }
 
         while (duration > 40) {
@@ -105,7 +105,7 @@ public class ActionBarAPI {
                 public void run() {
                     sendActionBar(player, message);
                 }
-            }.runTaskLater(TempFly.plugin, (long) duration);
+            }.runTaskLater(TempFly.getInstance(), (long) duration);
         }
     }
 }

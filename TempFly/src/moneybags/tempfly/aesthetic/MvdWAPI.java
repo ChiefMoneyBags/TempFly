@@ -16,7 +16,7 @@ public class MvdWAPI {
 	public static void initialize() {
 		if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
 			
-			  PlaceholderAPI.registerPlaceholder(TempFly.plugin, "tempfly_time_formatted", new PlaceholderReplacer() {
+			  PlaceholderAPI.registerPlaceholder(TempFly.getInstance(), "tempfly_time_formatted", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();
@@ -27,7 +27,7 @@ public class MvdWAPI {
 				} 
 			  });
 			  
-			  PlaceholderAPI.registerPlaceholder(TempFly.plugin, "tempfly_time_days", new PlaceholderReplacer() {
+			  PlaceholderAPI.registerPlaceholder(TempFly.getInstance(), "tempfly_time_days", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();
@@ -38,7 +38,7 @@ public class MvdWAPI {
 				} 
 			  });
 			  
-			  PlaceholderAPI.registerPlaceholder(TempFly.plugin, "tempfly_time_hours", new PlaceholderReplacer() {
+			  PlaceholderAPI.registerPlaceholder(TempFly.getInstance(), "tempfly_time_hours", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();
@@ -49,7 +49,7 @@ public class MvdWAPI {
 				} 
 			  });
 			  
-			  PlaceholderAPI.registerPlaceholder(TempFly.plugin, "tempfly_time_minutes", new PlaceholderReplacer() {
+			  PlaceholderAPI.registerPlaceholder(TempFly.getInstance(), "tempfly_time_minutes", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();
@@ -60,7 +60,7 @@ public class MvdWAPI {
 				} 
 			  });
 			  
-			  PlaceholderAPI.registerPlaceholder(TempFly.plugin, "tempfly_time_seconds", new PlaceholderReplacer() {
+			  PlaceholderAPI.registerPlaceholder(TempFly.getInstance(), "tempfly_time_seconds", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();

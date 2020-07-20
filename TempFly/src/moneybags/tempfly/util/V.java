@@ -8,7 +8,8 @@ import java.util.Map;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import moneybags.tempfly.util.F.C;
+import moneybags.tempfly.util.data.Files;
+import moneybags.tempfly.util.data.Files.C;
 
 public class V {
 
@@ -141,7 +142,7 @@ public class V {
 	dailyBonus = new HashMap<>();
 
 	public static void loadValues() {
-		FileConfiguration config = F.config;
+		FileConfiguration config = Files.config;
 		
 		prefix 				= st(C.LANG, "system.prefix");
 		reload 				= st(C.LANG, "system.reload");
@@ -215,14 +216,14 @@ public class V {
 		trailSetSelf		= st(C.LANG, "aesthetic.trail.set_self");
 		trailSetOther		= st(C.LANG, "aesthetic.trail.set_other");
 		
-		List<String> h 		= F.lang.getStringList("system.help");
+		List<String> h 		= Files.lang.getStringList("system.help");
 		if (h != null) {
 			for (String s: h) {
 				help.add(U.cc(s));
 			}
 		}
 		
-		List<String> he 	= F.lang.getStringList("system.help_extended");
+		List<String> he 	= Files.lang.getStringList("system.help_extended");
 		if (he != null) {
 			for (String s: he) {
 				helpExtended.add(U.cc(s));
@@ -230,24 +231,24 @@ public class V {
 		}
 		
 		try {
-			warningTimes    = F.config.getLongList("aesthetic.warning.seconds");
+			warningTimes    = Files.config.getLongList("aesthetic.warning.seconds");
 		} catch (Exception e) {
 			warningTimes = new ArrayList<>();
 			U.logW("You can only set numbers under (aesthetic.warning.seconds) in the config!");
 		}
 		
 		
-		disabledWorlds	 	= F.config.getStringList("general.disabled.worlds");
+		disabledWorlds	 	= Files.config.getStringList("general.disabled.worlds");
 		if (disabledWorlds == null) {
 			disabledWorlds = new ArrayList<>();
 		}
 		
-		disabledRegions	 	= F.config.getStringList("general.disabled.regions");
+		disabledRegions	 	= Files.config.getStringList("general.disabled.regions");
 		if (disabledRegions == null) {
 			disabledRegions = new ArrayList<>();
 		}
 		
-		overrideFlightPermissions = F.config.getStringList("general.fly_override_permissions");
+		overrideFlightPermissions = Files.config.getStringList("general.fly_override_permissions");
 		if (overrideFlightPermissions == null) {
 			overrideFlightPermissions = new ArrayList<>();
 		}
@@ -312,9 +313,9 @@ public class V {
 			switch (file)
 			{
 			case CONFIG:
-				return U.cc(F.config.getString(key)).replaceAll("\\{PREFIX}", prefix);
+				return U.cc(Files.config.getString(key)).replaceAll("\\{PREFIX}", prefix);
 			case LANG:
-				return U.cc(F.lang.getString(key)).replaceAll("\\{PREFIX}", prefix);
+				return U.cc(Files.lang.getString(key)).replaceAll("\\{PREFIX}", prefix);
 			default:
 				return "";
 			}
@@ -338,9 +339,9 @@ public class V {
 			switch (file)
 			{
 			case CONFIG:
-				return U.cc(F.config.getString(key)).replaceAll("\\{PREFIX}", prefix);
+				return U.cc(Files.config.getString(key)).replaceAll("\\{PREFIX}", prefix);
 			case LANG:
-				return U.cc(F.lang.getString(key)).replaceAll("\\{PREFIX}", prefix);
+				return U.cc(Files.lang.getString(key)).replaceAll("\\{PREFIX}", prefix);
 			default:
 				return "";
 			}

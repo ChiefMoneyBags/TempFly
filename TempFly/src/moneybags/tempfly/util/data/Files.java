@@ -1,4 +1,4 @@
-package moneybags.tempfly.util;
+package moneybags.tempfly.util.data;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -19,8 +19,13 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.util.U;
 
-public class F {
+/**
+ * This class is going to be reworked in a future version. Too much static abuse and repetition.
+ *
+ */
+public class Files {
 
 	public static enum C {
 		CONFIG,
@@ -32,19 +37,16 @@ public class F {
 	private static File
 	configf,
 	langf,
-	dataf,
 	pagef;
 	
 	public static FileConfiguration
 	config,
 	lang,
-	data,
 	page;
 	
 	public static void createFiles(Plugin plugin){
 	    configf = new File(plugin.getDataFolder(), "config.yml");
 	    langf = new File(plugin.getDataFolder(), "lang.yml");
-	    dataf = new File(plugin.getDataFolder(), "data.yml");
 	    pagef = new File(plugin.getDataFolder(), "page.yml");
 	    
 	    if (!configf.exists()){
@@ -55,10 +57,6 @@ public class F {
 	    	langf.getParentFile().mkdirs();
 	        plugin.saveResource("lang.yml", false);
 	    }
-	    if (!dataf.exists()){
-	    	dataf.getParentFile().mkdirs();
-	        plugin.saveResource("data.yml", false);
-	    }
 	    if (!pagef.exists()){
 	    	pagef.getParentFile().mkdirs();
 	        plugin.saveResource("page.yml", false);
@@ -66,7 +64,6 @@ public class F {
 	    
 	    config = new YamlConfiguration();
 	    lang = new YamlConfiguration();
-	    data = new YamlConfiguration();
 	    page = new YamlConfiguration();
 	    
 	    try {
@@ -82,26 +79,11 @@ public class F {
 	        e1.printStackTrace();
 	    }
 	    try {
-	        data.load(dataf);
-	    } catch (IOException | InvalidConfigurationException e1){
-	    	U.logS("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
-	        e1.printStackTrace();
-	    }
-	    try {
 	        page.load(pagef);
 	    } catch (IOException | InvalidConfigurationException e1){
 	    	U.logS("There is a problem inside the page.yml, If you cannot fix the issue, please contact the developer.");
 	        e1.printStackTrace();
 	    }
-	    formatDataFile();
-	}
-	
-	public static void saveData() {
-		try {
-			data.save(dataf);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
 	}
 	
 	public static void createConfig(InputStream stream, File file) throws IOException {
@@ -109,56 +91,7 @@ public class F {
 		stream.read(buffer);
 		OutputStream outStream = new FileOutputStream(file);
 		outStream.write(buffer);
-	}
-	
-	private static void formatDataFile() {
-		double version = data.getDouble("version", 0.0);
-		if (version < 2.0) {
-			U.logW("Your data file needs to update to support the current version. Updating to version 2.0 now...");
-			if (!createBackup()) {
-				Bukkit.getPluginManager().disablePlugin(TempFly.plugin);
-				return;
-			}
-			
-			data.set("version", 2.0);
-			ConfigurationSection csPlayers = data.getConfigurationSection("players");
-			if (csPlayers != null) {
-				Map<String, Double> time = new HashMap<>();
-				for (String key: csPlayers.getKeys(false)) {
-					time.put(key, data.getDouble("players." + key));
-				}
-				for (Entry<String, Double> entry: time.entrySet()) {
-					String uuid = entry.getKey();
-					double value = entry.getValue();
-					data.set("players." + uuid + ".time", value);
-					data.set("players." + uuid + ".logged_in_flight", false);
-					data.set("players." + uuid + ".trail", "");
-				}	
-			}
-			List<String> disco = data.getStringList("flight_disconnect");
-			if (disco != null) {
-				for (String uuid: disco) {
-					data.set("players." + uuid + ".logged_in_flight", true);
-				}
-			}
-			data.set("flight_disconnect", null);
-			saveData();
-		}
-	}
-	
-	private static boolean createBackup() {
-		U.logI("Creating a backup of your data file...");
-		File f = new File(TempFly.plugin.getDataFolder(), "data_backup_" + UUID.randomUUID().toString() + ".yml");
-		try {
-			data.save(f);
-		} catch (Exception e) {
-			U.logS(U.cc("&c-----------------------------------"));
-			U.logS("There was an error while trying to backup the data file");
-			U.logS("For your safety the plugin will disable. Please contact the developer.");
-			e.printStackTrace();
-			return false;
-		}
-		return true;
+		outStream.close();
 	}
 	
 }

@@ -20,9 +20,9 @@ import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.abstraction.DynamicPage;
 import moneybags.tempfly.time.TimeHandle;
 import moneybags.tempfly.util.CompatMaterial;
-import moneybags.tempfly.util.F;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
+import moneybags.tempfly.util.data.Files;
 import net.milkbowl.vault.economy.Economy;
 
 public class PageShop extends DynamicPage {
@@ -33,7 +33,7 @@ public class PageShop extends DynamicPage {
 	private static ItemStack background, toolbar, next, prev;
 	
 	public static void initialize() {
-		FileConfiguration config = F.page;
+		FileConfiguration config = Files.page;
 		String path = "page.shop";
 		title = U.cc(config.getString(path + ".title", "&dParticle Trails"));
 		background = U.getConfigItem(config, path + ".background");
@@ -46,11 +46,11 @@ public class PageShop extends DynamicPage {
 		CompatMaterial.setType(next, CompatMaterial.REDSTONE_TORCH);
 		CompatMaterial.setType(prev, CompatMaterial.REDSTONE_TORCH);
 		
-		ConfigurationSection csOptons = F.config.getConfigurationSection("shop.options");
+		ConfigurationSection csOptons = Files.config.getConfigurationSection("shop.options");
 		if (csOptons != null) {
 			for (String s: csOptons.getKeys(false)) {
 				path = "shop.options." + s;
-				allOptions.add(new ShopOption(F.config.getInt(path + ".time", 0), F.config.getDouble(path + ".cost", 1000000)));
+				allOptions.add(new ShopOption(Files.config.getInt(path + ".time", 0), Files.config.getDouble(path + ".cost", 1000000)));
 			}
 		}
 	}
@@ -104,7 +104,7 @@ public class PageShop extends DynamicPage {
 				U.m(p, V.timeMaxSelf);
 				return;
 			}
-			Economy eco = TempFly.getHookManager().getEconomy();
+			Economy eco = TempFly.getInstance().getHookManager().getEconomy();
 			double balance = eco.getBalance(p);
 			if (option.getCost() > balance) {
 				U.m(p, TimeHandle.regexString(V.invalidFunds, option.getTime())
@@ -136,12 +136,12 @@ public class PageShop extends DynamicPage {
 			
 			String name = U.cc(
 					TimeHandle.regexString(
-							F.page.getString("page.shop.option.name", "{FORMATTED_TIME}"), time)
+							Files.page.getString("page.shop.option.name", "{FORMATTED_TIME}"), time)
 							.replaceAll("\\{COST}", String.valueOf(cost))
 								);
 			meta.setDisplayName(name);
 			
-			List<String> l = F.page.getStringList("page.shop.option.lore");
+			List<String> l = Files.page.getStringList("page.shop.option.lore");
 			List<String> lore = new ArrayList<>();
 			if (l != null) {
 				for (String s: l) {

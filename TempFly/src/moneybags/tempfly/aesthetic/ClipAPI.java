@@ -37,7 +37,7 @@ public class ClipAPI {
 
 		@Override
 		public String getVersion() {
-			return TempFly.plugin.getDescription().getVersion();
+			return TempFly.getInstance().getDescription().getVersion();
 		}
 		
 		@Override

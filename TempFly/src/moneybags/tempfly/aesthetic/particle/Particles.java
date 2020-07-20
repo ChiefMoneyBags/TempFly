@@ -12,7 +12,7 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.block.data.BlockData;
 
 import moneybags.tempfly.TempFly;
-import moneybags.tempfly.util.F;
+import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class Particles {
 
@@ -62,12 +62,11 @@ public class Particles {
 	}
 	
 	public static String loadTrail(UUID u) {
-		return F.data.getString("players." + u.toString() + ".trail", null);
+		return (String) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TRAIL, u.toString());
 	}
 	
 	public static void setTrail(UUID u, String s) {
-		F.data.set("players." + u.toString() + ".trail", s);
-		F.saveData();
+		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, u.toString(), s);
 	}
 	
 }
