@@ -150,7 +150,6 @@ public class FlyHandle implements Listener {
 		save(f);
 		f.onFlightDisabled(true);
 		flyers.remove(f.getPlayer());
-		U.m(f.getPlayer(), V.flyDisabledSelf);
 	}
 	
 	/**
@@ -469,7 +468,6 @@ public class FlyHandle implements Listener {
 	public void on(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
 		
-		
 		if (V.timeDecay && p.hasPlayedBefore()) {
 			long offline = (System.currentTimeMillis() - p.getLastPlayed()) / 1000;
 			double lost = (offline / V.decayThresh) * V.decayAmount;
@@ -480,7 +478,6 @@ public class FlyHandle implements Listener {
 				U.m(p, TimeHandle.regexString(V.timeDecayLost, lost));	
 			}
 		}
-		
 		
 		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
 			TimeHandle.addTime(p.getUniqueId(), V.firstJoinTime);

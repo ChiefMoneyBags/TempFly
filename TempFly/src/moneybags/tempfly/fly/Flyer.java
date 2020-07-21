@@ -214,7 +214,7 @@ public class Flyer {
 	}
 	
 	public class Timer extends BukkitRunnable {
-
+		
 		@Override
 		public void run() {
 			p.setAllowFlight(true);

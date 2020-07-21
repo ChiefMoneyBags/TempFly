@@ -86,7 +86,7 @@ public class CmdFly {
 		
 		Flyer f = FlyHandle.getFlyer(p);                 //lmao what ?? TODO
 		if (toggle && toggleVal || !toggle && !toggleVal && f == null) {
-			if (f != null) { //<----
+			if (f != null) { 
 				return;
 			}
 			if ((FlyHandle.onCooldown(p)) && (args.length < 1)) {
@@ -142,6 +142,7 @@ public class CmdFly {
 				FlyHandle.addDamageProtection(p);	
 			}
 			FlyHandle.removeFlyer(f);
+			U.m(p, V.flyDisabledSelf);
 			if (!s.equals(p)) {
 				U.m(s, V.flyDisabledOther.replaceAll("\\{PLAYER}", p.getName()));	
 			}

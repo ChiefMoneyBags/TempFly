@@ -26,10 +26,7 @@ public abstract class TempFlyHook {
 	private String target;
 	private boolean enabled;
 	
-	private File
-	hookDataf,
-	hookConfigf;
-	
+	private File hookConfigf;
 	private FileConfiguration hookConfig;
 	
 	public TempFlyHook(HookType hookType, TempFly plugin) {
@@ -46,6 +43,23 @@ public abstract class TempFlyHook {
 			e.printStackTrace();
 			return;
 		}
+	}
+	
+	private void initializeFiles() throws Exception {
+		String configType = hookType.getGenre().toString().toLowerCase();
+		File hookConfigf = new File(hookType.getGenre().getDirectory(),  configType + "_config.yml");
+	    if (!hookConfigf.exists()) {
+	    	hookConfigf.getParentFile().mkdirs();
+	    	Files.createConfig(plugin.getResource(configType + "_config.yml"), hookConfigf);
+	    }
+	    
+	    hookConfig = new YamlConfiguration();
+    	hookConfig.load(hookConfigf);
+		if (!hookConfig.getBoolean("enable_hook")) {
+			return;
+		}
+		
+		plugin.getDataBridge().initializeHookData(this, plugin, DataTable.ISLAND_SETTINGS);
 	}
 	
 	public String getHookedPlugin() {
@@ -66,22 +80,6 @@ public abstract class TempFlyHook {
 	
 	public void saveData() {
 		//TODO
-	}
-	
-	private void initializeFiles() throws Exception {
-		File hookConfigf = new File(hookType.getGenre().getDirectory(), target + "_config.yml");
-	    if (!hookConfigf.exists()) {
-	    	hookConfigf.getParentFile().mkdirs();
-	    	Files.createConfig(plugin.getResource("skyblock_config.yml"), hookConfigf);
-	    }
-	    
-	   FileConfiguration hookConfig = new YamlConfiguration();
-    	hookConfig.load(hookConfigf);
-		if (!hookConfig.getBoolean("enable_hook")) {
-			return;
-		}
-		
-		plugin.getDataBridge().initializeHookData(this, plugin, DataTable.ISLAND_SETTINGS);
 	}
 
 	public abstract FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions);

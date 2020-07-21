@@ -9,7 +9,7 @@ enable_hook: true
 # to fly in the area.
 unlockables:
   # Requirements needed for island members to fly in specified regions
-  regions:
+  region:
     super_awesome_vip_region:
       island_level: 950
       challenges:
@@ -17,7 +17,7 @@ unlockables:
         - 'dj'
         - 'beaconator'
   # Requirements needed for island members to fly in specified worlds
-  worlds:
+  world:
     example_world:
       island_level: 1
       challenges:
@@ -73,7 +73,7 @@ language:
     level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{STATUS}'s &cto fly!"
 
 page:
-  skyblock:
+  settings:
     settings:
       title: '&dIsland Flight Settings'
       background:

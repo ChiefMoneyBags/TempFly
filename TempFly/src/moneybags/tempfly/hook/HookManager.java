@@ -6,9 +6,13 @@ import java.util.Map;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
+import moneybags.tempfly.hook.skyblock.plugins.BentoHook;
 import net.milkbowl.vault.economy.Economy;
 
 public class HookManager {
+	
+	public static final Class<?>[] SKYBLOCK = new Class<?>[] {AskyblockHook.class, BentoHook.class};
 	
 	private TempFly plugin;
 	private Economy eco = null;
@@ -21,6 +25,12 @@ public class HookManager {
 		initializeHooks();
 	}
 	
+	/**
+	 *
+	 * Initialization
+	 * 
+	 */
+	
     private boolean setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -32,6 +42,36 @@ public class HookManager {
         eco = rsp.getProvider();
         return eco != null;
     }
+    
+	private void initializeHooks() {
+		worldGuard = new WorldGuardAPI();
+		loadGenre(Genre.SKYBLOCK, SKYBLOCK, true);
+	}
+	
+	private void loadGenre(Genre genre, Class<?>[] clazzes, boolean solitary) {
+		TempFlyHook hook;
+		Map<HookType, TempFlyHook> loaded = new HashMap<>();
+		for (Class<?> clazz: clazzes) {
+			try {
+				hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
+				if (hook.isEnabled()) {
+					loaded.put(hook.getHookType(), hook);
+					break;
+				}
+			} catch (Exception e) {e.printStackTrace();}
+		}
+		if (loaded.size() > 0) {
+			hooks.put(genre, loaded);
+		}
+	}
+	
+	
+	
+	/**
+	 *
+	 * Getters
+	 * 
+	 */
 	
     public Economy getEconomy() {
     	return eco;
@@ -40,20 +80,6 @@ public class HookManager {
     public WorldGuardAPI getWorldGuard() {
     	return worldGuard;
     }
-    
-	private void initializeHooks() {
-		worldGuard = new WorldGuardAPI();
-		
-		TempFlyHook hook;
-		{
-			/**
-			hook = new AskyblockHook(plugin);
-			if (hook.isEnabled()) hooks.put(Hook.ASKYBLOCK, hook);
-			hook = new BskyblockHook(plugin);
-			if (hook.isEnabled()) hooks.put(Hook.BSKYBLOCK, hook);
-			*/	
-		}
-	}
 	
 	public TempFlyHook getHook(HookType hook) {
 		return hooks.getOrDefault(hook.getGenre(), new HashMap<>()).getOrDefault(hook, null);
@@ -71,7 +97,9 @@ public class HookManager {
 	
 	
 	
-	
+	/*
+	 * Represents the GameMode type of a hook  
+	 */
 	public static enum Genre {
 		SKYBLOCK("SkyBlock"),
 		LANDS("Lands"),
@@ -88,6 +116,9 @@ public class HookManager {
 		}
 	}
 	
+	/*
+	 * Represents the target plugin of a hook. 
+	 */
 	public static enum HookType {
 		ASKYBLOCK(Genre.SKYBLOCK, "ASkyBlock"),
 		BENTO_BOX(Genre.SKYBLOCK, "BentoBox"),

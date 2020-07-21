@@ -41,6 +41,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	private void loadValues() {
 		FileConfiguration config = getConfig();
+		if (config == null) {
+			U.logS("============config = null");
+		}
 		this.wilderness = config.getBoolean("flight_settings.wilderness");
 		
 		String pathPerms = "flight_settings.base_permissions";
@@ -59,8 +62,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 		ConfigurationSection csRequire = config.getConfigurationSection("unlockables");
 		if (csRequire != null) {
 			for (String require : csRequire.getKeys(false)) {
-				RequirementType rt = RequirementType.valueOf(require.toUpperCase());
-				if (rt == null) {
+				RequirementType rt = null;
+				try {RequirementType.valueOf(require.toUpperCase());} catch (Exception e) {
 					U.logW("An unlockable flight area set for (" + getHookedPlugin() + ") does not exist: " + require);
 					continue;
 				}

@@ -306,12 +306,12 @@ public class DataBridge {
 		Map<String, Object> values = new HashMap<>();
 		if (connection == null) {
 			FileConfiguration df = table.getYaml();
-			ConfigurationSection csValues = df.getConfigurationSection(column + "." + row);
-			if (csValues != null) {
+			try {
+				ConfigurationSection csValues = df.getConfigurationSection(column + "." + row);
 				for (String key: csValues.getKeys(false)) {
 					values.put(key, df.getObject(row + "." + key, Object.class));
 				}
-			}
+			} catch (NullPointerException e) {}
 		} else {
 			try {
 				PreparedStatement statement = connection.prepareStatement("select * from " + table.getSqlTable() + " where " + column + " = " + row);
