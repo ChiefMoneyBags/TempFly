@@ -56,10 +56,6 @@ public class CmdTrailRemove {
 
 	private void removeTrail(Player target) {
 		Particles.setTrail(target.getUniqueId(), "");
-		Flyer f = null;
-		if ((f = FlyHandle.getFlyer(target)) != null) {
-			f.setTrail("");
-		}
 		U.m(target, V.trailRemovedSelf);
 	}
 	
