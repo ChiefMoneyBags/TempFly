@@ -3,6 +3,7 @@ package moneybags.tempfly.aesthetic.particle;
 import java.util.Random;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -12,6 +13,9 @@ import org.bukkit.Particle.DustOptions;
 import org.bukkit.block.data.BlockData;
 
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.fly.FlyHandle;
+import moneybags.tempfly.fly.Flyer;
+import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class Particles {
@@ -24,8 +28,13 @@ public class Particles {
 		} catch (Exception e) {}
 	}
 	
+	public static boolean oldParticles() {
+		String version = Bukkit.getVersion();
+		return (version.contains("1.6")) || (version.contains("1.7")) || (version.contains("1.8")) || version.contains("1.9");
+	}
+	
 	public static void play(Location loc, String s) {
-		if (!TempFly.oldParticles()) {
+		if (!oldParticles()) {
 			Particle particle = null;
 			try {
 				particle = Particle.valueOf(s.toUpperCase());
@@ -62,13 +71,16 @@ public class Particles {
 	}
 	
 	public static String loadTrail(UUID u) {
-		return (String) TempFly.getInstance().getDataBridge().getValue(DataValue.PLAYER_TRAIL, new String[]{u.toString()});
-		
+		String particle = (String) TempFly.getInstance().getDataBridge().getOrDefault(DataValue.PLAYER_TRAIL, null, new String[]{u.toString()});
+		return particle != null ? particle: (V.particleDefault ? V.particleType : "");
 	}
 	
-	public static void setTrail(UUID u, String s) {
-		TempFly.getInstance().getDataBridge().setValue(DataValue.PLAYER_TRAIL, s, new String[]{u.toString()});
-		
+	public static void setTrail(UUID u, String particle) {
+		TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TRAIL, particle, new String[]{u.toString()});
+		Flyer f = FlyHandle.getFlyer(Bukkit.getPlayer(u));
+		if (f != null) {
+			f.setTrail(particle);
+		}
 	}
 	
 }

@@ -74,7 +74,7 @@ public class PageTrails extends DynamicPage {
 		
 		Player p = session.getPlayer();
 		List<String> particles = new ArrayList<>();
-		if (TempFly.oldParticles()) {
+		if (Particles.oldParticles()) {
 			for (Effect e: Effect.values()) {
 				if (e.toString().equalsIgnoreCase("ITEM_BREAK")) {
 					continue;
@@ -142,17 +142,14 @@ public class PageTrails extends DynamicPage {
 		if (layout.containsKey(slot)) {
 			String s = layout.get(slot);
 			Particles.setTrail(session.getPlayer().getUniqueId(), s);
-			Flyer f = FlyHandle.getFlyer(session.getPlayer());
-			if (f != null) {
-				f.setTrail(s);
-				new PageTrails(session, getPageNumber(), false);
-			}
+			new PageTrails(session, getPageNumber(), false);
 		} else if (slot == 53 && allParticles.size() > (getPageNumber()+1)*21) {
 			new PageTrails(session, getPageNumber()+1, false);
 		} else if (slot == 45 && getPageNumber() > 0) {
 			new PageTrails(session, getPageNumber()-1, false);
 		} else if (slot == 49 && session.getPlayer().hasPermission("tempfly.trails.remove.self")) {
 			new CmdTrailRemove(session.getPlayer());
+			new PageTrails(session, getPageNumber(), false);
 		}
 	}
 }
