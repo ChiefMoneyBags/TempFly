@@ -17,11 +17,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import moneybags.tempfly.TempFly;
 import moneybags.tempfly.aesthetic.particle.Particles;
 import moneybags.tempfly.command.admin.CmdTrailRemove;
-import moneybags.tempfly.fly.FlyHandle;
-import moneybags.tempfly.fly.Flyer;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.abstraction.DynamicPage;
 import moneybags.tempfly.util.CompatMaterial;

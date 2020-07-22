@@ -2,15 +2,12 @@ package moneybags.tempfly;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -21,23 +18,18 @@ import moneybags.tempfly.aesthetic.MvdWAPI;
 import moneybags.tempfly.aesthetic.particle.Particles;
 import moneybags.tempfly.command.CommandHandle;
 import moneybags.tempfly.fly.FlyHandle;
-import moneybags.tempfly.fly.Flyer;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.pages.PageShop;
 import moneybags.tempfly.gui.pages.PageTrails;
 import moneybags.tempfly.hook.HookManager;
 import moneybags.tempfly.hook.TempFlyHook;
-import moneybags.tempfly.hook.WorldGuardAPI;
-import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.tab.TabHandle;
 import moneybags.tempfly.util.AutoSave;
 import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.ParticleTask;
-import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge;
 import moneybags.tempfly.util.data.Files;
-import net.milkbowl.vault.economy.Economy;
 
 public class TempFly extends JavaPlugin {
 	

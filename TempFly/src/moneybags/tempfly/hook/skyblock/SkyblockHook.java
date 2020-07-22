@@ -5,21 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.WeakHashMap;
-
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-
-import com.wasteofplastic.askyblock.Island;
 
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook.RequirementType;
 import moneybags.tempfly.util.Console;
-import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 
 public abstract class SkyblockHook extends TempFlyHook {

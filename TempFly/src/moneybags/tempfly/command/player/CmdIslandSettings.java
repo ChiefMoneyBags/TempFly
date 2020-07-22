@@ -3,7 +3,6 @@ package moneybags.tempfly.command.player;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import moneybags.tempfly.TempFly;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.hook.skyblock.PageIslandSettings;
 import moneybags.tempfly.util.U;

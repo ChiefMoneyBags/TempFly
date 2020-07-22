@@ -2,8 +2,6 @@ package moneybags.tempfly.util;
 
 import java.util.logging.Logger;
 
-import org.bukkit.Bukkit;
-
 import moneybags.tempfly.TempFly;
 
 public class Console {

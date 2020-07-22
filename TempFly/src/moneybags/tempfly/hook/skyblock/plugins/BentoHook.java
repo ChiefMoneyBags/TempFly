@@ -2,7 +2,6 @@ package moneybags.tempfly.hook.skyblock.plugins;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 import com.sk89q.worldguard.protection.ApplicableRegionSet;

@@ -15,18 +15,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.wasteofplastic.askyblock.ASkyBlockAPI;
-import com.wasteofplastic.askyblock.Island;
-
-import moneybags.tempfly.TempFly;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.abstraction.DynamicPage;
-import moneybags.tempfly.gui.abstraction.Page;
-import moneybags.tempfly.hook.HookManager.Genre;
-import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.util.CompatMaterial;
 import moneybags.tempfly.util.U;
-import moneybags.tempfly.util.V;
 
 public class PageIslandSettings extends DynamicPage {
 	

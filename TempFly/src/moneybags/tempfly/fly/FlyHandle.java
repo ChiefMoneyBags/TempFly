@@ -1,26 +1,17 @@
 package moneybags.tempfly.fly;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Timer;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.DataFormatException;
-
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -478,7 +469,6 @@ public class FlyHandle implements Listener {
 		}.runTaskLater(TempFly.getInstance(), 1);
 	}
 	
-	@SuppressWarnings("deprecation")
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerJoinEvent e) {
 		Player p = e.getPlayer();

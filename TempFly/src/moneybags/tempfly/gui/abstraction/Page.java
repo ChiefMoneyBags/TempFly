@@ -2,8 +2,6 @@ package moneybags.tempfly.gui.abstraction;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
-
 import moneybags.tempfly.gui.GuiSession;
 
 

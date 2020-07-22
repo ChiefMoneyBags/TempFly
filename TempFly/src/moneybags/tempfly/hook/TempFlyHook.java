@@ -1,7 +1,6 @@
 package moneybags.tempfly.hook;
 
 import java.io.File;
-import java.io.IOException;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -15,7 +14,6 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.util.Console;
-import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.data.DataBridge.DataTable;
 import moneybags.tempfly.util.data.Files;
 
@@ -27,7 +25,6 @@ public abstract class TempFlyHook {
 	private String target;
 	private boolean enabled;
 	
-	private File hookConfigf;
 	private FileConfiguration hookConfig;
 	
 	public TempFlyHook(HookType hookType, TempFly plugin) {

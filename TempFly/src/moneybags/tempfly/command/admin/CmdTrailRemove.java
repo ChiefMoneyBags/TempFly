@@ -5,8 +5,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import moneybags.tempfly.aesthetic.particle.Particles;
-import moneybags.tempfly.fly.FlyHandle;
-import moneybags.tempfly.fly.Flyer;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 

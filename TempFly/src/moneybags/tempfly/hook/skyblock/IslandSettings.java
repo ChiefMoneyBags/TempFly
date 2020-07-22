@@ -6,25 +6,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
-import org.bukkit.configuration.file.FileConfiguration;
-
 import moneybags.tempfly.TempFly;
-import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.data.DataBridge;
 import moneybags.tempfly.util.data.DataBridge.DataTable;
 import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class IslandSettings {
 
-	private SkyblockHook hook;
 	private IslandWrapper island;
 	
 	private Map<String, Boolean> settings = new HashMap<>();
 	
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
-		String
-			id = island.getIdentifier(),
-			path = "islands." + id;
+		String id = island.getIdentifier();
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
 		
 		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, "ISLANDS", id);
