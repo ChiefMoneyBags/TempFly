@@ -17,11 +17,7 @@ public class CmdReload {
 			U.m(s, V.invalidPermission);
 			return;
 		}
+		TempFly.getInstance().reloadTempfly();
 		U.m(s, V.reload);
-		Files.createFiles(TempFly.getInstance());
-		V.loadValues();
-		GuiSession.endAllSessions();
-		PageTrails.initialize();
-		PageShop.initialize();
 	}
 }

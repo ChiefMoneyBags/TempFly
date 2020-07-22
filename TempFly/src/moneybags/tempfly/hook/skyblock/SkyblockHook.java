@@ -18,6 +18,7 @@ import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook.RequirementType;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 
@@ -41,9 +42,6 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	private void loadValues() {
 		FileConfiguration config = getConfig();
-		if (config == null) {
-			U.logS("============config = null");
-		}
 		this.wilderness = config.getBoolean("flight_settings.wilderness");
 		
 		String pathPerms = "flight_settings.base_permissions";
@@ -64,7 +62,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			for (String require : csRequire.getKeys(false)) {
 				RequirementType rt = null;
 				try {RequirementType.valueOf(require.toUpperCase());} catch (Exception e) {
-					U.logW("An unlockable flight area set for (" + getHookedPlugin() + ") does not exist: " + require);
+					Console.warn("An unlockable flight area set for (" + getHookedPlugin() + ") does not exist: " + require);
 					continue;
 				}
 				
@@ -132,7 +130,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			if (locationCache.get(p).getIsland() == rawIsland) {
 				return;
 			}
-			U.logS("If you are seeing this message there may be a bug. Please contact the tempfly dev with this info: SkyblockHook(line: 127)");
+			Console.severe("If you are seeing this message there may be a bug. Please contact the tempfly dev with this info: SkyblockHook(line: 127)");
 				IslandWrapper island = locationCache.get(p);
 				locationCache.remove(p);
 				if(!locationCache.containsValue(island)) {

@@ -86,16 +86,16 @@ public class V {
 	actionText,
 	
 	trailRemovedSelf,
-	trailRemovedOther,
-	trailSetSelf,
-	trailSetOther;
+	trailRemovedOther;
 
 	public static boolean
+	debug,
 	groundTimer,
 	idleTimer,
 	idleDrop,
 	payable,
 	particles,
+	particleDefault,
 	list,
 	tag,
 	attackP,
@@ -213,8 +213,6 @@ public class V {
 		
 		trailRemovedSelf	= st(C.LANG, "aesthetic.trail.removed_self");
 		trailRemovedOther	= st(C.LANG, "aesthetic.trail.removed_other");
-		trailSetSelf		= st(C.LANG, "aesthetic.trail.set_self");
-		trailSetOther		= st(C.LANG, "aesthetic.trail.set_other");
 		
 		List<String> h 		= Files.lang.getStringList("system.help");
 		if (h != null) {
@@ -234,7 +232,7 @@ public class V {
 			warningTimes    = Files.config.getLongList("aesthetic.warning.seconds");
 		} catch (Exception e) {
 			warningTimes = new ArrayList<>();
-			U.logW("You can only set numbers under (aesthetic.warning.seconds) in the config!");
+			Console.warn("You can only set numbers under (aesthetic.warning.seconds) in the config!");
 		}
 		
 		
@@ -254,6 +252,7 @@ public class V {
 		}
 		
 		
+		debug 				= config.getBoolean("system.debug");
 		groundTimer			= config.getBoolean("general.timer.ground");
 		idleTimer 			= config.getBoolean("general.timer.idle");
 		idleDrop			= config.getBoolean("general.idle.drop_player");
@@ -263,6 +262,7 @@ public class V {
 		save 				= config.getInt("system.backup", 5);
 		particles			= config.getBoolean("aesthetic.identifier.particles.enabled");
 		particleType		= config.getString("aesthetic.identifier.particles.type", "VILLAGER_HAPPY");
+		particleDefault		= config.getBoolean("aesthetic.identifier.particles.default_display");
 		hideVanish			= config.getBoolean("aesthetic.identifier.particles.hide_vanish");
 		list				= config.getBoolean("aesthetic.identifier.tab_list.enabled");
 		listName			= st(C.CONFIG, "aesthetic.identifier.tab_list.name");
@@ -308,6 +308,8 @@ public class V {
 		}
 	}
 	
+	private static int missingMessages = 0;
+	
 	private static String st(C file, String key){
 		try{
 			switch (file)
@@ -320,7 +322,8 @@ public class V {
 				return "";
 			}
 		} catch (Exception e) {
-			U.logW("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
+			Console.warn("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
+			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
 			return U.cc("&cThis message is broken! :(");
 		}
 	}
@@ -329,7 +332,8 @@ public class V {
 		try{
 			return U.cc(config.getString(key)).replaceAll("\\{PREFIX}", prefix);
 		} catch (Exception e) {
-			U.logW("There is a missing message in the file: (" + config.getName() + ") | Path: (" + key + ")");
+			Console.warn("There is a missing message in the file: (" + config.getName() + ") | Path: (" + key + ")");
+			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
 			return U.cc("&cThis message is broken! :(");
 		}
 	}
@@ -346,7 +350,8 @@ public class V {
 				return "";
 			}
 		} catch (Exception e) {
-			U.logW("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
+			Console.warn("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
+			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
 			return U.cc(def);
 		}
 	}

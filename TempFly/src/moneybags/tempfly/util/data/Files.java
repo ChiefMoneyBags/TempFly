@@ -19,6 +19,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 
 /**
@@ -69,19 +70,19 @@ public class Files {
 	    try {
 	        config.load(configf);
 	    } catch (IOException | InvalidConfigurationException e1){
-	    	U.logS("There is a problem inside the config.yml, If you cannot fix the issue, please contact the developer.");
+	    	Console.severe("There is a problem inside the config.yml, If you cannot fix the issue, please contact the developer.");
 	        e1.printStackTrace();
 	    }
 	    try {
 	        lang.load(langf);
 	    } catch (IOException | InvalidConfigurationException e1){
-	    	U.logS("There is a problem inside the lang.yml, If you cannot fix the issue, please contact the developer.");
+	    	Console.severe("There is a problem inside the lang.yml, If you cannot fix the issue, please contact the developer.");
 	        e1.printStackTrace();
 	    }
 	    try {
 	        page.load(pagef);
 	    } catch (IOException | InvalidConfigurationException e1){
-	    	U.logS("There is a problem inside the page.yml, If you cannot fix the issue, please contact the developer.");
+	    	Console.severe("There is a problem inside the page.yml, If you cannot fix the issue, please contact the developer.");
 	        e1.printStackTrace();
 	    }
 	}

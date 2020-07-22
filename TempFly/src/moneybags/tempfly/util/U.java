@@ -19,18 +19,6 @@ public class U {
 		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s);
 	}
 	
-	public static void logI(String m){
-		Bukkit.getLogger().info("[TempFly] " + m);
-	}
-	
-	public static void logW(String m){
-		Bukkit.getLogger().warning("[TempFly] " + m);
-	}
-	
-	public static void logS(String m){
-		Bukkit.getLogger().severe("[TempFly] " + m);
-	}
-	
 	public static boolean isPlayer(CommandSender s){
 		if (s instanceof Player){
 			return true;
@@ -115,6 +103,16 @@ public class U {
 		it.setItemMeta(meta);
 		it.setAmount(amount);
 		return it;
+	}
+	
+	public static String arrayToString(Object[] array, String divider) {
+		StringBuilder sb = new StringBuilder();
+		int index = 1;
+		for (Object object: array) {
+			sb.append(String.valueOf(object) + (array.length > index ? divider : ""));
+			index++;
+		}
+		return sb.toString();
 	}
 	
 	

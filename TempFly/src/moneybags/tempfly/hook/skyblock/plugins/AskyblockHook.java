@@ -31,6 +31,7 @@ import moneybags.tempfly.hook.skyblock.SkyblockRequirement;
 import moneybags.tempfly.hook.skyblock.IslandSettings;
 import moneybags.tempfly.hook.skyblock.IslandWrapper;
 import moneybags.tempfly.hook.skyblock.SkyblockHook;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 
@@ -148,10 +149,8 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	 * @return
 	 */
 	private FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, Player p, boolean isMessageSelf) {
-		U.logS("run requirements");
-		
 		if (ir.getRequiredLevel() > api.getLongIslandLevel(island.getOwner())) {
-			U.logS("fail island level: " + ir.getRequiredLevel() + " / " + api.getLongIslandLevel(island.getOwner()));
+			Console.debug("fail island level: " + ir.getRequiredLevel() + " / " + api.getLongIslandLevel(island.getOwner()));
 			return new FlightResult(false, DenyReason.REQUIREMENT, (isMessageSelf ? requireLevelSelf : requireLevelOther)
 					.replaceAll("\\{LEVEL}", String.valueOf(ir.getRequiredLevel()))
 					.replaceAll("\\{STATUS}", ir.getType().toString()));
@@ -160,7 +159,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		Map<String, Boolean> completed = api.getChallengeStatus(p.getUniqueId());
 		for (String challenge : ir.getRequiredChallenges()) {										
 			if (completed != null && completed.containsKey(challenge) && !completed.get(challenge)) {
-				U.logS("fail island challenge: " + challenge);
+				Console.debug("fail island challenge: " + challenge);
 				return new FlightResult(false, DenyReason.REQUIREMENT, requireChallenge.replaceAll("\\{CHALLENGE}", challenge));
 			}
 		}	

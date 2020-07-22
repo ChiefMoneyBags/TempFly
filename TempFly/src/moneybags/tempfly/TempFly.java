@@ -13,6 +13,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import moneybags.tempfly.aesthetic.ActionBarAPI;
 import moneybags.tempfly.aesthetic.ClipAPI;
@@ -30,6 +31,7 @@ import moneybags.tempfly.hook.WorldGuardAPI;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.tab.TabHandle;
 import moneybags.tempfly.util.AutoSave;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.ParticleTask;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
@@ -51,9 +53,10 @@ public class TempFly extends JavaPlugin {
 	}
 	
 	
-	public static double version;
+
 	private HookManager hooks;
 	private DataBridge bridge;
+	private BukkitTask autosave;
 	
 	public HookManager getHookManager() {
 		return hooks;
@@ -87,10 +90,8 @@ public class TempFly extends JavaPlugin {
 		
 		try {
 			Metrics metrics = new Metrics(this, 8196);
-			
 			// Hooks
 	        metrics.addCustomChart(new Metrics.DrilldownPie("gamemode_hooks", () -> {
-	        	
 	            Map<String, Map<String, Integer>> map = new HashMap<>();
 	            Map<String, Integer> entry = new HashMap<>();
 	            
@@ -104,13 +105,9 @@ public class TempFly extends JavaPlugin {
 	            }
 	            return map;
 	        }));
-	        
-	        
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		} catch (Exception e) {e.printStackTrace();}
 		
-		new AutoSave().runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
+		autosave = new AutoSave().runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
 		
 		if (V.particles) {
 			new ParticleTask().runTaskTimer(this, 0, 5);	
@@ -127,34 +124,29 @@ public class TempFly extends JavaPlugin {
 				new BukkitRunnable() {
 					@Override
 					public void run() {
-						if (!FlyHandle.regainFlightDisconnect(p)) {
-							FlyHandle.enforceDisabledFlight(p);
-						}
+						FlyHandle.regainFlightDisconnect(p);
 					}
 				}.runTaskLater(TempFly.plugin, 1);
 			}	
 		}
 	}
 	
-	private static void initializeAesthetics() {
+	private void initializeAesthetics() {
 		if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-			U.logI("Initizlizing MvdwAPI");
-			MvdWAPI.initialize();	
+			Console.info("Initializing MvdwAPI");
+			MvdWAPI.initialize();
 		}
 		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-			U.logI("Initizlizing ClipAPI");
-			ClipAPI.initialize();	
+			Console.info("Initializing ClipAPI");
+			ClipAPI.initialize();
 		}
 	}
 	
 	@Override
 	public void onDisable() {
 		FlyHandle.onDisable();
-	}
-	
-	public static boolean oldParticles() {
-		String version = Bukkit.getVersion();
-		return (version.contains("1.6")) || (version.contains("1.7")) || (version.contains("1.8")) || version.contains("1.9");
+		GuiSession.endAllSessions();
+		bridge.commit();
 	}
 	
 	private void registerListeners() {
@@ -169,6 +161,23 @@ public class TempFly extends JavaPlugin {
 		TabCompleter t = new TabHandle();
 		getCommand("tempfly").setExecutor(c);
 		getCommand("tempfly").setTabCompleter(t);
+	}
+	
+	/*
+	 * Reload the plugin, this is the method called upon command /tempfly reload
+	 */
+	//TODO reload hooks
+	public void reloadTempfly() {
+		GuiSession.endAllSessions();
+		bridge.commit();
+		Files.createFiles(this);
+		V.loadValues();
+		PageTrails.initialize();
+		PageShop.initialize();
+		if (autosave != null) {
+			autosave.cancel();
+			autosave = new AutoSave().runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
+		}
 	}
 	
 }

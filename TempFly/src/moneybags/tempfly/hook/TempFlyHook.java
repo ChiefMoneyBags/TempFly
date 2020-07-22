@@ -14,6 +14,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.data.DataBridge.DataTable;
 import moneybags.tempfly.util.data.Files;
@@ -35,11 +36,11 @@ public abstract class TempFlyHook {
 			return;
 		}
 		
-		U.logI("Initializing (" + target + ") hook...");
+		Console.info("Attempting to initialize (" + target + ") hook...");
 		this.hookType = hookType;
 		this.plugin = plugin;
 		try { initializeFiles(); } catch (Exception e) {
-			U.logS("An error occured while trying to initilize the (" + target + ") hook.");
+			Console.severe("An error occured while trying to initilize the (" + target + ") hook.");
 			e.printStackTrace();
 			return;
 		}
@@ -56,6 +57,7 @@ public abstract class TempFlyHook {
 	    hookConfig = new YamlConfiguration();
     	hookConfig.load(hookConfigf);
 		if (!hookConfig.getBoolean("enable_hook")) {
+			Console.info("(" + target + ") hook is disabled, skipping...");
 			return;
 		}
 		

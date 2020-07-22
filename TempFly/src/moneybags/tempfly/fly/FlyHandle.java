@@ -54,6 +54,7 @@ import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.FlightResult.DenyReason;
 import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.DailyDate;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
@@ -100,7 +101,7 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void save(Flyer f) {
-		U.logS("save flyer.......");
+		Console.debug("save flyer: FlyHandle(104)");
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
 		bridge.commit(DataValue.PLAYER_TIME, new String[] {f.getPlayer().getUniqueId().toString()});
 	}
@@ -409,8 +410,15 @@ public class FlyHandle implements Listener {
 		Player p = e.getPlayer();
 		Flyer f = getFlyer(p);
 		if (f != null) {
-			f.applySpeedCorrect();
-			f.asessRtRegions();
+			FlightResult result = inquireFlight(p, to, true);
+			if (!result.isAllowed()) {
+				removeFlyerDelay(f, 1);
+				U.m(p, result.getMessage());
+				return;
+			} else {
+				f.applySpeedCorrect();
+				f.asessRtRegions();	
+			}
 		}
 	}
 	
@@ -421,10 +429,17 @@ public class FlyHandle implements Listener {
 		Player p = e.getPlayer();
 		Flyer f = getFlyer(p);
 		if (f != null) {
-			f.asessRtRegions();
-			f.applySpeedCorrect();
-			if (!from.getWorld().equals(to.getWorld())) {
-				f.asessRtWorlds();
+			FlightResult result = inquireFlight(p, to, true);
+			if (!result.isAllowed()) {
+				removeFlyerDelay(f, 1);
+				U.m(p, result.getMessage());
+				return;
+			} else {
+				f.asessRtRegions();
+				f.applySpeedCorrect();
+				if (!from.getWorld().equals(to.getWorld())) {
+					f.asessRtWorlds();
+				}
 			}
 		}
 	}
@@ -439,12 +454,13 @@ public class FlyHandle implements Listener {
 		Flyer f = getFlyer(p);
 		FlightResult result = inquireFlight(p, p.getLocation().getWorld(), true);
 		if (!result.isAllowed()) {
-			removeFlyer(f);
+			removeFlyerDelay(f, 1);
 			U.m(p, result.getMessage());
 			return;
+		} else {
+			f.applySpeedCorrect();
+			f.asessRtWorlds();	
 		}
-		f.applySpeedCorrect();
-		f.asessRtWorlds();
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -454,7 +470,6 @@ public class FlyHandle implements Listener {
 			return;
 		}
 		new BukkitRunnable() {
-			
 			@Override
 			public void run() {
 				p.setAllowFlight(true);
@@ -511,7 +526,7 @@ public class FlyHandle implements Listener {
 		bridge.stageAndCommit(DataValue.PLAYER_FLIGHT_LOG, true, new String[] {p.getUniqueId().toString()});
 	}
 	
-	public static boolean regainFlightDisconnect(Player p) {
+	public static void regainFlightDisconnect(Player p) {
 		if (!flyers.containsKey(p)) {
 			DataBridge bridge = TempFly.getInstance().getDataBridge();
 			try {
@@ -519,9 +534,8 @@ public class FlyHandle implements Listener {
 				new BukkitRunnable() {
 					@Override
 					public void run() {
-					
-						if (!flyers.containsKey(p) && logged) {
-							if (p.hasPermission("tempfly.time.infinite") || TimeHandle.getTime(p.getUniqueId()) > 0) {
+						if (!flyers.containsKey(p)) {
+							if (logged && (p.hasPermission("tempfly.time.infinite") || TimeHandle.getTime(p.getUniqueId()) > 0)) {
 								addFlyer(p);
 							} else {
 								enforceDisabledFlight(p);
@@ -530,12 +544,8 @@ public class FlyHandle implements Listener {
 						bridge.stageAndCommit(DataValue.PLAYER_FLIGHT_LOG, false, new String[] {p.getUniqueId().toString()});
 					}
 				}.runTaskLater(TempFly.getInstance(), 1);
-				return logged;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			} catch (Exception e) {e.printStackTrace();}
 		}
-		return false;
 	}
 
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)

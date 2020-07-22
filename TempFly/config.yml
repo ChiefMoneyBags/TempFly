@@ -77,6 +77,9 @@
 system:
   # Time in minutes to backup data
   backup: 5
+  # If true your console will be subjected to spam from the internal workings of the plugin.
+  # If you have an issue i may ask you to turn it on.
+  debug: false
   # Connect to an sql database for storage.
   # This will disable yaml data storage.
   sql:
@@ -200,8 +203,12 @@ aesthetic:
       # Supports placeholders for time      
       name: '&d~{OLD_TAG}'
     particles:
+      # If false all trails are disabled.
       enabled: true
+      # The default particle type.
       type: 'VILLAGER_HAPPY'
+      # If true all players will have the default particle trail enabled by default.
+      display_by_default: true
       # If true particles will not be displayed if the player is vanished.
       # Tested with plugins SuperVanish, PremiumVanish, VanishNoPacket.
       hide_vanish: true

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -28,6 +29,7 @@ import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.Genre;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 
 
@@ -69,10 +71,10 @@ public class DataBridge {
 		    }
 		    data = new YamlConfiguration();
 		    try { data.load(dataf); } catch (Exception e1) {
-		    	U.logS("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
+		    	Console.severe("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
 		        e1.printStackTrace();
 		    }
-		    formatData(plugin);
+		    formatYamlData(plugin);
 		}
 	}
 	
@@ -80,11 +82,11 @@ public class DataBridge {
 	 * format the data file from legacy TempFly version.
 	 * @param plugin
 	 */
-	private void formatData(TempFly plugin) {
+	private void formatYamlData(TempFly plugin) {
 		double version = data.getDouble("version", 0.0);
 		if (version < 2.0) {
-			U.logW("Your data file needs to update to support the current version. Updating to version 2.0 now...");
-			if (!backupLegacyData()) {
+			Console.warn("Your data file needs to update to support the current version. Updating to version 2.0 now...");
+			if (!backupLegacyData("update_2_backup_")) {
 				Bukkit.getPluginManager().disablePlugin(plugin);
 				return;
 			}
@@ -112,6 +114,15 @@ public class DataBridge {
 			}
 			data.set("flight_disconnect", null);
 			saveData();
+			
+		} else if (version < 3.0) {
+			Console.warn("This tempfly version has a new data management system, (data.yml) will be backed for your safety.");
+			if (!backupLegacyData("update_3_backup_")) {
+				Bukkit.getPluginManager().disablePlugin(plugin);
+				return;
+			}
+			data.set("version", 3.0);
+			saveData();
 		}
 	}
 	
@@ -119,15 +130,15 @@ public class DataBridge {
 	 * Create a data backup from old TempFly version when updating.
 	 * @return
 	 */
-	private boolean backupLegacyData() {
-		U.logI("Creating a backup of your data file...");
-		File f = new File(TempFly.getInstance().getDataFolder(), "data_backup_" + UUID.randomUUID().toString() + ".yml");
+	private boolean backupLegacyData(String file) {
+		Console.info("Creating a backup of your data file...");
+		File f = new File(TempFly.getInstance().getDataFolder(), file + String.valueOf(new Random().nextInt(99999)) + ".yml");
 		try {
 			data.save(f);
 		} catch (Exception e) {
-			U.logS(U.cc("&c-----------------------------------"));
-			U.logS("There was an error while trying to backup the data file");
-			U.logS("For your safety the plugin will disable. Please contact the developer.");
+			Console.severe(U.cc("&c-----------------------------------"));
+			Console.severe("There was an error while trying to backup the data file");
+			Console.severe("For your safety the plugin will disable. Please contact the tempfly developer.");
 			e.printStackTrace();
 			return false;
 		}
@@ -225,26 +236,26 @@ public class DataBridge {
 	}
 	
 	public void commit(DataValue value, String[] path) {
-		U.logS("Attempting to commit: " + value.toString() + " | " + path.toString());
+		Console.debug("-----------Preparing to iterate staged changes---------");
+		Console.debug("Attempting to commit: DataValue=(" + value.toString() + ") | Path=(" + U.arrayToString(path, " | ") + ") : DataBridge");
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized (this) {
 			for (StagedChange change: changes) {
-				U.logS("staged change iterator");
 				if (change.isDuplicate(value, path)) {
-					U.logS("found a staged change: " + change.getData());
+					Console.debug("Found a staged change that matches: data=(" + change.getData() + ")");
 					commit.add(change);
 					changes.remove(change);
 				}
 			}	
 		}
+		Console.debug("Preparing to set value for (" + String.valueOf(commit.size()) + ") change" + (commit.size() > 1 ? "s" : "") + " found...");
 		for (StagedChange change: commit) {
-			U.logS("setValue for change");
 			setValue(value, change.getData(), change.getPath());
 		}
 		
 		if (connection == null) {
 			synchronized (this) {
-				try { U.logS("saving data"); value.getTable().getYaml().save(value.getTable().getFile()); } catch (Exception e) {
+				try { Console.debug("Sql database null, saving the " + value.getTable().getYaml().getName() + ".yml..."); value.getTable().getYaml().save(value.getTable().getFile()); } catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -265,7 +276,9 @@ public class DataBridge {
 	public Object getValue(DataValue value, String[] path) {
 		synchronized (this) {
 			for (StagedChange change: changes) {
+				Console.debug("iterating staged changes");
 				if (change.isDuplicate(value, path)) {
+					Console.debug("found duplicate");
 					return change.getData();
 				}
 			}
@@ -281,8 +294,6 @@ public class DataBridge {
 				}
 				index++;
 			}
-			U.logS("-----------" + sb.toString());
-			U.logS("---------" + String.valueOf(value.getTable().getYaml()));
 			return value.getTable().getYaml().get(sb.toString());
 		} else {
 			//TODO sql
@@ -292,6 +303,7 @@ public class DataBridge {
 	
 	public Object getOrDefault(DataValue value, Object def, String[] path) {
 		Object object = getValue(value, path);
+		Console.debug("getting: " + String.valueOf(object));
 		return object == null ? def : object;
 	}
 	
@@ -336,6 +348,7 @@ public class DataBridge {
 	}
 	
 	public void setValue(DataValue value, Object data, String[] path) {
+		Console.debug("setValue(DataValue, Object, String[]) call in DataBridge");
 		if (connection == null) {
 			int index = 0;
 			StringBuilder sb = new StringBuilder();
@@ -346,10 +359,9 @@ public class DataBridge {
 				}
 				index++;
 			}
-			U.logS("setting " + sb.toString() + " to " + String.valueOf(data));
+			Console.debug("Setting yaml value: (" + sb.toString() + ") to (" + String.valueOf(data) + ")");
 			FileConfiguration yaml = value.getTable().getYaml();
 			if (!yaml.contains(sb.toString())) {
-				U.logS("not exist");
 				yaml.createSection(sb.toString());
 			}
 			yaml.set(sb.toString(), data);

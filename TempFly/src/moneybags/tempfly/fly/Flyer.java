@@ -19,6 +19,7 @@ import moneybags.tempfly.aesthetic.particle.Particles;
 import moneybags.tempfly.hook.HookManager;
 import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge.DataValue;
@@ -161,7 +162,7 @@ public class Flyer {
 	 * @return The enum string representation of the particle
 	 */
 	public String getTrail() {
-		return particle != null ? particle: V.particleType;
+		return particle;
 	}
 	
 	/**
@@ -171,6 +172,7 @@ public class Flyer {
 	 */
 	public void setTrail(String particle) {
 		this.particle = particle;
+		TempFly.getInstance().getDataBridge().stageChange(DataValue.PLAYER_TRAIL, particle, new String[] {p.getUniqueId().toString()});
 	}
 	
 	public void playTrail() {
