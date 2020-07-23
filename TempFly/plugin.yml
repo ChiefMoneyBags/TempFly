@@ -1,6 +1,6 @@
 name: TempFly
 main: moneybags.tempfly.TempFly
-softdepend: [ASkyBlock, Essentials, MVdWPlaceholderAPI, PlaceholderAPI, aSkyBlock, Vault]
+softdepend: [ASkyBlock, Essentials, MVdWPlaceholderAPI, PlaceholderAPI, aSkyBlock, Vault, WorldGuard, WorldEdit]
 api-version: 1.13
 version: 3.0.0
 commands:

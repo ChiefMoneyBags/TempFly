@@ -13,8 +13,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
 import com.wasteofplastic.askyblock.events.IslandEnterEvent;
@@ -25,6 +23,7 @@ import moneybags.tempfly.fly.FlyHandle;
 import moneybags.tempfly.hook.FlightResult;
 import moneybags.tempfly.hook.FlightResult.DenyReason;
 import moneybags.tempfly.hook.HookManager.HookType;
+import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.hook.skyblock.SkyblockRequirement;
 import moneybags.tempfly.hook.skyblock.IslandSettings;
 import moneybags.tempfly.hook.skyblock.IslandWrapper;
@@ -39,7 +38,9 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	
 	public AskyblockHook(TempFly plugin) {
 		super(HookType.ASKYBLOCK, plugin);
-		
+		if (!super.isEnabled()) {
+			return;
+		}
 		this.api = ASkyBlockAPI.getInstance();
 		
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
@@ -127,14 +128,14 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 			if (island.getOwner().equals(p.getUniqueId())) {
 				return hasRequirement(RequirementType.OWNER) ? runRequirement(getRequirements(RequirementType.OWNER)[0], island, p, false) : new FlightResult(true);
 			}
-			return !settings.canFly(AskyblockStatus.TEAM.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+			return !settings.canFly(AskyblockRole.TEAM.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
 				(hasRequirement(RequirementType.TEAM) ? runRequirement(getRequirements(RequirementType.TEAM)[0], island, p, false) : new FlightResult(true));
 				
 		} else if (api.getCoopIslands(p).contains(api.getIslandLocation(island.getOwner()))) {
-			return !settings.canFly(AskyblockStatus.COOP.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+			return !settings.canFly(AskyblockRole.COOP.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
 					(hasRequirement(RequirementType.COOP) ? runRequirement(getRequirements(RequirementType.COOP)[0], island, p, false) : new FlightResult(true));
 		} else {
-			return !settings.canFly(AskyblockStatus.VISITOR.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+			return !settings.canFly(AskyblockRole.VISITOR.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
 					(hasRequirement(RequirementType.VISITOR) ? runRequirement(getRequirements(RequirementType.VISITOR)[0], island, p, false) : new FlightResult(true));
 		}
 	}
@@ -185,7 +186,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	}
 
 	@Override
-	public FlightResult handleFlightInquiry(Player p, ProtectedRegion r) {
+	public FlightResult handleFlightInquiry(Player p, CompatRegion r) {
 		if (!isEnabled() || !hasRequirement(RequirementType.REGION) || r == null) {
 			return new FlightResult(true);
 		}
@@ -205,12 +206,12 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	}
 	
 	@Override
-	public FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions) {
-		if (!isEnabled() || !hasRequirement(RequirementType.REGION) || regions == null || regions.size() == 0) {
+	public FlightResult handleFlightInquiry(Player p, CompatRegion[] regions) {
+		if (!isEnabled() || !hasRequirement(RequirementType.REGION) || regions == null || regions.length == 0) {
 			return new FlightResult(true);
 		}
-		Map<String, ProtectedRegion> idIndex = new HashMap<>();
-		for (ProtectedRegion r: regions) {
+		Map<String, CompatRegion> idIndex = new HashMap<>();
+		for (CompatRegion r: regions) {
 			idIndex.put(r.getId(), r);
 		}
 		
@@ -236,7 +237,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		return checkFlightRequirements(p, loc);
 	}
 
-	public static enum AskyblockStatus {
+	public static enum AskyblockRole {
 		OWNER,
 		TEAM,
 		COOP,

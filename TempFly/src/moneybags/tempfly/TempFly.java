@@ -18,15 +18,18 @@ import moneybags.tempfly.aesthetic.MvdWAPI;
 import moneybags.tempfly.aesthetic.particle.Particles;
 import moneybags.tempfly.command.CommandHandle;
 import moneybags.tempfly.fly.FlyHandle;
+import moneybags.tempfly.fly.Flyer;
 import moneybags.tempfly.gui.GuiSession;
 import moneybags.tempfly.gui.pages.PageShop;
 import moneybags.tempfly.gui.pages.PageTrails;
+import moneybags.tempfly.hook.FlightResult;
 import moneybags.tempfly.hook.HookManager;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.tab.TabHandle;
 import moneybags.tempfly.util.AutoSave;
 import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.ParticleTask;
+import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge;
 import moneybags.tempfly.util.data.Files;
@@ -79,6 +82,7 @@ public class TempFly extends JavaPlugin {
 		registerListeners();
 		registerCommands();
 		initializeAesthetics();
+
 		
 		try {
 			Metrics metrics = new Metrics(this, 8196);
@@ -169,6 +173,9 @@ public class TempFly extends JavaPlugin {
 		if (autosave != null) {
 			autosave.cancel();
 			autosave = new AutoSave().runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
+		}
+		for (Flyer f: FlyHandle.getFlyers()) {
+			FlyHandle.evaluateFlightRequirements(f, true);
 		}
 	}
 	

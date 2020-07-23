@@ -1,61 +1,66 @@
-# This setting allows you to disable the askyblock hook even if you have askyblock on the server.
-# If you simply want to disable flight in the askyblock world use the disabled worlds
-# setting in the base plugin.
+# This setting allows you to disable the skyblock hook even if you have skyblock on the server.
+# If you just want to disable flight in the island worlds use disabled worlds in the base config.
 enable_hook: true
-# The feature unlockables allows you to set island requirements to allow users
-# flight on islands and elsewhere on the server.
-# Island level is the minimum level the players island must be to 
-# fly in the area. Challenges is a list of challenges that must be completed
-# to fly in the area.
+
+# Unlockables allow you to set island requirements to allow users flight on islands and elsewhere on the server.
+# Island level is the minimum level the players island must be to fly in the area.
+# Challenges are a list of challenges that must be completed to fly in the area.
 unlockables:
-  # Requirements needed for island members to fly in specified regions
-  region:
-    super_awesome_vip_region:
-      island_level: 950
-      challenges:
-        - 'alchemist'
-        - 'dj'
-        - 'beaconator'
-  # Requirements needed for island members to fly in specified worlds
-  world:
-    example_world:
-      island_level: 1
+
+  environment:
+    # Requirements needed for island members to fly in specified regions
+    region:
+      super_awesome_vip_region:
+        island_level: 950
+        challenges:
+          - 'alchemist'
+          - 'dj'
+          - 'beaconator'
+  
+    # Requirements needed for island members to fly in specified worlds
+    world:
+      example_world:
+        island_level: 1
+        challenges:
+          - ''
+  
+    # requirements to fly when not on an island.
+    wilderness:
+      island_level: 0
       challenges:
         - ''
-  # requirements to fly when not on an island.
-  wilderness:
-    island_level: 0
-    challenges:
-      - ''
-  # requirements needed for the island owner to fly on the island
-  owner:
-    island_level: 1
-    challenges:
-      - ''
-  # Requirements needed for team members to fly on the island
-  team:
-    island_level: 5
-    challenges:
-      - 'breadmaker'
-  # Requirements needed for coop players to fly on the island
-  coop:
-    island_level: 15
-    challenges:
-      - 'papermaker'
-  # Requirements needed for visitors to fly on the island
-  visitor:
-    island_level: 25
-    challenges:
-      - 'stewmaker'
-      
+
+  # Below are flight requirements based on island roles.
+  # Valid requirements include;
+  # island_level: the island level for the player trying to fly.
+  # owner_level: the island level for the island they are trying to fly on.
+  # challenges: the challenges for the player trying to fly.
+  # owner_challenges: the challenges for the owner of the island they are trying to fly on.
+
+  # If the role specified is a member of the island, for example, (team, moderator, owner) there
+  # is no need to specify both island_level and owner_level as they will be the same thing.
+  island_roles:
+    owner:
+      island_level: 5
+      challenges:
+        - ''
+
+    visitor:
+      island_level: 75
+      owner_level: 50
+
+      challenges:
+        - 'stewmaker'
+      owner_challenges:
+        - 'papermaker'
+
 flight_settings:
   # If false the player cannot fly when they are not on an island
   wilderness: true
+
+  # The following settings are the default values for the tempfly's island protection panel
+  # Island owners may allow or disallow island roles flight on their island.
   base_permissions:
-    # The following settings are the default values for the tempfly's island protection panel
-    # Island owners may allow or disallow players flight on their island. Changing these values
-    # WILL NOT effect islands that have already established their settings.
-    
     # Team members can fly on the island
     team: true
     # Coop players can fly on the island
@@ -68,34 +73,28 @@ language:
     island: "{PREFIX} &cYou must have an island to fly here!"
 
   requirements:
+    owner_challenge: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
     challenge: "{PREFIX} &cYou must complete the challenge &f{CHALLENGE} &cto fly here!"
-    level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
-    level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{STATUS}'s &cto fly!"
+    island_level: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
+    owner_level: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
 
-page:
-  settings:
+gui:
+  # EXPERIMENTAL
+  # This setting will allow you to place a button inside the island settings panel for your respective
+  # skyblock plugin that will take the user to the tempfly island settings page.
+  hook_settings:
+    enabled: true
+    button:
+      name: "&dTemp&fFly &fIsland Settings"
+  page:
     settings:
-      title: '&dIsland Flight Settings'
+      title: "&dIsland Flight Settings"
       background:
-        name: '&7- Please select an option'
+        name: "&7- Please select an option"
       toolbar:
-        name: '&7- Please select an option'
-      team:
-        name: '&e&lIsland Team'
+        name: "&7- Please select an option"
+      role:
+        name: "&e&l{ROLE}"
         lore:
-          - '&8&m================'
-          - '&7- Set whether team members can fly'
-      coop:
-        name: '&d&lCoop Players'
-        lore:
-          - '&8&m================'
-          - '&7- Set whether coop players can fly'
-      visitor:
-        name: '&8&lVisitors'
-        lore:
-          - '&8&m================'
-          - '&7- Set whether visitors can fly'
-      allowed:
-        name: '&a&lAllowed'
-      disallowed:
-        name: '&c&lDisallowed'
+          - "&8&m================"
+          - "&7- Set whether team {ROLE}'s can fly"

@@ -13,6 +13,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.HookManager.HookType;
+import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.data.DataBridge.DataTable;
 import moneybags.tempfly.util.data.Files;
@@ -44,11 +45,10 @@ public abstract class TempFlyHook {
 	}
 	
 	private void initializeFiles() throws Exception {
-		String configType = hookType.getGenre().toString().toLowerCase();
-		File hookConfigf = new File(hookType.getGenre().getDirectory(),  configType + "_config.yml");
+		File hookConfigf = new File(hookType.getGenre().getDirectory(), hookType.getConfigName() + ".yml");
 	    if (!hookConfigf.exists()) {
 	    	hookConfigf.getParentFile().mkdirs();
-	    	Files.createConfig(plugin.getResource(configType + "_config.yml"), hookConfigf);
+	    	Files.createConfig(plugin.getResource(hookType.getEmbeddedConfigName() + ".yml"), hookConfigf);
 	    }
 	    
 	    hookConfig = new YamlConfiguration();
@@ -59,6 +59,7 @@ public abstract class TempFlyHook {
 		}
 		
 		plugin.getDataBridge().initializeHookData(this, plugin, DataTable.ISLAND_SETTINGS);
+		enabled = true;
 	}
 	
 	public String getHookedPlugin() {
@@ -81,9 +82,9 @@ public abstract class TempFlyHook {
 		//TODO
 	}
 
-	public abstract FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions);
+	public abstract FlightResult handleFlightInquiry(Player p, CompatRegion[] regions);
 	
-	public abstract FlightResult handleFlightInquiry(Player p, ProtectedRegion r);
+	public abstract FlightResult handleFlightInquiry(Player p, CompatRegion r);
 
 	public abstract FlightResult handleFlightInquiry(Player p, World world);
 	

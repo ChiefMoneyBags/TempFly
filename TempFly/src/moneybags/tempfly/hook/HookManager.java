@@ -6,23 +6,27 @@ import java.util.Map;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.hook.region.RegionProvider;
+import moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.hook.skyblock.plugins.BentoHook;
 import net.milkbowl.vault.economy.Economy;
 
 public class HookManager {
 	
-	public static final Class<?>[] SKYBLOCK = new Class<?>[] {AskyblockHook.class, BentoHook.class};
+	public static final Class<?>[] REGIONS = new Class<?>[] {WorldGuardHook.class};
 	
 	private TempFly plugin;
-	private Economy eco = null;
-	private WorldGuardAPI worldGuard = null;
+	private Economy eco;
+	private RegionProvider regions;
 	private Map<Genre, Map<HookType, TempFlyHook>> hooks = new HashMap<>();
 	
 	public HookManager(TempFly plugin) {
 		this.plugin = plugin;
+		
+		loadRegionProvider();
 		setupEconomy();
-		initializeHooks();
+		loadGenres();
 	}
 	
 	/**
@@ -30,6 +34,19 @@ public class HookManager {
 	 * Initialization
 	 * 
 	 */
+	
+	private void loadRegionProvider() {
+		RegionProvider hook;
+		for (Class<?> clazz: REGIONS) {
+			try {
+				hook = (RegionProvider) clazz.getConstructor(TempFly.class).newInstance(plugin);
+				if (hook.isEnabled()) {
+					regions = hook;
+					break;
+				}
+			} catch (Exception e) {e.printStackTrace();}
+		}
+	}
 	
     private boolean setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -43,25 +60,25 @@ public class HookManager {
         return eco != null;
     }
     
-	private void initializeHooks() {
-		worldGuard = new WorldGuardAPI();
-		loadGenre(Genre.SKYBLOCK, SKYBLOCK, true);
-	}
 	
-	private void loadGenre(Genre genre, Class<?>[] clazzes, boolean solitary) {
+	private void loadGenres() {
 		TempFlyHook hook;
-		Map<HookType, TempFlyHook> loaded = new HashMap<>();
-		for (Class<?> clazz: clazzes) {
-			try {
-				hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
-				if (hook.isEnabled()) {
-					loaded.put(hook.getHookType(), hook);
-					break;
-				}
-			} catch (Exception e) {e.printStackTrace();}
-		}
-		if (loaded.size() > 0) {
-			hooks.put(genre, loaded);
+		for (Genre genre: Genre.values()) {
+			Map<HookType, TempFlyHook> loaded = new HashMap<>();
+			for (Class<?> clazz: genre.getClasses()) {
+				try {
+					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
+					if (hook.isEnabled()) {
+						loaded.put(hook.getHookType(), hook);
+						if (genre.isSolitary()) {
+							break;
+						}
+					}
+				} catch (Exception e) {e.printStackTrace();}
+			}
+			if (loaded.size() > 0) {
+				hooks.put(genre, loaded);
+			}	
 		}
 	}
 	
@@ -77,8 +94,12 @@ public class HookManager {
     	return eco;
     }
     
-    public WorldGuardAPI getWorldGuard() {
-    	return worldGuard;
+    public boolean hasRegionProvider() {
+    	return regions != null;
+    }
+    
+    public RegionProvider getRegionProvider() {
+    	return regions;
     }
 	
 	public TempFlyHook getHook(HookType hook) {
@@ -101,18 +122,30 @@ public class HookManager {
 	 * Represents the GameMode type of a hook  
 	 */
 	public static enum Genre {
-		SKYBLOCK("SkyBlock"),
-		LANDS("Lands"),
-		FACTIONS("Factions");
+		SKYBLOCK("SkyBlock", true, AskyblockHook.class, BentoHook.class),
+		LANDS("Lands", true),
+		FACTIONS("Factions", true);
 		
 		private String folder;
+		private boolean solitary;
+		private final Class<?>[] classes; 
 		
-		private Genre(String folder) {
+		private Genre(String folder, boolean solitary, Class<?>... classes) {
 			this.folder = folder;
+			this.solitary = solitary;
+			this.classes = classes;
 		}
 		
 		public String getDirectory() {
 			return TempFly.getInstance().getDataFolder() + File.separator + "hooks" + File.separator + folder;
+		}
+		
+		public boolean isSolitary() {
+			return solitary;
+		}
+		
+		public Class<?>[] getClasses() {
+			return classes;
 		}
 	}
 	
@@ -120,16 +153,24 @@ public class HookManager {
 	 * Represents the target plugin of a hook. 
 	 */
 	public static enum HookType {
-		ASKYBLOCK(Genre.SKYBLOCK, "ASkyBlock"),
-		BENTO_BOX(Genre.SKYBLOCK, "BentoBox"),
-		SUPERIOR_SKYBLOCK_2(Genre.SKYBLOCK, "");
+		ASKYBLOCK(
+				Genre.SKYBLOCK,
+				"ASkyBlock", "ASkyBlock", "skyblock_config"),
+		BENTO_BOX(
+				Genre.SKYBLOCK,
+				"BentoBox", "BentoBox", "skyblock_config"),
+		SUPERIOR_SKYBLOCK_2(
+				Genre.SKYBLOCK,
+				"???????", "SuperiorSkyblock", "skyblock_config");
 		
 		private Genre genre;
-		private String plugin;
+		private String plugin, config, embedded;
 		
-		private HookType(Genre genre, String plugin) {
+		private HookType(Genre genre, String plugin, String config, String embedded) {
 			this.genre = genre;
 			this.plugin = plugin;
+			this.config = config;
+			this.embedded = embedded;
 		}
 		
 		public Genre getGenre() {
@@ -138,6 +179,14 @@ public class HookManager {
 		
 		public String getPluginName() {
 			return plugin;
+		}
+		
+		public String getConfigName() {
+			return config;
+		}
+		
+		public String getEmbeddedConfigName() {
+			return embedded;
 		}
 	}
 

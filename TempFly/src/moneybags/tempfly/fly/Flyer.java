@@ -9,16 +9,15 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.aesthetic.ActionBarAPI;
 import moneybags.tempfly.aesthetic.TitleAPI;
 import moneybags.tempfly.aesthetic.particle.Particles;
+import moneybags.tempfly.environment.RelativeTimeRegion;
 import moneybags.tempfly.hook.HookManager;
-import moneybags.tempfly.time.RelativeTimeRegion;
+import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.time.TimeHandle;
+import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 import moneybags.tempfly.util.data.DataBridge.DataValue;
@@ -119,12 +118,9 @@ public class Flyer {
 	public void asessRtRegions() {
 		List<String> regions = new ArrayList<>();
 		HookManager hooks = TempFly.getInstance().getHookManager();
-		if (hooks.getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = hooks.getWorldGuard().getRegionSet(p.getLocation());
-			if (prot != null) {
-				for(ProtectedRegion r : prot) {
-					regions.add(r.getId());
-				}	
+		if (hooks.hasRegionProvider()) {
+			for(CompatRegion r : hooks.getRegionProvider().getApplicableRegions(p.getLocation())) {
+				regions.add(r.getId());
 			}
 		}	
 		for (RelativeTimeRegion rt : FlyHandle.getRtRegions()) {

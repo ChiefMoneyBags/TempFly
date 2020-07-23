@@ -262,7 +262,7 @@ public class V {
 		save 				= config.getInt("system.backup", 5);
 		particles			= config.getBoolean("aesthetic.identifier.particles.enabled");
 		particleType		= config.getString("aesthetic.identifier.particles.type", "VILLAGER_HAPPY");
-		particleDefault		= config.getBoolean("aesthetic.identifier.particles.default_display");
+		particleDefault		= config.getBoolean("aesthetic.identifier.particles.display_by_default");
 		hideVanish			= config.getBoolean("aesthetic.identifier.particles.hide_vanish");
 		list				= config.getBoolean("aesthetic.identifier.tab_list.enabled");
 		listName			= st(C.CONFIG, "aesthetic.identifier.tab_list.name");

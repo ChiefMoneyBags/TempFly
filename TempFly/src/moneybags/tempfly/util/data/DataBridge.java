@@ -30,6 +30,7 @@ import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.U;
+import moneybags.tempfly.util.V;
 
 
 public class DataBridge {
@@ -115,7 +116,9 @@ public class DataBridge {
 			saveData();
 			
 		} else if (version < 3.0) {
+			Console.warn("");
 			Console.warn("This tempfly version has a new data management system, (data.yml) will be backed for your safety.");
+			Console.warn("");
 			if (!backupLegacyData("update_3_backup_")) {
 				Bukkit.getPluginManager().disablePlugin(plugin);
 				return;
@@ -126,7 +129,7 @@ public class DataBridge {
 	}
 	
 	/**
-	 * Create a data backup from old TempFly version when updating.
+	 * Create a data backup from legacy TempFly version when updating.
 	 * @return
 	 */
 	private boolean backupLegacyData(String file) {
@@ -209,6 +212,8 @@ public class DataBridge {
 	 * This method is usually called by async threads, it will wait for staged changes to be finished before committing
 	 */
 	public void commit() {
+		Console.debug("");
+		Console.debug("-----------Preparing to commit (ALL)---------");
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized(this) {
 			commit.addAll(changes);
@@ -216,6 +221,7 @@ public class DataBridge {
 		}
 		
 		for (StagedChange change: commit) {
+			Console.debug("Setting value: value=(" + change.getValue() + ") | path=(" + U.arrayToString(change.getPath(), " | ") + ") | data=(" + change.getData() + ")");
 			setValue(change.getValue(), change.getData(), change.getPath());
 		}
 		
@@ -227,16 +233,21 @@ public class DataBridge {
 						continue;
 					}
 				}
-				try {data.save(dataf);} catch (Exception e) {
+				try {Console.debug("Sql database null, saving YAML..."); data.save(dataf);} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
+		Console.debug("-----------End commit---------");
+		Console.debug("");
 	}
 	
 	public void commit(DataValue value, String[] path) {
-		Console.debug("-----------Preparing to iterate staged changes---------");
-		Console.debug("Attempting to commit: DataValue=(" + value.toString() + ") | Path=(" + U.arrayToString(path, " | ") + ") : DataBridge");
+		if (V.debug) {
+			Console.debug("");
+			Console.debug("-----------Preparing to commit (" + value.toString() + "))---------");
+			Console.debug("Attempting to commit: Path=(" + U.arrayToString(path, " | ") + ")");	
+		}
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized (this) {
 			for (StagedChange change: changes) {
@@ -259,6 +270,8 @@ public class DataBridge {
 				}
 			}
 		}
+		Console.debug("-----------End commit---------");
+		Console.debug("");
 	}
 	
 	public synchronized void dropChanges() {
@@ -419,19 +432,19 @@ public class DataBridge {
 	public static enum DataValue {
 		PLAYER_TIME(
 				DataTable.TEMPFLY_DATA,
-				Long.class,
+				Long.TYPE,
 				"BALANCE",
 				new String[] {"players", "time"},
 				false),
 		PLAYER_FLIGHT_LOG(
 				DataTable.TEMPFLY_DATA,
-				Boolean.class,
+				Boolean.TYPE,
 				"LOGGED_IN_FLIGHT",
 				new String[] {"players", "logged_in_flight"},
 				false),
 		PLAYER_DAILY_BONUS(
 				DataTable.TEMPFLY_DATA,
-				Long.class,
+				Long.TYPE,
 				"LAST_DAILY_BONUS",
 				new String[] {"players", "last_daily_bonus"},
 				false),
@@ -447,7 +460,7 @@ public class DataBridge {
 		
 		ISLAND_SETTING(
 				DataTable.ISLAND_SETTINGS,
-				Boolean.class,
+				Boolean.TYPE,
 				null,
 				null,
 				true);

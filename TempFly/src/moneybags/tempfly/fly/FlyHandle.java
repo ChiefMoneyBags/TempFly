@@ -36,14 +36,12 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import moneybags.tempfly.TempFly;
+import moneybags.tempfly.environment.RelativeTimeRegion;
 import moneybags.tempfly.hook.FlightResult;
 import moneybags.tempfly.hook.TempFlyHook;
+import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.hook.FlightResult.DenyReason;
-import moneybags.tempfly.time.RelativeTimeRegion;
 import moneybags.tempfly.time.TimeHandle;
 import moneybags.tempfly.util.Console;
 import moneybags.tempfly.util.DailyDate;
@@ -80,7 +78,6 @@ public class FlyHandle implements Listener {
 		}
 	}
 	
-	
 	public static List<RelativeTimeRegion> getRtRegions() {
 		return rtRegions;
 	}
@@ -92,7 +89,7 @@ public class FlyHandle implements Listener {
 	}
 	
 	public static void save(Flyer f) {
-		Console.debug("save flyer: FlyHandle(104)");
+		Console.debug("save flyer: FlyHandle");
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
 		bridge.commit(DataValue.PLAYER_TIME, new String[] {f.getPlayer().getUniqueId().toString()});
 	}
@@ -178,8 +175,8 @@ public class FlyHandle implements Listener {
 		return flyers.values().toArray(new Flyer[flyers.size()]);
 	}
 
-	public static FlightResult inquireFlight(Player p, ApplicableRegionSet regions, boolean invokeHooks) {
-		for (ProtectedRegion r: regions) {
+	public static FlightResult inquireFlight(Player p, CompatRegion[] regions, boolean invokeHooks) {
+		for (CompatRegion r: regions) {
 			if (blackRegion.contains(r.getId())) {
 				return new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf);
 			}	
@@ -195,7 +192,7 @@ public class FlyHandle implements Listener {
 		return new FlightResult(true);
 	}
 	
-	public static FlightResult inquireFlight(Player p, ProtectedRegion r, boolean invokeHooks) {
+	public static FlightResult inquireFlight(Player p, CompatRegion r, boolean invokeHooks) {
 		if (blackRegion.contains(r.getId())) {
 			return new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf);
 		}
@@ -231,13 +228,10 @@ public class FlyHandle implements Listener {
 			return worldResult;
 		}
 		
-		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(loc);
-			if (prot != null) {
-				FlightResult result = inquireFlight(p, prot, invokeHooks);
-				if (!result.isAllowed()) {
-					return result;
-				}
+		if (TempFly.getInstance().getHookManager().hasRegionProvider()) {
+			FlightResult result = inquireFlight(p, TempFly.getInstance().getHookManager().getRegionProvider().getApplicableRegions(loc), invokeHooks);
+			if (!result.isAllowed()) {
+				return result;
 			}
 		}	
 		
@@ -253,10 +247,34 @@ public class FlyHandle implements Listener {
 		return new FlightResult(true);
 	}
 	
+	public static void evaluateFlightRequirements(Flyer f, boolean safety) {
+		Player p = f.getPlayer();
+		FlightResult result;
+		result = FlyHandle.inquireFlight(p, p.getLocation(), true);
+		if (!result.isAllowed()) {
+			FlyHandle.removeFlyerDelay(f, 1);
+			if (safety) {
+				addDamageProtection(p);
+			}
+			U.m(p, result.getMessage());
+			return;
+		}
+		if (TempFly.getInstance().getHookManager().hasRegionProvider()) {
+			result = FlyHandle.inquireFlight(p, TempFly.getInstance().getHookManager().getRegionProvider().getApplicableRegions(p.getLocation()), true);
+			if (!result.isAllowed()) {
+				FlyHandle.removeFlyerDelay(f, 1);
+				if (safety) {
+					addDamageProtection(p);
+				}
+				U.m(p, result.getMessage());
+			}	
+		}
+	}
+	
 	@Deprecated
 	public static boolean flyAllowed(Location loc) {
-		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
-			for (ProtectedRegion r: TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(loc)) {
+		if (TempFly.getInstance().getHookManager().hasRegionProvider()) {
+			for (CompatRegion r: TempFly.getInstance().getHookManager().getRegionProvider().getApplicableRegions(loc)) {
 				if (blackRegion.contains(r.getId())) {
 					return false;
 				}
@@ -553,15 +571,12 @@ public class FlyHandle implements Listener {
 			p.setFlying(false);
 		}
 		
-		if (TempFly.getInstance().getHookManager().getWorldGuard().isEnabled()) {
-			ApplicableRegionSet prot = TempFly.getInstance().getHookManager().getWorldGuard().getRegionSet(e.getTo());
-			if (prot != null) {
-				FlightResult result = inquireFlight(p, prot, true);
-				if (!result.isAllowed()) {
-					removeFlyer(f);
-					U.m(p, result.getMessage());
-					return;
-				}
+		if (TempFly.getInstance().getHookManager().hasRegionProvider()) {
+			FlightResult result = inquireFlight(p, TempFly.getInstance().getHookManager().getRegionProvider().getApplicableRegions(e.getTo()), true);
+			if (!result.isAllowed()) {
+				removeFlyer(f);
+				U.m(p, result.getMessage());
+				return;
 			}
 			f.asessRtRegions();
 		}

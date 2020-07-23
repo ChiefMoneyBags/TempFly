@@ -7,12 +7,10 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import moneybags.tempfly.fly.FlyHandle;
 import moneybags.tempfly.fly.Flyer;
 import moneybags.tempfly.hook.FlightResult;
+import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.time.TimeHandle;
 
 public class TempFlyAPI {
@@ -103,7 +101,7 @@ public class TempFlyAPI {
 	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
 	 * @return
 	 */
-	public FlightResult canFlyAt(Player p, ProtectedRegion region, boolean invokeHooks) {
+	public FlightResult canFlyAt(Player p, CompatRegion region, boolean invokeHooks) {
 		return FlyHandle.inquireFlight(p, region, invokeHooks);
 	}
 	
@@ -116,7 +114,7 @@ public class TempFlyAPI {
 	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
 	 * @return
 	 */
-	public FlightResult canFlyAt(Player p, ApplicableRegionSet regions, boolean invokeHooks) {
+	public FlightResult canFlyAt(Player p, CompatRegion[] regions, boolean invokeHooks) {
 		return FlyHandle.inquireFlight(p, regions, invokeHooks);
 	}
 	

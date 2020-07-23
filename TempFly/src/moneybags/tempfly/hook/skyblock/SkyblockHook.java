@@ -31,6 +31,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	public SkyblockHook(HookType hookType, TempFly plugin) {
 		super(hookType, plugin);
+		if (!super.isEnabled()) {
+			return;
+		}
 		loadValues();
 		PageIslandSettings.initialize(this);
 	}

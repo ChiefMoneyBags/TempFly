@@ -4,13 +4,11 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import moneybags.tempfly.TempFly;
 import moneybags.tempfly.hook.FlightResult;
 import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
+import moneybags.tempfly.hook.region.CompatRegion;
 
 public class BentoHook extends TempFlyHook {
 
@@ -25,13 +23,13 @@ public class BentoHook extends TempFlyHook {
 	}
 
 	@Override
-	public FlightResult handleFlightInquiry(Player p, ApplicableRegionSet regions) {
+	public FlightResult handleFlightInquiry(Player p, CompatRegion[] regions) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 	
 	@Override
-	public FlightResult handleFlightInquiry(Player p, ProtectedRegion r) {
+	public FlightResult handleFlightInquiry(Player p, CompatRegion r) {
 		// TODO Auto-generated method stub
 		return null;
 	}
