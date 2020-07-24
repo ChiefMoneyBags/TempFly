@@ -4,26 +4,31 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook.RequirementType;
+import moneybags.tempfly.hook.skyblock.SkyblockHook.SkyblockRequirementType;
 
 public class SkyblockRequirement {
 
-	private RequirementType type;
+	private SkyblockRequirementType type;
+	
 	private long islandLevel;
+	private long ownerLevel;
 	@Nullable
 	private String[] challenges;
+	private String[] ownerChallenges;
 	@Nullable
 	private String name;
 	
-	public SkyblockRequirement(List<String> challenges, long islandLevel, String name, RequirementType type) {
+	public SkyblockRequirement(
+			List<String> challenges, List<String> ownerChallenges,
+			long islandLevel, long ownerLevel,
+			String name, SkyblockRequirementType type) {
 		this.type = type;
 		this.name = name;
+		
 		this.challenges = challenges == null ? null : challenges.toArray(new String[challenges.size()]);
+		this.ownerChallenges = ownerChallenges == null ? null : ownerChallenges.toArray(new String[challenges.size()]);
 		this.islandLevel = islandLevel;
-	}
-	
-	public SkyblockRequirement(List<String> challenges, long islandLevel, RequirementType type) {
-		this.type = type;
+		this.ownerLevel = ownerLevel;
 	}
 	
 	@Nullable
@@ -31,16 +36,24 @@ public class SkyblockRequirement {
 		return name;
 	}
 	
-	public long getRequiredLevel() {
+	public long getIslandLevel() {
 		return islandLevel;
 	}
 	
+	public long getOwnerLevel() {
+		return ownerLevel;
+	}
+	
 	@Nullable
-	public String[] getRequiredChallenges() {
+	public String[] getChallenges() {
 		return challenges;
 	}
 	
-	public RequirementType getType() {
+	public String[] getOwnerChallenges() {
+		return ownerChallenges;
+	}
+	
+	public SkyblockRequirementType getType() {
 		return type;
 	}
 	

@@ -73,10 +73,10 @@ language:
     island: "{PREFIX} &cYou must have an island to fly here!"
 
   requirements:
-    owner_challenge: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
-    challenge: "{PREFIX} &cYou must complete the challenge &f{CHALLENGE} &cto fly here!"
-    island_level: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
-    owner_level: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
+    challenge_self: "{PREFIX} &cYou must complete the challenge &f{CHALLENGE} &cto fly here!"
+    challenge_other: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
+    level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
+    level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
 
 gui:
   # EXPERIMENTAL

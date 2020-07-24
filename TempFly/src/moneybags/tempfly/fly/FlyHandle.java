@@ -132,6 +132,8 @@ public class FlyHandle implements Listener {
 	}
 	
 	/**
+	 * It is recommended to use removeFlyerDelay() with a delay of 1 as some events may
+	 * not allow flight to be properly disabled on the same tick, such as changing worlds. 
 	 * Turn off players flight
 	 * @param f
 	 */

@@ -13,19 +13,23 @@ import moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class IslandSettings {
 
+	private SkyblockHook hook;
 	private IslandWrapper island;
-	
 	private Map<String, Boolean> settings = new HashMap<>();
 	
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
-		String id = island.getIdentifier();
+		this.hook = hook;
+		String id = hook.getIslandIdentifier(island);
 		DataBridge bridge = TempFly.getInstance().getDataBridge();
 		
 		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, "ISLANDS", id);
 		for (Entry<String, Object> entry: values.entrySet()) {
 			if (!(entry.getValue() instanceof Boolean)) {
 				try { throw new DataFormatException("A data value in Island Settings is not properly formatted, Expected boolean got (" + entry.getValue().getClass() + ")! island=(" + id + ") key=(" + entry.getKey() + ")");}
-				catch (DataFormatException e) { e.printStackTrace(); }
+				catch (DataFormatException e) {
+					e.printStackTrace();
+					continue;
+				}
 			}
 			settings.put(entry.getKey(), (Boolean)entry.getValue());
 		}
@@ -37,7 +41,7 @@ public class IslandSettings {
 	
 	public void setCanFly(String rank, boolean canFly) {
 		settings.put(rank, canFly);
-		TempFly.getInstance().getDataBridge().stageChange(DataValue.ISLAND_SETTING, canFly, new String[] {island.getIdentifier(), rank});
+		TempFly.getInstance().getDataBridge().stageChange(DataValue.ISLAND_SETTING, canFly, new String[] {hook.getIslandIdentifier(island), rank});
 	}
 	
 	public void toggleCanFly(String rank) {

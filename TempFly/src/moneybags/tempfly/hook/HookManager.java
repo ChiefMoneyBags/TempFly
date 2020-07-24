@@ -1,7 +1,9 @@
 package moneybags.tempfly.hook;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
@@ -10,6 +12,7 @@ import moneybags.tempfly.hook.region.RegionProvider;
 import moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import moneybags.tempfly.hook.skyblock.plugins.BentoHook;
+import moneybags.tempfly.util.Console;
 import net.milkbowl.vault.economy.Economy;
 
 public class HookManager {
@@ -62,15 +65,23 @@ public class HookManager {
     
 	
 	private void loadGenres() {
+		Console.debug("");
+		Console.debug("----------Loading Genre Hooks----------");
 		TempFlyHook hook;
 		for (Genre genre: Genre.values()) {
+			Console.debug("");
+			Console.debug("--< Loading: " + genre.toString());
 			Map<HookType, TempFlyHook> loaded = new HashMap<>();
 			for (Class<?> clazz: genre.getClasses()) {
+				Console.debug("");
+				Console.debug("----< Class: " + clazz.getName());
 				try {
 					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
+					Console.debug("----< Enabled: " + hook.isEnabled());
 					if (hook.isEnabled()) {
 						loaded.put(hook.getHookType(), hook);
 						if (genre.isSolitary()) {
+							Console.debug("----< Genre is solitary, breaking: " + genre);
 							break;
 						}
 					}
@@ -80,6 +91,8 @@ public class HookManager {
 				hooks.put(genre, loaded);
 			}	
 		}
+		Console.debug("--------Loading Genre Hooks End--------");
+		Console.debug("");
 	}
 	
 	
@@ -112,7 +125,15 @@ public class HookManager {
 	}
 	
 	public TempFlyHook[] getEnabled() {
-		return hooks.values().toArray(new TempFlyHook[hooks.size()]);
+		List<TempFlyHook> enabled = new ArrayList<>();
+		for (Map<HookType, TempFlyHook> genre: hooks.values()) {
+			for (TempFlyHook hook: genre.values()) {
+				if (hook.isEnabled()) {
+					enabled.add(hook);
+				}
+			}
+		}
+		return enabled.toArray(new TempFlyHook[enabled.size()]);
 	}
 	
 	

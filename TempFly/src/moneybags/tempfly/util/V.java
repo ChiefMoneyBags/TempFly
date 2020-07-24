@@ -322,18 +322,18 @@ public class V {
 				return "";
 			}
 		} catch (Exception e) {
-			Console.warn("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
-			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
+			Console.warn("There is a missing message in the file: (" + file.toString().toLowerCase() + ".yml) | Path: (" + key + ")");
+			if (missingMessages++ < 3) {Console.warn("THIS IS NOT AN ERROR! You simply need to add the missing message.");}
 			return U.cc("&cThis message is broken! :(");
 		}
 	}
 	
-	public static String st(FileConfiguration config, String key){
+	public static String st(FileConfiguration config, String key, String fileName){
 		try{
 			return U.cc(config.getString(key)).replaceAll("\\{PREFIX}", prefix);
 		} catch (Exception e) {
-			Console.warn("There is a missing message in the file: (" + config.getName() + ") | Path: (" + key + ")");
-			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
+			Console.warn("There is a missing message in the file: (" + fileName + ".yml) | Path: (" + key + ")");
+			if (missingMessages++ < 3) {Console.warn("THIS IS NOT AN ERROR! You simply need to add the missing message.");}
 			return U.cc("&cThis message is broken! :(");
 		}
 	}
@@ -351,7 +351,7 @@ public class V {
 			}
 		} catch (Exception e) {
 			Console.warn("There is a missing message in the file: (" + file.toString().toLowerCase() + ") | Path: (" + key + ")");
-			if (missingMessages++ < 4) {Console.warn("THIS IS NOT AN ERROR, You simply need to add the missing message to the yaml file. Look on the tempfly page for an example config.");}
+			if (missingMessages++ < 3) {Console.warn("THIS IS NOT AN ERROR! You simply need to add the missing messagge.");}
 			return U.cc(def);
 		}
 	}

@@ -34,6 +34,8 @@ import moneybags.tempfly.util.V;
 
 public class AskyblockHook extends SkyblockHook implements Listener {
 	
+	public static final String[] ASKYBLOCK_ROLES = new String[] {"OWNER", "TEAM", "COOP", "VISITOR"};
+	
 	private ASkyBlockAPI api;
 	
 	public AskyblockHook(TempFly plugin) {
@@ -42,7 +44,6 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 			return;
 		}
 		this.api = ASkyBlockAPI.getInstance();
-		
 		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
 	
@@ -124,20 +125,22 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		}
 		
 		IslandSettings settings = island.getSettings();	
-		if (island.isMember(p.getUniqueId())) {
-			if (island.getOwner().equals(p.getUniqueId())) {
-				return hasRequirement(RequirementType.OWNER) ? runRequirement(getRequirements(RequirementType.OWNER)[0], island, p, false) : new FlightResult(true);
-			}
-			return !settings.canFly(AskyblockRole.TEAM.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
-				(hasRequirement(RequirementType.TEAM) ? runRequirement(getRequirements(RequirementType.TEAM)[0], island, p, false) : new FlightResult(true));
-				
-		} else if (api.getCoopIslands(p).contains(api.getIslandLocation(island.getOwner()))) {
-			return !settings.canFly(AskyblockRole.COOP.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
-					(hasRequirement(RequirementType.COOP) ? runRequirement(getRequirements(RequirementType.COOP)[0], island, p, false) : new FlightResult(true));
-		} else {
-			return !settings.canFly(AskyblockRole.VISITOR.toString()) ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
-					(hasRequirement(RequirementType.VISITOR) ? runRequirement(getRequirements(RequirementType.VISITOR)[0], island, p, false) : new FlightResult(true));
+		if (isIslandMember(island, p)) {
+			
+			return getIslandOwner(island).equals(p.getUniqueId()) ?
+					//owner
+					hasRequirement(SkyblockRequirementType.ISLAND_ROLE, "OWNER") ? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, "OWNER"), island, p) : new FlightResult(true)
+							:
+					//team
+					!settings.canFly("TEAM") ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+					(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, "TEAM") ? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, "TEAM"), island, p) : new FlightResult(true));
+		
+		} else if (api.getCoopIslands(p).contains(api.getIslandLocation(getIslandOwner(island)))) {
+			return 	!settings.canFly("COOP") ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+					(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, "COOP") ? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, "COOP"), island, p) : new FlightResult(true));
 		}
+		return !settings.canFly("VISITOR") ? new FlightResult(false, DenyReason.DISABLED_REGION, V.invalidZoneSelf) :
+			(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, "VISITOR") ? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, "VISITOR"), island, p) : new FlightResult(true));
 	}
 	
 	/**
@@ -147,84 +150,85 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	 * @param p
 	 * @return
 	 */
-	private FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, Player p, boolean isMessageSelf) {
-		if (ir.getRequiredLevel() > api.getLongIslandLevel(island.getOwner())) {
-			Console.debug("fail island level: " + ir.getRequiredLevel() + " / " + api.getLongIslandLevel(island.getOwner()));
-			return new FlightResult(false, DenyReason.REQUIREMENT, (isMessageSelf ? requireLevelSelf : requireLevelOther)
-					.replaceAll("\\{LEVEL}", String.valueOf(ir.getRequiredLevel()))
-					.replaceAll("\\{STATUS}", ir.getType().toString()));
+	private FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, Player p) {
+		if (ir.getIslandLevel() > 0 && ir.getIslandLevel() > api.getLongIslandLevel(p.getUniqueId())) {
+			Console.debug("fail island level: " + ir.getIslandLevel() + " / " + api.getLongIslandLevel(p.getUniqueId()));
+			return new FlightResult(false, DenyReason.REQUIREMENT, requireLevelSelf
+					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
+					.replaceAll("\\{ROLE}", ir.getName()));
 		}
-		
+		if (ir.getOwnerLevel() > 0 && ir.getOwnerLevel() > api.getLongIslandLevel(getIslandOwner(island))) {
+			Console.debug("fail island level: " + ir.getOwnerLevel() + " / " + api.getLongIslandLevel(getIslandOwner(island)));
+			return new FlightResult(false, DenyReason.REQUIREMENT, requireLevelOther
+					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
+					.replaceAll("\\{ROLE}", ir.getName()));
+		}
 		Map<String, Boolean> completed = api.getChallengeStatus(p.getUniqueId());
-		for (String challenge : ir.getRequiredChallenges()) {										
-			if (completed != null && completed.containsKey(challenge) && !completed.get(challenge)) {
-				Console.debug("fail island challenge: " + challenge);
-				return new FlightResult(false, DenyReason.REQUIREMENT, requireChallenge.replaceAll("\\{CHALLENGE}", challenge));
-			}
-		}	
+		if (completed != null) {
+			for (String challenge : ir.getChallenges()) {										
+				if (completed.containsKey(challenge) && !completed.get(challenge)) {
+					Console.debug("fail island challenge: " + challenge);
+					return new FlightResult(false, DenyReason.REQUIREMENT, requireChallengeSelf
+							.replaceAll("\\{CHALLENGE}", challenge)
+							.replaceAll("\\{ROLE}", ir.getName()));
+				}
+			}	
+		}
+		Map<String, Boolean> completedOwner = api.getChallengeStatus(getIslandOwner(island));
+		if (completedOwner != null) {
+			for (String challenge : ir.getOwnerChallenges()) {								
+				if (completedOwner.containsKey(challenge) && !completedOwner.get(challenge)) {
+					Console.debug("fail island challenge | island owner: " + challenge);
+					return new FlightResult(false, DenyReason.REQUIREMENT, requireChallengeOther
+							.replaceAll("\\{CHALLENGE}", challenge)
+							.replaceAll("\\{ROLE}", ir.getName()));
+				}
+			}	
+		}
 		return new FlightResult(true);
 	}
 	
 	@Override
 	public FlightResult handleFlightInquiry(Player p, World world) {
-		if (!isEnabled() || !hasRequirement(RequirementType.WORLD) || world == null) {
+		if (!isEnabled() || world == null || !hasRequirement(SkyblockRequirementType.WORLD, world.getName())) {
 			return new FlightResult(true);
 		}
 		
 		Location homeLoc = api.getHomeLocation(p.getUniqueId());
-		for (SkyblockRequirement rq: getRequirements(RequirementType.WORLD)) {
-			if (!rq.getName().equals(world.getName())) {
-				continue;
-			}
-			if (homeLoc == null) {
-				return new FlightResult(false, DenyReason.REQUIREMENT, requireIsland);
-			}
-			IslandWrapper homeIsland = getIslandAt(homeLoc);
-			return runRequirement(rq, homeIsland, p, true);
+		if (homeLoc == null) {
+			return new FlightResult(false, DenyReason.REQUIREMENT, requireIsland);
 		}
-		return new FlightResult(true);
+		IslandWrapper homeIsland = getIslandAt(homeLoc);
+		return runRequirement(getRequirement(SkyblockRequirementType.WORLD, world.getName()), homeIsland, p);
 	}
 
 	@Override
 	public FlightResult handleFlightInquiry(Player p, CompatRegion r) {
-		if (!isEnabled() || !hasRequirement(RequirementType.REGION) || r == null) {
+		if (!isEnabled() || r == null || !hasRequirement(SkyblockRequirementType.REGION, r.getId())) {
 			return new FlightResult(true);
 		}
 		
 		Location homeLoc = api.getHomeLocation(p.getUniqueId());
-		for (SkyblockRequirement rq: getRequirements(RequirementType.REGION)) {
-			if (!rq.getName().equals(r.getId())) {
-				continue;
-			}
-			if (homeLoc == null) {
-				return new FlightResult(false, DenyReason.REQUIREMENT, requireIsland);
-			}
-			IslandWrapper homeIsland = getIslandAt(homeLoc);
-			return runRequirement(rq, homeIsland, p, true);
+		if (homeLoc == null) {
+			return new FlightResult(false, DenyReason.REQUIREMENT, requireIsland);
 		}
-		return new FlightResult(true);
+		IslandWrapper homeIsland = getIslandAt(homeLoc);
+		return runRequirement(getRequirement(SkyblockRequirementType.REGION, r.getId()), homeIsland, p);
 	}
 	
 	@Override
 	public FlightResult handleFlightInquiry(Player p, CompatRegion[] regions) {
-		if (!isEnabled() || !hasRequirement(RequirementType.REGION) || regions == null || regions.length == 0) {
+		if (!isEnabled() || regions == null || regions.length == 0 || !hasRequirement(SkyblockRequirementType.REGION)) {
 			return new FlightResult(true);
-		}
-		Map<String, CompatRegion> idIndex = new HashMap<>();
-		for (CompatRegion r: regions) {
-			idIndex.put(r.getId(), r);
 		}
 		
 		Location homeLoc = api.getHomeLocation(p.getUniqueId());
-		for (SkyblockRequirement rq: getRequirements(RequirementType.REGION)) {
-			if (!idIndex.containsKey(rq.getName())) {
-				continue;
-			}
+		for (SkyblockRequirement rq: getRequirements(regions)) {
 			if (homeLoc == null) {
 				return new FlightResult(false, DenyReason.REQUIREMENT, requireIsland);
 			}
 			IslandWrapper homeIsland = getIslandAt(homeLoc);
-			return runRequirement(rq, homeIsland, p, true);
+			return runRequirement(rq, homeIsland, p);
 		}
 		return new FlightResult(true);
 	}
@@ -237,41 +241,62 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		return checkFlightRequirements(p, loc);
 	}
 
-	public static enum AskyblockRole {
-		OWNER,
-		TEAM,
-		COOP,
-		VISITOR;
-	}
-	
-	public static enum RequirementType {
-		REGION,
-		WORLD,
-		WILDERNESS,
-		OWNER,
-		TEAM,
-		COOP,
-		VISITOR;
-	}
-
-
-
 	@Override
 	public IslandWrapper getIslandOwnedBy(UUID id) {
 		return getIslandWrapper(api.getIslandOwnedBy(id));
 	}
-
-
 
 	@Override
 	public IslandWrapper getIslandAt(Location loc) {
 		return getIslandWrapper(api.getIslandAt(loc));
 	}
 
-
-
 	@Override
 	public boolean isChallengeCompleted(UUID id, String challenge) {
 		return api.getChallengeStatus(id).getOrDefault(challenge, false);
+	}
+
+	@Override
+	public boolean islandRoleExists(String role) {
+		for (String s: ASKYBLOCK_ROLES) {
+			if (s.equalsIgnoreCase(role)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String getIslandRole(IslandWrapper island, Player p) {
+		if (!island.getHook().equals(this)) {
+			return null;
+		}
+		Island rawIsland = (Island) island.getIsland();
+		UUID u = p.getUniqueId();
+		return rawIsland.getOwner().equals(u) ? "OWNER" : rawIsland.getMembers().contains(u) ? "TEAM" : api.getCoopIslands(p).contains(api.getIslandLocation(getIslandOwner(island))) ? "COOP" : "VISITOR";
+	}
+
+	@Override
+	public UUID getIslandOwner(IslandWrapper island) {
+		if (!island.getHook().equals(this)) {
+			return null;
+		}
+		return ((Island) island.getIsland()).getOwner();
+	}
+
+	@Override
+	public String getIslandIdentifier(IslandWrapper island) {
+		if (!island.getHook().equals(this)) {
+			return null;
+		}
+		return U.locationToString(((Island) island.getIsland()).getCenter());
+	}
+	
+	@Override
+	public boolean isIslandMember(IslandWrapper island, Player p) {
+		if (!island.getHook().equals(this)) {
+			return false;
+		}
+		return ((Island) island.getIsland()).getMembers().contains(p.getUniqueId());
 	}
 }
