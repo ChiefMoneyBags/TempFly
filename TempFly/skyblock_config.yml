@@ -9,7 +9,7 @@ unlockables:
 
   environment:
     # Requirements needed for island members to fly in specified regions
-    region:
+    regions:
       super_awesome_vip_region:
         island_level: 950
         challenges:
@@ -18,7 +18,7 @@ unlockables:
           - 'beaconator'
   
     # Requirements needed for island members to fly in specified worlds
-    world:
+    worlds:
       example_world:
         island_level: 1
         challenges:

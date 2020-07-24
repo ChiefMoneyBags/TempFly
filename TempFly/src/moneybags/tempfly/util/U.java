@@ -106,6 +106,12 @@ public class U {
 	}
 	
 	public static String arrayToString(Object[] array, String divider) {
+		if (array == null) {
+			return null;
+		}
+		if (divider == null) {
+			divider = "";
+		}
 		StringBuilder sb = new StringBuilder();
 		int index = 1;
 		for (Object object: array) {

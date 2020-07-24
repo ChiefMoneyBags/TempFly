@@ -5,6 +5,9 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import moneybags.tempfly.hook.skyblock.SkyblockHook.SkyblockRequirementType;
+import moneybags.tempfly.util.Console;
+import moneybags.tempfly.util.U;
+import moneybags.tempfly.util.V;
 
 public class SkyblockRequirement {
 
@@ -29,6 +32,15 @@ public class SkyblockRequirement {
 		this.ownerChallenges = ownerChallenges == null ? null : ownerChallenges.toArray(new String[challenges.size()]);
 		this.islandLevel = islandLevel;
 		this.ownerLevel = ownerLevel;
+		
+		if (V.debug) {
+			Console.debug("----< name: " + name);
+			Console.debug("----< challenges: " + U.arrayToString(this.challenges, ", "));
+			Console.debug("----< owner_challenges: " + U.arrayToString(this.ownerChallenges, ", "));
+			Console.debug("----< island_level: " + islandLevel);
+			Console.debug("----< owner_level: " + ownerLevel);
+			Console.debug("");
+		}
 	}
 	
 	@Nullable

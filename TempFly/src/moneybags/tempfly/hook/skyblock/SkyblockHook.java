@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -15,6 +17,7 @@ import moneybags.tempfly.hook.HookManager.HookType;
 import moneybags.tempfly.hook.TempFlyHook;
 import moneybags.tempfly.hook.region.CompatRegion;
 import moneybags.tempfly.util.Console;
+import moneybags.tempfly.util.U;
 import moneybags.tempfly.util.V;
 
 public abstract class SkyblockHook extends TempFlyHook {
@@ -40,9 +43,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	private void loadValues() {
+		Console.debug("");
+		Console.debug("----Loading Skyblock Settings----");
 		FileConfiguration config = getConfig();
-		this.wilderness = config.getBoolean("flight_settings.wilderness");
 		
+		this.wilderness = config.getBoolean("flight_settings.wilderness");
 		String pathPerms = "flight_settings.base_permissions";
 		ConfigurationSection csPerms = config.getConfigurationSection(pathPerms);
 		if (csPerms != null) {
@@ -50,6 +55,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 				basePerms.put(key, config.getBoolean(pathPerms + "." + key));
 			}	
 		}
+		
 		String name = getHookType().getConfigName();
 		requireIsland			= V.st(config, "language.invalid.island", name);
 		requireChallengeSelf	= V.st(config, "language.requirements.challenge_self", name);
@@ -59,6 +65,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		String path;
 		if (config.contains(path = "unlockables.environment.wilderness")) {
+			Console.debug("");
+			Console.debug("<< Loading wilderness requirements >>");
 			requirements.put(SkyblockRequirementType.WILDERNESS, new SkyblockRequirement[] {
 					new SkyblockRequirement(
 							config.getStringList(path + ".challenges"), null,
@@ -69,6 +77,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		ConfigurationSection csRequireWorld = config.getConfigurationSection("unlockables.environment.worlds");
 		if (csRequireWorld != null) {
+			Console.debug("");
+			Console.debug("<< Loading world requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String world: csRequireWorld.getKeys(false)) {
 				path = "unlockables.environment.worlds." + world;
@@ -84,9 +94,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		ConfigurationSection csRequireRegion = config.getConfigurationSection("unlockables.environment.regions");
 		if (csRequireRegion != null) {
+			Console.debug("");
+			Console.debug("<< Loading region requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String region: csRequireRegion.getKeys(false)) {
-				path = "unlockables.environment.worlds." + region;
+				path = "unlockables.environment.regions." + region;
 				list.add(new SkyblockRequirement(
 							config.getStringList(path + ".challenges"), null,
 							config.getLong(path + ".island_level"), 0,
@@ -99,21 +111,26 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		ConfigurationSection csRequireRole = config.getConfigurationSection("unlockables.island_roles");
 		if (csRequireRole != null) {
+			Console.debug("");
+			Console.debug("<< Loading island_role requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String role: csRequireRole.getKeys(false)) {
 				if (!islandRoleExists(role)) {
 					Console.severe("An island role specified in the config does not exist (" + role + "). Skipping...");
 				}
-				path = "unlockables.environment.worlds." + role;
+				
+				path = "unlockables.island_roles." + role;
 				list.add(new SkyblockRequirement(
 							config.getStringList(path + ".challenges"), config.getStringList(path + ".owner_challenges"),
 							config.getLong(path + ".island_level"), config.getLong(path + ".owner_level"),
-							role, SkyblockRequirementType.ISLAND_ROLE));
+							role.toUpperCase(), SkyblockRequirementType.ISLAND_ROLE));
 			}
 			if (list.size() > 0) {
 				requirements.put(SkyblockRequirementType.ISLAND_ROLE, list.toArray(new SkyblockRequirement[list.size()]));
 			}
 		}
+		Console.debug("----END Skyblock Settings----");
+		Console.debug("");
 	}
 	
 	/**
@@ -192,6 +209,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	public void onIslandEnter(Player p, Object rawIsland) {
+		if (V.debug) {
+			Console.debug("");
+			Console.debug("------ Island Enter Event ------");
+			Console.debug("Player: " + p.getName());
+		}
 		if (locationCache.containsKey(p)) {
 			if (locationCache.get(p).getIsland() == rawIsland) {
 				return;
@@ -205,6 +227,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 		}
 		
 		IslandWrapper island = getIslandWrapper(rawIsland);
+		if (V.debug) {
+			Console.debug("Island: " + getIslandIdentifier(island));
+			Console.debug("------ End Enter Event ------");
+			Console.debug("");
+		}
 		locationCache.put(p, island);
 	}
 	

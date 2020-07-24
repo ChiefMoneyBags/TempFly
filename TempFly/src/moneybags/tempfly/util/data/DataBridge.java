@@ -220,6 +220,13 @@ public class DataBridge {
 			changes.clear();
 		}
 		
+		if (commit.size() == 0) {
+			Console.debug("No changes to save...");
+			Console.debug("-----------End commit---------");
+			Console.debug("");
+			return;
+		}
+		
 		for (StagedChange change: commit) {
 			Console.debug("Setting value: value=(" + change.getValue() + ") | path=(" + U.arrayToString(change.getPath(), " | ") + ") | data=(" + change.getData() + ")");
 			setValue(change.getValue(), change.getData(), change.getPath());
@@ -245,7 +252,7 @@ public class DataBridge {
 	public void commit(DataValue value, String[] path) {
 		if (V.debug) {
 			Console.debug("");
-			Console.debug("-----------Preparing to commit (" + value.toString() + "))---------");
+			Console.debug("-----------Preparing to commit (" + value.toString() + ")---------");
 			Console.debug("Attempting to commit: Path=(" + U.arrayToString(path, " | ") + ")");	
 		}
 		List<StagedChange> commit = new ArrayList<>();
@@ -257,6 +264,12 @@ public class DataBridge {
 					changes.remove(change);
 				}
 			}	
+		}
+		if (commit.size() == 0) {
+			Console.debug("No changes to save...");
+			Console.debug("-----------End commit---------");
+			Console.debug("");
+			return;
 		}
 		Console.debug("Preparing to set value for (" + String.valueOf(commit.size()) + ") change" + (commit.size() > 1 ? "s" : "") + " found...");
 		for (StagedChange change: commit) {

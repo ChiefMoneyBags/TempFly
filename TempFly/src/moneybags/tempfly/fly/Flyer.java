@@ -145,7 +145,7 @@ public class Flyer {
 		GameMode m = p.getGameMode();
 		updateList(true);
 		updateName(true);
-		if (drop && (m != GameMode.CREATIVE || m != GameMode.SPECTATOR)) {
+		if (drop && (m != GameMode.CREATIVE && m != GameMode.SPECTATOR)) {
 			p.setFlying(false);
 			p.setAllowFlight(false);
 		}

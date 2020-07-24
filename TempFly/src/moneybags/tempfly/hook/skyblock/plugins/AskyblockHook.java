@@ -1,6 +1,5 @@
 package moneybags.tempfly.hook.skyblock.plugins;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -13,6 +12,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
 import com.wasteofplastic.askyblock.Island;
 import com.wasteofplastic.askyblock.events.IslandEnterEvent;
@@ -151,34 +151,47 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	 * @return
 	 */
 	private FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, Player p) {
+		Console.debug("");
+		Console.debug("-----Running island flight requirements-----");
 		if (ir.getIslandLevel() > 0 && ir.getIslandLevel() > api.getLongIslandLevel(p.getUniqueId())) {
 			Console.debug("fail island level: " + ir.getIslandLevel() + " / " + api.getLongIslandLevel(p.getUniqueId()));
+			Console.debug("-----End flight requirements-----");
+			Console.debug("");
 			return new FlightResult(false, DenyReason.REQUIREMENT, requireLevelSelf
-					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
+					.replaceAll("\\{LEVEL}", String.valueOf(ir.getIslandLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()));
 		}
+		
 		if (ir.getOwnerLevel() > 0 && ir.getOwnerLevel() > api.getLongIslandLevel(getIslandOwner(island))) {
 			Console.debug("fail island level: " + ir.getOwnerLevel() + " / " + api.getLongIslandLevel(getIslandOwner(island)));
+			Console.debug("-----End flight requirements-----");
+			Console.debug("");
 			return new FlightResult(false, DenyReason.REQUIREMENT, requireLevelOther
 					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()));
 		}
+		
 		Map<String, Boolean> completed = api.getChallengeStatus(p.getUniqueId());
 		if (completed != null) {
 			for (String challenge : ir.getChallenges()) {										
 				if (completed.containsKey(challenge) && !completed.get(challenge)) {
 					Console.debug("fail island challenge: " + challenge);
+					Console.debug("-----End flight requirements-----");
+					Console.debug("");
 					return new FlightResult(false, DenyReason.REQUIREMENT, requireChallengeSelf
 							.replaceAll("\\{CHALLENGE}", challenge)
 							.replaceAll("\\{ROLE}", ir.getName()));
 				}
 			}	
 		}
+		
 		Map<String, Boolean> completedOwner = api.getChallengeStatus(getIslandOwner(island));
 		if (completedOwner != null) {
 			for (String challenge : ir.getOwnerChallenges()) {								
 				if (completedOwner.containsKey(challenge) && !completedOwner.get(challenge)) {
 					Console.debug("fail island challenge | island owner: " + challenge);
+					Console.debug("-----End flight requirements-----");
+					Console.debug("");
 					return new FlightResult(false, DenyReason.REQUIREMENT, requireChallengeOther
 							.replaceAll("\\{CHALLENGE}", challenge)
 							.replaceAll("\\{ROLE}", ir.getName()));
