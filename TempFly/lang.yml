@@ -73,10 +73,18 @@ general:
     disabled_self: "{PREFIX} &cYour flight was disabled!"
     speed_other: "{PREFIX} &f{PLAYER} &ahad their speed set to {SPEED}&a."
     speed_self: "{PREFIX} &aYour fly speed was set to &f{SPEED}&a."
-    cooldown_deny: "{PREFIX} &cYou are currently combat tagged!"
-    cooldown_over: "{PREFIX} &aYou are no longer cobat tagged, fly away!"
-    requirement_fail: "{PREFIX} &cThe requirements have not been met to fly in this area."
-    
+    already_enabled: "{PREFIX} &aYour flight is already enabled!"
+    already_disabled: "{PREFIX} &cYour flight is already disabled!"
+
+  requirement:
+    fail:
+      default: "{PREFIX} &cThe requirements have not been met to fly in this area."
+      region: "{PREFIX} &cFlight is disabled in this region!"
+      world: "{PREFIX} &cFlight is disabled in this world!"
+      combat: "{PREFIX} &cYou are currently combat tagged!"
+    pass: 
+      default: "{PREFIX} &aYou may now fly!"
+      combat: "{PREFIX} &aYou are no longer combat tagged, fly away!"
     
 aesthetic:
   symbols:

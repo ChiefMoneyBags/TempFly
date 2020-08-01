@@ -16,63 +16,9 @@
 #|                                                                                      |#
 #|                            <--Commands & Permissions-->                              |#
 #|                                                                                      |#
-##------------------------------+-------------------------------------------------------##
-#| /tempfly | /fly | /tf        | Allows user to toggle the use of temp flight.         |#
-#| tempfly.toggle.self          |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf toggle [player]          | Allows user to toggle anothers use of temp flight.    |#
-#| tempfly.toggle.other         |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf speed [speed]            | Allows user to change their fly speed.                |#
-#| tempfly.speed.[speed]        |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf time                     | Allow user to view thier remaining time.              |#
-#| tempfly.time.self            |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf time [player]            | Allow user to view another players remaining time.    |#
-#| tempfly.time.other           |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf pay [player]             | Allow user to pay another player time.                |#
-#| tempfly.pay                  |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf give [player] [amount]   | Allow user to give time.     valid arguments;         |#
-#| tempfly.give                 | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
-#|                              | Ex: /tf give [player] -s 30 -m 30 -h 6 -d 1           |#
-##------------------------------+-------------------------------------------------------##
-#| /tf giveall                  | Gives all users on the server time                    |#
-#| tempfly.giveall              |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf remove [player] [amount] | Allow user to remove time.   valid arguments;         |#
-#| tempfly.remove               | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
-##------------------------------+-------------------------------------------------------##
-#| /tf set [player] [amount]    | Allow user to set time.      valid arguments;         |#
-#| tempfly.set                  | [-s {secs}] [-m {mins}] [-h {hours}] [-d {days}]      |#
-##------------------------------+-------------------------------------------------------##
-#| /tf help                     | Allow user to see the help page.                      |#
-#| tempfly.help                 |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| /tf trails                   | Allow user access to the praticle trail gui           |#
-#| tempfly.trails               |                                                       |#
-##------------------------------+-------------------------------------------------------##
-#| tempfly.trail.{particle}     | Gives user access to use individual trails            |#
-#+------------------------------+-------------------------------------------------------+#                              
-#|  Servers using old versions of spigot will need to use the 'Effect' list for trails  |#
-#|           OLD VERSIONS = https://helpch.at/docs/1.8/org/bukkit/Effect.html           |#
+#|    https://github.com/ChiefMoneyBags/TempFly/blob/Master/TempFly/permissions.yml     |#
 #|                                                                                      |#
-#|                                  Newer versions                                      |#
-#|         https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html            |#
-##------------------------------+-------------------------------------------------------##
-#| tempfly.help.admin           | Ability to see admin commands.                        |#
-##------------------------------+-------------------------------------------------------##
-#| tempfly.time.infinite        | Infinite fly time                                     |#
-##------------------------------+-------------------------------------------------------##
-#|                                                                                      |#
-#|                                       Hooks                                          |#
-#|                                                                                      |#
-##------------------------------+-------------------------------------------------------##
-#| /tf settings                 | Allows island owners to adjust fly settings on        |#
-#| tempfly.askyblock.panel      | their island.                                         |#
-##------------------------------+-------------------------------------------------------##
+##--------------------------------------------------------------------------------------##
 
 system:
   # Time in minutes to backup data
@@ -90,7 +36,6 @@ system:
     pass: "pass"
 
 general:
-  
   # This feature prevents conflictions with other plugins fly features.
   # If the player has a permission listed below tempfly will not override the command /fly
   fly_override_permissions:
@@ -103,20 +48,25 @@ general:
       - 'test'
   
   timer:
+    # If true the players timer will count down no matter what as long as they are on the server.
+    # If you want the time to count down while they are offline please see the feature "time_decay"
+    constant: false
     # If false the player will not lose flight time if standing on the ground with flight enabled.
     ground: false
     # If false the player will not lose flight time if they go idle with flight enabled.
     idle: false
-  
-  flight:
-    # Set the default maximum speed players can fly unless otherwise specified by the tempfly.speed.[speed] permission.
-    default_speed: 1
   
   idle:
     # The threshold in seconds to consider a player idle.
     threshold: 300
     # If true players tempfly will be disabled if they go idle in the sky (dropping them).
     drop_player: false
+
+  flight:
+    # Set the default maximum speed players can fly unless otherwise specified by the tempfly.speed.[speed] permission.
+    default_speed: 1
+    # The maximum y level a player can reach before flight is disabled.
+    maximum_height: 275
   
   time:
     # If true players can send eachother time as if it were a currency.
@@ -126,82 +76,80 @@ general:
   
   bonus:
     # Time in seconds given to a player when they first join the server.
-    first_join: 0
+    # "tempfly.first_join.{group}"
+    # Time will stack for each permission the player inherits. Make sure to configure your permissions properly.
+    first_join: 
+      member: 0
+      vip: 0
     # Permission based time given to a player as a daily login bonus.
-    # The permission is "tempfly.bonus.{your_perm_here}"
-    # Time will stack for all permissions a player has, they do not override eachother
+    # The permission is "tempfly.bonus.{group}"
+    # Time will stack for each permission the player inherits. Make sure to configure your permissions properly.
     daily_login: 
-      # Example: players with "tempfly.bonus.member" will recieve the time listed here daily.
       member: 0
       vip: 0
 
     
   time_decay:
     # If enabled a player will lose time when logged off the server.
-    # Warning: This feature will affect player time even when the server is not running.
+    # info:
+    # - This will not track every offline player, it only updates when the player rejoins the server. no lags.
+    # - To use this in tandem with the constant_timer, set threshold and seconds_lost both to 1. (1 second lost per 1 second offline).
     enabled: false
-    # The interval in which players will lose time
+    # The interval in which players will lose time (seconds)
     threshold: 3600
-    # Seconds lost per interval
+    # Seconds of flight lost per interval
     seconds_lost: 15
-    
-  # relative time is a feature that lets you control how fast time will be used in worlds and regions.
-  # this can be useful for many things, for example, making time move slower on larger
-  # planets on a space themed server due to higher gravity
-  # In the example below;
-  # - time will pass '0.5' times or 50% slower than in real time on world 'example_world'
-  # - time will pass '1.5' times or 50% faster than in real time in region 'example_region'.
-  # If the player is in both 'example_world' and 'example_region' at once the values will
-  # be factored together resulting in a value of 1 which is real time.
-  relative_time:
-    worlds:
-      example_world: 0.5
-    regions:
-      example_region: 1.5
-        
-  disable_flight:
-    # if true, flight is disabled when the player attacks another player
+
+  # If true, flight is disabled when the player;
+  combat:
+    # ...attacks another player
     attack_player: true
-    # if true, flight is disabled when the player attacks a mob
+    # ...attacks a mob
     attack_mob: false
-    # if true, flight is disabled when the player is attacked by a player
+    # ...is attacked by a player
     attacked_by_player: true
-    # if true, flight is disabled when the player is attacked by a mob
+    # ...is attacked by a mob
     attacked_by_mob: false
-    # Time in seconds before flight can be enabled again after pvp 
-    cooldown_pvp: 10
-    # Time in seconds before flight can be enabled again after pve 
-    cooldown_pve: 5
-    # If true the player will not need to re toggle flight after combat
-    auto_enable: true
+
+    # Seconds before flight can be enabled after pvp 
+    pvp_tag: 10
+    # Seconds before flight can be enabled after pve 
+    pve_tag: 5
   
+  # If false the player will not take fall damage when flight is disabled;
   damage:
-    # If false the player will not take fall damage if flight is disabled by command
-    flight_disabled: false
-    # If false the player will not take fall damage if flight is disabled by running out of time
+    # ...by command
+    on_command: false
+    # ...by running out of time
     out_of_time: true
-    # If false the player will not take fall damage if flight is disabled by combat
+    # ...from combat
     combat: true
-    
-  # The maximum y level a player can reach before flight is disabled.
-  maximum_height: 275
-    
+    # ...from going idle
+    idle: false
+    # ...from entering a disabled world
+    world: false
+      # ...from entering a disabled region
+    region: false
+
 aesthetic:
   # Features that allow you to easily see if a player is flying using tempfly.
   identifier:
+
     tab_list:
-      enabled: true
       # If enabled, the players name on tab will change to this when they are in tempflight.
-      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name on tab, including prefixes etc.
-      # Supports placeholders for time
-      name: '&d~{OLD_TAG}'
-    name_tag:
       enabled: true
-      # (Not currently compatible with plugin "essentials")
+      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name on tab, including prefixes.
+      # Supports placeholders for time
+      name: "&d~{OLD_TAG}"
+
+    name_tag:
       # If enabled, the players name tag will change to this when they are in tempflight.
-      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name tag, including prefixes etc.
+      # (Not currently compatible with plugin "essentials")
+      enabled: true
+      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name tag, including prefixes.
       # Supports placeholders for time      
-      name: '&d~{OLD_TAG}'
+      name: "&d~{OLD_TAG}"
+
     particles:
       # If false all trails are disabled.
       enabled: true
@@ -212,24 +160,40 @@ aesthetic:
       # If true particles will not be displayed if the player is vanished.
       # Tested with plugins SuperVanish, PremiumVanish, VanishNoPacket.
       hide_vanish: true
+
   # Title to warn players of remaining flight time
   warning:
     # valid placeholders {SECONDS} {MINUTES} {HOURS} {DAYS}
-    title: '&cWARNING!'
-    subtitle: '&fYou have &c{SECONDS} &fseconds of flight remaining!'
+    title: "&cWARNING!"
+    subtitle: "&fYou have &c{SECONDS} &fseconds of flight remaining!"
     # Time intervals in seconds to display the title to players.
     # ONLY use numbers
     seconds:
       - 30
       - 15
       - 5
+
   action_bar:
     enabled: true
     # If true the action bar will display a progress bar display of remaining time.
     # If false it will display the text.
     progress_bar: false
-    text: '&6Flight meter&7: {FORMATTED_TIME}'
+    text: "&6Flight meter&7: {FORMATTED_TIME}"
+
+  # relative time is a feature that lets you control how fast time will be used in worlds and regions.
+  # this can be useful for many things, for example, making time move slower on larger planets on a space themed server due to higher gravity
+  # In the example below;
+  # - time will pass '0.5' times or 50% slower than in real time on world 'example_world'
+  # - time will pass '1.5' times or 50% faster than in real time in region 'example_region'.
+  # If the player is in both 'example_world' and 'example_region' at once the values will
+  # be factored together resulting in a value of 0.75 or 25% slower.
+  relative_time:
+    worlds:
+      example_world: 0.5
+    regions:
+      example_region: 1.5
     
+# Quality of life feature for servers that dont want to implement a whole shop gui plugin, but just want a simple tempfly shop.
 shop:
   general:
     # If false the built in shop will not exist.
@@ -239,7 +203,7 @@ shop:
     five_mins:
       # The time to give the player in seconds
       time: 300
-      # The cost of the time, right now only vault is supported.
+      # The cost of the time, any vault currency is supported
       cost: 7500
     thirty_mins:
       time: 1800
