@@ -16,7 +16,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.fly.FlightResult;
 import com.moneybags.tempfly.fly.FlightResult.DenyReason;
-import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.HookManager.HookType;

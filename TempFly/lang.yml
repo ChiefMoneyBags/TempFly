@@ -97,4 +97,9 @@ aesthetic:
   trail:
     removed_self: "{PREFIX} &aYour trail was removed!"
     removed_other: "{PREFIX} &e{PLAYER} &ahad their trail removed!"
+
+syntax_error:
+  cmd_fly:
+    toggle_other: "&c/tf [player] [on / off]"
+    toggle_self: "&c/tf [on / off]"
     

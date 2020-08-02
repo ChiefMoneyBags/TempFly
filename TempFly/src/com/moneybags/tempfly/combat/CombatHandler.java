@@ -19,11 +19,9 @@ import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.fly.FlightResult;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.FlightResult.DenyReason;
-import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
-import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
 public class CombatHandler extends RequirementProvider implements Listener {

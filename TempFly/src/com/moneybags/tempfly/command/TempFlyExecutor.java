@@ -43,13 +43,17 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 			new CmdFly(tempfly, s, args);
 			return true;
 		} else {
-			s0:
+			base:
 			switch (args[0]) {
 			case "help":
 			case "commands":
 				new CmdHelp(s, args);
 				break;
 			case "toggle":
+			case "on":
+			case "enable":
+			case "off":
+			case "disable":
 				new CmdFly(tempfly, s, args);
 				break;
 			case "give":
@@ -88,7 +92,7 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 					case "remove":
 					case "delete":
 						new CmdTrailRemove(s, args);
-						break s0;
+						break base;
 					}
 				}
 			case "trails":

@@ -1,13 +1,11 @@
 package com.moneybags.tempfly.user;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -40,7 +38,7 @@ public class FlightUser {
 	private final UserEnvironment environment;
 	
 	//A list of reasons the player cannot currently fly.
-	private Map<RequirementProvider, List<InquiryType>> requirements = new ConcurrentHashMap<>();
+	private Map<RequirementProvider, Map<InquiryType, FlightResult>> requirements = new ConcurrentHashMap<>();
 	
 	private BukkitTask
 	initialTask, enforceTask, timer, damageProtection;
@@ -261,25 +259,25 @@ public class FlightUser {
 	}
 	
 	public boolean hasFlightRequirement(RequirementProvider requirement, InquiryType type) {
-		return requirements.getOrDefault(requirement, new ArrayList<>()).contains(type);
+		return requirements.getOrDefault(requirement, new HashMap<>()).containsKey(type);
 	}
 	
 	public boolean hasFlightRequirements() {
 		return requirements.size() > 0;
 	}
 	
-	public void submitFlightRequirement(RequirementProvider requirement, InquiryType type) {
+	public void submitFlightRequirement(RequirementProvider requirement, FlightResult failedResult) {
 		if (V.debug) {
 			Console.debug("");
 			Console.debug("---- Submitting failed requirement to user ----");
 			Console.debug("--| Requirement: " + requirement.getClass().toGenericString());
 			Console.debug("--| Requirements: " + requirements);
 		}
-		List<InquiryType> types = requirements.getOrDefault(requirement, new LinkedList<>());
-		if (types.contains(type)) {
+		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
+		if (types.containsKey(failedResult.getInquiryType())) {
 			return;
 		}
-		types.add(type);
+		types.put(failedResult.getInquiryType(), failedResult);
 		this.requirements.put(requirement, types);
 		if (enabled) {
 			autoEnable = true;
@@ -299,7 +297,7 @@ public class FlightUser {
 			Console.debug("--| Requirement: " + requirement.getClass().toGenericString());
 			Console.debug("--| Requirements: " + requirements);
 		}
-		List<InquiryType> types = requirements.getOrDefault(requirement, new ArrayList<>());
+		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
 		types.remove(type);
 		if (types.size() == 0) {
 			this.requirements.remove(requirement);
@@ -324,6 +322,12 @@ public class FlightUser {
 	 * @return false if the user fails.
 	 */
 	public boolean evaluateFlightRequirements(Location loc, boolean failMessage) {
+		if (hasFlightRequirements()) {
+			if (failMessage) {
+				U.m(p, requirements.values().iterator().next().values().iterator().next().getMessage());
+			}
+			return false;
+		}
 		List<FlightResult> results = new ArrayList<>();
 		results.addAll(manager.inquireFlight(this, loc.getWorld()));
 		results.addAll(manager.inquireFlight(this, loc));
@@ -367,7 +371,7 @@ public class FlightUser {
 		InquiryType type = result.getInquiryType();
 		if (!result.isAllowed()) {
 			if (!hasFlightRequirement(provider, type)) {
-				submitFlightRequirement(provider, type);
+				submitFlightRequirement(provider, result);
 			}
 			if (hasFlightEnabled()) {
 				U.m(p, result.getMessage());
@@ -401,7 +405,7 @@ public class FlightUser {
 					disabled = result;
 				}
 				if (!hasFlightRequirement(provider, type)) {
-					submitFlightRequirement(provider, type);
+					submitFlightRequirement(provider, result);
 				}
 			} else {
 				if (hasFlightRequirement(provider, type) && removeFlightRequirement(provider, type)) {

@@ -3,15 +3,10 @@ package com.moneybags.tempfly.hook.skyblock.plugins;
 import java.util.UUID;
 
 import org.bukkit.Location;
-import org.bukkit.World;
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.fly.FlightResult;
-import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.HookManager.HookType;
-import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
-import com.moneybags.tempfly.user.FlightUser;
 
 public class BentoHook extends SkyblockHook {
 

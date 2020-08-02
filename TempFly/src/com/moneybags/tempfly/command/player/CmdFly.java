@@ -7,7 +7,6 @@ import org.bukkit.entity.Player;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.event.FlightEnabledEvent;
 import com.moneybags.tempfly.user.FlightUser;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -18,31 +17,35 @@ public class CmdFly {
 		boolean
 			toggle = false,
 			toggleVal = false;
-		
-		
-		
-		if (args.length > 1) {
-			
-			p = Bukkit.getPlayer(args[1]);
-			if (p != null) {
-				if (!U.hasPermission(s, "tempfly.toggle.other")) {
-					U.m(s, V.invalidPermission);
-					return;
-				}
-				
-				if (args.length > 2) {
-					toggle = true;
-					if (args[2].equalsIgnoreCase("on")) {
-						toggleVal = true;
-					} else if (args[2].equalsIgnoreCase("off")) {
-						toggleVal = false;
-					} else {
-						U.m(s, U.cc("&c/tf toggle [player] [on / off]"));
+		if (args.length > 0) {
+			toggle = true;
+			switch (args[0].toLowerCase()) {
+			case "on":
+			case "enable":
+				toggleVal = true;
+				break;
+			case "off":
+			case "disable":
+				toggleVal = false;
+				break;
+			default:
+				U.m(s, U.cc("&c/tf [on / off]"));
+				return;
+			}
+			if (args.length > 1) {
+				if (args.length > 1) {
+					p = Bukkit.getPlayer(args[1]);
+					if (s.equals(p) && !U.hasPermission(s, "tempfly.toggle.self")
+							|| !s.equals(p) && !U.hasPermission(s, "tempfly.toggle.other")) {
+						U.m(s, V.invalidPermission);
+						return;
+					}
+					if (p == null) {
+						U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
 						return;
 					}
 				}
-				
-			} else if (args[1].equalsIgnoreCase("on") || args[1].equalsIgnoreCase("off")) {
+			} else {
 				if (!U.isPlayer(s)) {
 					U.m(s, V.invalidSender);
 					return;
@@ -51,20 +54,6 @@ public class CmdFly {
 					U.m(s, V.invalidPermission);
 					return;
 				}
-				
-				toggle = true;
-				if (args[1].equalsIgnoreCase("on")) {
-					toggleVal = true;
-				} else if (args[1].equalsIgnoreCase("off")) {
-					toggleVal = false;
-				}
-				
-			} else if (args.length > 2) {
-				U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
-				return;
-			} else {
-				U.m(s, U.cc("&c/tf toggle [on / off]"));
-				return;
 			}
 		
 			

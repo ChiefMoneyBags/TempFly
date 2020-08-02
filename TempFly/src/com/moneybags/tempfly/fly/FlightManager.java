@@ -25,15 +25,12 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
-import com.moneybags.tempfly.util.Console;
-import com.moneybags.tempfly.util.V;
 
 public class FlightManager implements Listener {
 
@@ -317,7 +314,6 @@ public class FlightManager implements Listener {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerGameModeChangeEvent e) {
-		Player p = e.getPlayer();
 		FlightUser user = getUser(e.getPlayer());
 		user.resetIdleTimer();
 		user.applyFlightCorrect();
