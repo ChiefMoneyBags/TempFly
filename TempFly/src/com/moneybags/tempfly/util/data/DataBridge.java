@@ -282,8 +282,8 @@ public class DataBridge extends Thread {
 	 * @param pointers
 	 */
 	public void manualCommit(DataPointer... pointers) {
-		manualCommit.addAll(Arrays.asList(pointers));
 		synchronized (this) {
+			manualCommit.addAll(Arrays.asList(pointers));
 			this.notifyAll();
 		}
 	}
