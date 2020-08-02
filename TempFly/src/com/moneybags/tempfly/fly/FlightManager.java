@@ -29,8 +29,10 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
+import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.V;
 
 public class FlightManager implements Listener {
 
@@ -120,12 +122,34 @@ public class FlightManager implements Listener {
 	 */
 	
 	
-	
+	/**
+	 * Register a new requirement provider with tempfly.
+	 * All users will automatically be updated with the new requirements.
+	 * @param provider The new requirements
+	 */
 	public void registerRequirementProvider(RequirementProvider provider) {
 		if (providers.contains(provider)) {
 			throw new IllegalArgumentException("A requirement provider can only be registered once!");
 		}
 		providers.add(provider);
+		for (FlightUser user: getUsers()) {
+			user.evaluateFlightRequirement(provider, user.getPlayer().getLocation());
+		}
+	}
+	
+	/**
+	 * unregister an existing requirement provider in tempfly.
+	 * All users will automatically be updated and the requirements removed.
+	 * @param provider The new requirements
+	 */
+	public void unregisterRequirementProvider(RequirementProvider provider) {
+		if (providers.remove(provider)) {
+			for (FlightUser user: getUsers()) {
+				if (user.removeFlightRequirement(provider)) {
+					user.updateRequirements(V.requirePassDefault);
+				}
+			}
+		}
 	}
 	
 	/**

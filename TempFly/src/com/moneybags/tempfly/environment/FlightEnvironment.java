@@ -11,9 +11,11 @@ import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 
 import com.moneybags.tempfly.fly.FlightManager;
-import com.moneybags.tempfly.fly.FlightResult;
 import com.moneybags.tempfly.fly.RequirementProvider;
-import com.moneybags.tempfly.fly.FlightResult.DenyReason;
+import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
+import com.moneybags.tempfly.fly.result.ResultAllow;
+import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.V;
@@ -149,19 +151,19 @@ public class FlightEnvironment extends RequirementProvider {
 				return result;
 			}
 		}
-		return new FlightResult(true, this, InquiryType.REGION, V.requirePassDefault);
+		return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
 
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
-		return isDisabled(r) ? new FlightResult(DenyReason.DISABLED_REGION, this, InquiryType.REGION, V.requireFailRegion, V.protectRegion)
-				: new FlightResult(true, this, InquiryType.REGION, V.requirePassDefault);
+		return isDisabled(r) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.REGION, V.requireFailRegion, !V.damageRegion)
+				: new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
 
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, World world) {
-		return isDisabled(world) ? new FlightResult(DenyReason.DISABLED_WORLD, this, InquiryType.WORLD, V.requireFailWorld, V.protectWorld)
-				: new FlightResult(true, this, InquiryType.WORLD, V.requirePassDefault);
+		return isDisabled(world) ? new ResultDeny(DenyReason.DISABLED_WORLD, this, InquiryType.WORLD, V.requireFailWorld, !V.damageWorld)
+				: new ResultAllow(this, InquiryType.WORLD, V.requirePassDefault);
 	}
 
 	@Override

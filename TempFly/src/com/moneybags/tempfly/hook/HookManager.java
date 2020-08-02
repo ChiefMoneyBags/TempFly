@@ -52,6 +52,22 @@ public class HookManager {
 		}
 	}
 	
+	/**
+	 * Manually set tempfly's region provider.
+	 * @param provider The regbion provider
+	 */
+	public void setRegionProvider(RegionProvider provider) {
+		this.regions = provider;
+	}
+	
+    public boolean hasRegionProvider() {
+    	return regions != null && regions.isEnabled();
+    }
+    
+    public RegionProvider getRegionProvider() {
+    	return regions;
+    }
+	
     private boolean setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -106,14 +122,6 @@ public class HookManager {
 	
     public Economy getEconomy() {
     	return eco;
-    }
-    
-    public boolean hasRegionProvider() {
-    	return regions != null;
-    }
-    
-    public RegionProvider getRegionProvider() {
-    	return regions;
     }
 	
 	public TempFlyHook getHook(HookType hook) {

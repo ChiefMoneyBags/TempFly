@@ -16,9 +16,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.fly.FlightManager;
-import com.moneybags.tempfly.fly.FlightResult;
 import com.moneybags.tempfly.fly.RequirementProvider;
-import com.moneybags.tempfly.fly.FlightResult.DenyReason;
+import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
+import com.moneybags.tempfly.fly.result.ResultAllow;
+import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
@@ -83,7 +85,7 @@ public class CombatHandler extends RequirementProvider implements Listener {
 		
 		addTag(p, type.isPvp() ? V.combatTagPvp : V.combatTagPve);
 		if (!user.hasFlightRequirement(this)) {
-			user.submitFlightResult(new FlightResult(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, V.protectCombat));	
+			user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));	
 		}
 	}
 	
@@ -141,11 +143,11 @@ public class CombatHandler extends RequirementProvider implements Listener {
 			if (user.hasFlightRequirement(this)) {
 				Console.debug("");
 				Console.debug("--|> User has combat requirement but is no longer tagged!");
-				user.submitFlightResult(new FlightResult(true, this, InquiryType.OUT_OF_SCOPE, V.requirePassCombat));	
+				user.submitFlightResult(new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassCombat));	
 			}
 			return;
 		} 
-		user.submitFlightResult(new FlightResult(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, V.protectCombat));
+		user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));
 	}
 	
 	

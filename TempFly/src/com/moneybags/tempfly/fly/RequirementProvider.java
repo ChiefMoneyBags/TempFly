@@ -2,6 +2,8 @@ package com.moneybags.tempfly.fly;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+
+import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 

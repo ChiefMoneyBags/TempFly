@@ -14,9 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.fly.FlightResult;
-import com.moneybags.tempfly.fly.FlightResult.DenyReason;
 import com.moneybags.tempfly.fly.RequirementProvider;
+import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
+import com.moneybags.tempfly.fly.result.ResultAllow;
+import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.hook.region.CompatRegion;
@@ -283,7 +285,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			@Override
 			public void run() {
 				if (user.hasFlightRequirement(provider, InquiryType.OUT_OF_SCOPE) && !locationCache.containsKey(user.getPlayer())) {
-					user.submitFlightResult(new FlightResult(true, provider, InquiryType.OUT_OF_SCOPE, V.requirePassDefault));
+					user.submitFlightResult(new ResultAllow(provider, InquiryType.OUT_OF_SCOPE, V.requirePassDefault));
 				}
 			}
 		}.runTaskLater(tempfly, 1);
@@ -319,7 +321,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("fail island level: " + ir.getIslandLevel() + " / " + getIslandLevel(u));
 			Console.debug("-----End flight requirements-----");
 			Console.debug("");
-			return new FlightResult(DenyReason.REQUIREMENT, this, null,
+			return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 					requireLevelSelf
 					.replaceAll("\\{LEVEL}", String.valueOf(ir.getIslandLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()), true);
@@ -329,7 +331,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("fail island level: " + ir.getOwnerLevel() + " / " + getIslandLevel(getIslandOwner(island)));
 			Console.debug("-----End flight requirements-----");
 			Console.debug("");
-			return new FlightResult(DenyReason.REQUIREMENT, this, null,
+			return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 					requireLevelOther
 					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()), true);
@@ -340,7 +342,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 				Console.debug("fail island challenge: " + challenge);
 				Console.debug("-----End flight requirements-----");
 				Console.debug("");
-				return new FlightResult(DenyReason.REQUIREMENT, this, null,
+				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 						requireChallengeSelf
 						.replaceAll("\\{CHALLENGE}", challenge)
 						.replaceAll("\\{ROLE}", ir.getName()), true);
@@ -351,13 +353,13 @@ public abstract class SkyblockHook extends TempFlyHook {
 				Console.debug("fail island challenge | island owner: " + challenge);
 				Console.debug("-----End flight requirements-----");
 				Console.debug("");
-				return new FlightResult(DenyReason.REQUIREMENT, this, null,
+				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 						requireChallengeOther
 						.replaceAll("\\{CHALLENGE}", challenge)
 						.replaceAll("\\{ROLE}", ir.getName()), true);
 			}
 		}	
-		return new FlightResult(true, this, null, V.requirePassDefault);
+		return new ResultAllow(this, null, V.requirePassDefault);
 	}
 	
 	/**
@@ -368,35 +370,35 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	public FlightResult checkFlightRequirements(UUID u, Location loc) {
 		if (!isEnabled()) {
-			new FlightResult(true, this, null, V.requirePassDefault);
+			new ResultAllow(this, null, V.requirePassDefault);
 		}
 		
 		IslandWrapper island = getIslandAt(loc);
 		if (island == null) {
 			return canFlyWilderness() ?
-					new FlightResult(true, this, null, V.requirePassDefault)
-					: new FlightResult(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE, V.requireFailDefault, true);
+					new ResultAllow(this, null, V.requirePassDefault)
+					: new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE, V.requireFailDefault, true);
 		}
 		
 		String role = getIslandRole(u, island);
 		IslandSettings settings = island.getSettings();	
-		return !settings.canFly(role) ? new FlightResult(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
+		return !settings.canFly(role) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
 				V.requireFailDefault, true) :
 			(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, role)
 					? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, role), island, u)
 							.setInquiryType(InquiryType.OUT_OF_SCOPE)
-					: new FlightResult(true, this, null, V.requirePassDefault));
+					: new ResultAllow(this, null, V.requirePassDefault));
 	}
 	
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, World world) {
 		if (!isEnabled() || world == null || !hasRequirement(SkyblockRequirementType.WORLD, world.getName())) {
-			new FlightResult(true, this, InquiryType.WORLD, V.requirePassDefault);
+			new ResultAllow(this, InquiryType.WORLD, V.requirePassDefault);
 		}
 		UUID u = user.getPlayer().getUniqueId();
 		IslandWrapper homeIsland = getTeamIsland(u);
 		if (homeIsland == null) {
-			return new FlightResult(DenyReason.REQUIREMENT, this, InquiryType.WORLD, requireIsland, true);
+			return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.WORLD, requireIsland, true);
 		}
 		return runRequirement(getRequirement(SkyblockRequirementType.WORLD, world.getName()), homeIsland, u)
 				.setInquiryType(InquiryType.WORLD);
@@ -405,12 +407,12 @@ public abstract class SkyblockHook extends TempFlyHook {
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
 		if (!isEnabled() || r == null || !hasRequirement(SkyblockRequirementType.REGION, r.getId())) {
-			return new FlightResult(true, this, InquiryType.REGION, V.requirePassDefault);
+			return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 		}
 		UUID u = user.getPlayer().getUniqueId();
 		IslandWrapper homeIsland = getTeamIsland(u);
 		if (homeIsland == null) {
-			return new FlightResult(DenyReason.REQUIREMENT, this, InquiryType.REGION, requireIsland, true);
+			return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.REGION, requireIsland, true);
 		}
 		return runRequirement(getRequirement(SkyblockRequirementType.REGION, r.getId()), homeIsland, u)
 				.setInquiryType(InquiryType.REGION);
@@ -419,24 +421,24 @@ public abstract class SkyblockHook extends TempFlyHook {
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions) {
 		if (!isEnabled() || regions == null || regions.length == 0 || !hasRequirement(SkyblockRequirementType.REGION)) {
-			return new FlightResult(true, this, InquiryType.REGION, V.requirePassDefault);
+			return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 		}
 		
 		UUID u = user.getPlayer().getUniqueId();
 		IslandWrapper homeIsland = getTeamIsland(u);
 		for (SkyblockRequirement rq: getRequirements(regions)) {
 			if (homeIsland == null) {
-				return new FlightResult(DenyReason.REQUIREMENT, this, InquiryType.REGION, requireIsland, true);
+				return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.REGION, requireIsland, true);
 			}
 			return runRequirement(rq, homeIsland, u).setInquiryType(InquiryType.REGION);
 		}
-		return new FlightResult(true, this, InquiryType.REGION, V.requirePassDefault);
+		return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
 	
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, Location loc) {
 		if (!isEnabled() || loc == null) {
-			return new FlightResult(true, this, InquiryType.LOCATION, V.requirePassDefault);
+			return new ResultAllow(this, InquiryType.LOCATION, V.requirePassDefault);
 		}
 		return checkFlightRequirements(user.getPlayer().getUniqueId(), loc).setInquiryType(InquiryType.LOCATION);
 	}

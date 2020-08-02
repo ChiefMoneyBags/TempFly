@@ -9,9 +9,11 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.moneybags.tempfly.fly.FlightResult;
 import com.moneybags.tempfly.fly.Flyer;
+import com.moneybags.tempfly.fly.RequirementProvider;
+import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
+import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.user.FlightUser;
 
 @SuppressWarnings("deprecation")
@@ -161,8 +163,9 @@ public class TempFlyAPI {
 	}
 	
 	/**
-	 * Get the FlightUser object for a player.
-	 * @param p The player
+	 * Get the FlightUser object for a player. There are many things you can do in here that are not
+	 * part of the API but beware that they may be subject to change in future releases.
+	 * @param p The player in question
 	 * @return The players FlightUser
 	 */
 	public FlightUser getUser(Player p) {
@@ -170,7 +173,8 @@ public class TempFlyAPI {
 	}
 	
 	/**
-	 * Get the FlightUser object for all players.
+	 * Get the FlightUser object for all players. There are many things you can do in here that are not
+	 * part of the API but beware that they may be subject to change in future releases.
 	 * @return All registered FlightUsers
 	 */
 	public FlightUser[] getUsers() {
@@ -207,5 +211,31 @@ public class TempFlyAPI {
 	 */
 	public void processCombat(Entity victim, Entity actor) {
 		tempfly.getFlightManager().getCombatHandler().processCombat(victim, actor);
+	}
+	
+	/**
+	 * Register a new requirement provider with tempfly.
+	 * All users will automatically be updated with the new requirements.
+	 * @param provider The new requirements
+	 */
+	public void registerRequirementProvider(RequirementProvider provider) {
+		tempfly.getFlightManager().registerRequirementProvider(provider);
+	}
+	
+	/**
+	 * unregister an existing requirement provider in tempfly.
+	 * All users will automatically be updated and the requirements removed.
+	 * @param provider The new requirements
+	 */
+	public void unregisterRequirementProvider(RequirementProvider provider) {
+		tempfly.getFlightManager().unregisterRequirementProvider(provider);
+	}
+	
+	/**
+	 * Manually set tempfly's region provider.
+	 * @param provider The regbion provider
+	 */
+	public void setRegionProvider(RegionProvider provider) {
+		tempfly.getHookManager().setRegionProvider(provider);
 	}
 } 

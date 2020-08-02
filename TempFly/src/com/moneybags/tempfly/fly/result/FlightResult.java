@@ -1,9 +1,10 @@
-package com.moneybags.tempfly.fly;
+package com.moneybags.tempfly.fly.result;
 
+import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.util.V;
 
-public class FlightResult {
+public abstract class FlightResult {
 	
 	private boolean allowed;
 	private DenyReason reason;
@@ -11,24 +12,16 @@ public class FlightResult {
 	private String message;
 	private RequirementProvider requirement;
 	private boolean fallSafely;
-	
-	
-	public FlightResult(DenyReason reason, RequirementProvider requirement, InquiryType type, String message, boolean fallSafely) {
-		this.allowed = false;
-		this.reason = reason;
-		this.message = message;
-		this.fallSafely = fallSafely;
-		this.requirement = requirement;
-		this.type = type;
-	}
-	
-	public FlightResult(boolean allowed, RequirementProvider requirement, InquiryType type, String message) {
-		this.allowed = allowed;
-		this.type = type;
-		this.message = message;
-		this.requirement = requirement;
-	}
 
+	public FlightResult(boolean allowed, DenyReason reason, InquiryType type, String message, RequirementProvider requirement, boolean fallSafely) {
+		this.allowed = allowed;
+		this.reason = reason;
+		this.type = type;
+		this.message = message;
+		this.requirement = requirement;
+		this.fallSafely = fallSafely;
+	}
+	
 	public boolean isAllowed() {
 		return allowed;
 	}
@@ -57,7 +50,6 @@ public class FlightResult {
 	public boolean hasDamageProtection() {
 		return fallSafely;
 	}
-	
 	public static enum DenyReason {
 		COMBAT,
 		DISABLED_WORLD,

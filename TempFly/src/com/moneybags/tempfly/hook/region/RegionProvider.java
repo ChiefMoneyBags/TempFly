@@ -4,15 +4,17 @@ import org.bukkit.Location;
 
 public abstract class RegionProvider {
 
-	protected boolean enabled;
 	
-	public RegionProvider() {
-		
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
+	/**
+	 * 
+	 * @return Whether or not this RegionProvider is currently active and accepting inquiries.
+	 */
+	public abstract boolean isEnabled();
 	
+	/**
+	 * Called when tempfly wants to know about the regions that encompass this location.
+	 * @param loc The location in question.
+	 * @return
+	 */
 	public abstract CompatRegion[] getApplicableRegions(Location loc);
 }

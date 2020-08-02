@@ -112,7 +112,7 @@ public class CmdFly {
 		// if command is /fly off and player is flying || command is base && player is flying
 		// disable flight
 		} else if (toggle && !toggleVal && user.hasFlightEnabled() || !toggle && user.hasFlightEnabled()) {
-			user.disableFlight(0, V.protectCommand);
+			user.disableFlight(0, !V.damageCommand);
 			U.m(p, V.flyDisabledSelf);
 			if (!s.equals(p)) {
 				U.m(s, V.flyDisabledOther.replaceAll("\\{PLAYER}", p.getName()));	

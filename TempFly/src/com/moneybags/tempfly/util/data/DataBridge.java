@@ -42,10 +42,14 @@ public class DataBridge extends Thread {
 	private static Map<HookType, File> hookFiles = new HashMap<>();
 	private static Map<HookType, FileConfiguration> hookData = new HashMap<>();
 	
-	// Staged changes are held in memory until either the autosave runs, or they are forcefully committed.
+	// Staged changes are held in local memory until either the autosave runs, or they are forcefully committed.
+	// The databridge will act like these changes are part of the database even though they are local. 
+	// It will look to see if there is data here first before it queries the database or YAML file.
+	// Should always be accessed in a synchronized block.
 	private List<StagedChange> changes = new CopyOnWriteArrayList<>();
-	// A list of pointers that tell the asynchronous data handler to manually save the data they point to
-	// if it exists but wont commit all changes that have been made. 
+	// A list of pointers that tell the asynchronous batch manager to save the data they point to
+	// if it exists in the list of changes.
+	// Should always be accessed in a synchronized block.
 	private List<DataPointer> manualCommit = new CopyOnWriteArrayList<>();
 	
 	public DataBridge(TempFly tempfly) {
@@ -73,7 +77,7 @@ public class DataBridge extends Thread {
 		    	dataf.getParentFile().mkdirs();
 		    	tempfly.saveResource("data.yml", false);
 		    }
-		    data = new YamlConfiguration();
+		    data = new YamlConfiguration();    
 		    try { data.load(dataf); } catch (Exception e1) {
 		    	Console.severe("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
 		        e1.printStackTrace();

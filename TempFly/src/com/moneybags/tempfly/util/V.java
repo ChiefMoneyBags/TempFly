@@ -108,12 +108,12 @@ public class V {
 	attackedP,
 	attackedM,
 	// Fall damage
-	protectCommand,
-	protectTime,
-	protectCombat,
-	protectIdle,
-	protectWorld,
-	protectRegion,
+	damageCommand,
+	damageTime,
+	damageCombat,
+	damageIdle,
+	damageWorld,
+	damageRegion,
 	
 	actionBar,
 	actionProgress,
@@ -299,12 +299,12 @@ public class V {
 		maxY				= config.getInt("general.maximum_height");
 		
 		
-		protectCommand		= config.getBoolean("general.damage.on_command");
-		protectTime			= config.getBoolean("general.damage.out_of_time");
-		protectCombat		= config.getBoolean("general.damage.combat");
-		protectIdle			= config.getBoolean("general.damage.idle");
- 		protectWorld		= config.getBoolean("general.damage.disabled_world");
-		protectRegion		= config.getBoolean("general.damage.disabled_region");
+		damageCommand		= config.getBoolean("general.damage.on_command");
+		damageTime			= config.getBoolean("general.damage.out_of_time");
+		damageCombat		= config.getBoolean("general.damage.combat");
+		damageIdle			= config.getBoolean("general.damage.idle");
+		damageWorld		= config.getBoolean("general.damage.disabled_world");
+		damageRegion		= config.getBoolean("general.damage.disabled_region");
 		
 		actionBar			= config.getBoolean("aesthetic.action_bar.enabled");
 		actionProgress		= config.getBoolean("aesthetic.action_bar.progress_bar");
