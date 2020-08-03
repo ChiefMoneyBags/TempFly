@@ -60,11 +60,17 @@ public class TempFlyAPI {
 	}
 	
 	/**
-	 * @deprecated Since 3.0, checking if fly is allowed at a given location should now be done with the
-	 * methods that includes the player as a parameter. This is due to the integration of
+	 * @deprecated Since 3.0, checking if fly is allowed should now be done with the
+	 * method that includes the player as a parameter. This is due to the integration of
 	 * conditional requirements based on factors about the player other than just the location.
-	 * 
-	 * The method will still work as it used to by checking disabled regions and worlds,
+	 * --=--------------=--
+	 * Players now have flight requirements stored in their FlightUser object that keep track
+	 * of all the reasons a player cannot fly. These can be dynamically added and removed by
+	 * myself and other plugins that hook into tempfly for many reasons. Therefore it is no longer
+	 * feasable to check if flight is allowed with a location. Instead you need to see if they
+	 * have failed requirements. 
+	 * --=--------------=--
+	 * This method will still work as it used to by checking disabled regions and worlds,
 	 * but that is it.
 	 * 
 	 * @param loc The location to check
@@ -76,54 +82,7 @@ public class TempFlyAPI {
 	}
 	
 	/**
-	 * Check if a player is allowed to fly at the given location. This will check all worlds and regions,
-	 * 
-	 * @param p The player
-	 * @param loc The location to check.
-	 * @return
-	 */
-	public List<FlightResult> canFlyAt(Player p, Location loc) {
-		return tempfly.getFlightManager().inquireFlight(getUser(p), loc);
-	}
-	
-	/**
-	 * Check if a player is allowed to fly in the given world.
-	 * 
-	 * @param p The player
-	 * @param loc The location to check.
-	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
-	 * @return
-	 */
-	public List<FlightResult> canFlyAy(Player p, World world) {
-		return tempfly.getFlightManager().inquireFlight(getUser(p), world);
-	}
-	
-	/**
-	 * Check if a player is allowed to fly in the given region.
-	 * 
-	 * @param p The player
-	 * @param loc The location to check.
-	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
-	 * @return
-	 */
-	public List<FlightResult> canFlyAt(Player p, CompatRegion region) {
-		return tempfly.getFlightManager().inquireFlight(getUser(p), region);
-	}
-	
-	/**
-	 * Check if a player is allowed to fly in the given ApplicableRegionSet.
-	 * 
-	 * @param p The player
-	 * @param loc The location to check.
-	 * @param invokeHooks Do you want to check flight conditions implemented by internal gameplay hooks?
-	 * @return
-	 */
-	public List<FlightResult> canFlyAt(Player p, CompatRegion[] regions) {
-		return tempfly.getFlightManager().inquireFlight(getUser(p), regions);
-	}
-	
-	/**
-	 * 
+	 * Check if a player is currently allowed to fly.
 	 * @param p
 	 * @return
 	 */
