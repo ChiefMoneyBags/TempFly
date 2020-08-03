@@ -19,6 +19,7 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
 import com.moneybags.tempfly.util.CompatMaterial;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
@@ -48,6 +49,7 @@ public class PageShop extends DynamicPage {
 		CompatMaterial.setType(next, CompatMaterial.REDSTONE_TORCH);
 		CompatMaterial.setType(prev, CompatMaterial.REDSTONE_TORCH);
 		
+		allOptions.clear();
 		ConfigurationSection csOptons = Files.config.getConfigurationSection("shop.options");
 		if (csOptons != null) {
 			for (String s: csOptons.getKeys(false)) {

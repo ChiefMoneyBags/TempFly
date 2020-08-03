@@ -26,6 +26,7 @@ import com.moneybags.tempfly.command.player.CmdShop;
 import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
+import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.V;
 
 public class TempFlyExecutor implements CommandExecutor, Listener {
@@ -140,6 +141,8 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 		if (ls[0].equals("/fly")) {
 			for (String perm : V.overrideFlightPermissions) {
 				if (p.hasPermission(perm)) {
+					FlightUser user = tempfly.getFlightManager().getUser(p);
+					user.disableFlight(-1, false);
 					return;
 				}
 			}

@@ -54,6 +54,7 @@ public class UserEnvironment {
 	public void updateCurrentRegionSet(CompatRegion[] regions) {
 		this.encompassing.clear();
 		this.encompassing.addAll(Arrays.asList(regions));
+		asessRtRegions();
 	}
 	
 	public boolean isInside(CompatRegion region) {

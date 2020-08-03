@@ -50,7 +50,7 @@ public class FlightUser {
 	enabled, autoEnable;
 	
 	private int
-	idle;
+	idle = -1;
 	
 	private double
 	time;
@@ -79,6 +79,9 @@ public class FlightUser {
 					enableFlight();
 				} else {
 					enforce(0);
+					if (V.permaTimer) {
+						timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);
+					}
 				}
 				bridge.stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
 			}
@@ -112,25 +115,33 @@ public class FlightUser {
 	}
 	
 	public void setTime(double time) {
+		if (time <= 0) {
+			time = 0;
+		}
 		this.time = time;
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);
 		if (time > 0 && autoEnable && !enabled) {
 			enableFlight();
-		} 
-		if (V.permaTimer) {
-			if (this.timer != null) {
-				this.timer.cancel();
+		} else if (time == 0) {
+			disableFlight(0, !V.damageTime);
+			autoEnable = true;
+			if (timer != null) {
+				timer.cancel();
 			}
-			this.timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);	
+		} else if (V.permaTimer) {
+			if (timer != null) {
+				timer.cancel();
+			}
+			timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);	
 		}
 	}
 	
 	public void resetIdleTimer() {
-		this.idle = 0;
+		this.idle = -1;
 	}
 	
 	public boolean isIdle() {
-		return idle >= V.idleThreshold;
+		return V.idleThreshold > -1 && idle >= V.idleThreshold;
 	}
 	
 	public boolean hasFlightEnabled() {
@@ -546,7 +557,7 @@ public class FlightUser {
 	
 	private void updateList(boolean reset) {
 		if (!V.list) {return;}
-		p.setDisplayName(!p.isFlying() || reset
+		p.setPlayerListName(!p.isFlying() || reset
 				? listName : timeManager.regexString(V.listName
 						.replaceAll("\\{PLAYER}", p.getName())
 						.replaceAll("\\{OLD_TAG}", tagName), time));
@@ -621,6 +632,9 @@ public class FlightUser {
 		@Override
 		public void run() {
 			if (p.isFlying()) {
+				if (isIdle() && !V.idleTimer) {
+					return;	
+				}
 				this.cancel();
 				timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);
 			}
@@ -642,21 +656,23 @@ public class FlightUser {
 		public void run() {
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
 			if (enabled) {
-				p.setAllowFlight(true);	
+				p.setAllowFlight(true);
 			}
+			
+			updateList(!p.isFlying());
+			updateName(!p.isFlying());
 			
 			if (p.hasPermission("tempfly.time.infinite")) {
 				return;
 			}
-			idle++;
-			updateList(false);
-			updateName(false);
 			
-			if ((!V.permaTimer) && (checkIdle() || (!p.isFlying() && !V.groundTimer))) {
+			if (!V.permaTimer && ((!p.isFlying() && !V.groundTimer) || !checkIdle())) {
 				this.cancel();
-				timer = new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 1);
+				timer = new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 3);
 				return;
 			}
+			
+			idle++;
 			
 			if (time > 0) {
 				double cost = 1;
@@ -688,40 +704,21 @@ public class FlightUser {
 			}
 		}
 		
+		/**
+		 * 
+		 * @return True if the timer should continue, false if it can switch to ground timer.
+		 */
 		private boolean checkIdle() {
 			if (isIdle()) {
-				if (V.idleDrop) {
-					disableFlight(0, !V.damageIdle);
-					return true;
-				}
-				if (!V.idleTimer) {
-					return true;
-				}
+				if (V.idleDrop) {disableFlight(0, !V.damageIdle);} 
+				U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
+				return V.idleTimer;
 			}
-			return false;
+			return true;
 		}
 		
 		private void doActionBar() {
-			if (V.actionProgress) {
-				//TODO maybe just remove this feature, it doesnt make sense.
-				/**
-				double percent = (((float)time/start)*100);
-				StringBuilder bar = new StringBuilder();
-				bar.append("&8[&a");
-				boolean neg = true;
-				for (double i = 0; i < 100; i += 7.69) {
-					if ((percent <= i) && (neg)) {
-						bar.append("&c");
-						neg = false;
-					}
-					bar.append("=");
-				}
-				bar.append("&8]");
-				ActionBarAPI.sendActionBar(p, U.cc(bar.toString()));
-				*/
-			} else {
-				ActionBarAPI.sendActionBar(p, timeManager.regexString(V.actionText, getTime()));
-			}
+			ActionBarAPI.sendActionBar(p, timeManager.regexString(V.actionText, getTime()));
 		}
 	}
 }

@@ -7,10 +7,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.DailyDate;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -18,12 +20,13 @@ import com.moneybags.tempfly.util.data.DataBridge;
 import com.moneybags.tempfly.util.data.DataPointer;
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
 
-public class TimeManager {
+public class TimeManager implements Listener {
 
 	private TempFly tempfly;
 	
 	public TimeManager(TempFly tempfly) {
 		this.tempfly = tempfly;
+		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
 	}
 	
 	/**
@@ -49,6 +52,9 @@ public class TimeManager {
 	 * @param seconds The new seconds
 	 */
 	public void removeTime(UUID u, double seconds) {
+		if (seconds <= 0) {
+			return;
+		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
@@ -70,13 +76,18 @@ public class TimeManager {
 	 * @param seconds The seconds to add
 	 */
 	public void addTime(UUID u, double seconds) {
+		if (seconds <= 0) {
+			return;
+		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
 		double bal = user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
 		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
-		
+		if (V.maxTime > -1 && remaining > V.maxTime) {
+			remaining = V.maxTime;
+		}
 		
 		if (user != null) {
 			user.setTime(remaining);
@@ -93,8 +104,14 @@ public class TimeManager {
 	 * @param seconds The new seconds
 	 */
 	public void setTime(UUID u, double seconds) {
+		if (seconds <= 0) {
+			return;
+		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
+		if (V.maxTime > -1 && seconds > V.maxTime) {
+			seconds = V.maxTime;
+		}
 		
 		if (user != null) {
 			user.setTime(seconds);
@@ -118,8 +135,12 @@ public class TimeManager {
 		}
 		
 		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
-			addTime(p.getUniqueId(), V.firstJoinTime);
-			U.m(p, regexString(V.firstJoin, V.firstJoinTime));
+			double currentTime = getTime(p.getUniqueId());
+			double bonus = V.maxTime > -1 && ((currentTime + V.firstJoinTime) > V.maxTime) ? V.maxTime - currentTime : V.firstJoinTime;
+			if (bonus > 0) {
+				addTime(p.getUniqueId(), bonus);
+				U.m(p, regexString(V.firstJoin, bonus));
+			}
 		}
 		loginBonus(p);
 	}
@@ -134,27 +155,30 @@ public class TimeManager {
 		long sys = System.currentTimeMillis();
 		
 		if (new DailyDate(lastBonus).equals(new DailyDate(sys))) {
+			Console.debug("same day no daily bonus :(");
 			return;
 		}
-		
+		double currentTime = getTime(p.getUniqueId());
+		double bonus = 0;
 		if (V.legacyBonus > 0) {
-			addTime(p.getUniqueId(), V.legacyBonus);
-			U.m(p, regexString(V.dailyLogin, V.legacyBonus));
+			bonus = V.maxTime > -1 && ((currentTime + V.legacyBonus) > V.maxTime) ? V.maxTime - currentTime : V.legacyBonus;
+			if (bonus > 0) {
+				addTime(p.getUniqueId(), bonus);
+				U.m(p, regexString(V.dailyLogin, bonus));
+			}
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
 		} else if (V.dailyBonus.size() > 0) {
-			double time = 0;
-			
 			for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
 				if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
-					time += entry.getValue();
+					bonus += entry.getValue();
 				}
 			}
-			
-			if (time > 0) {
-				addTime(p.getUniqueId(), time);
-				U.m(p, regexString(V.dailyLogin, time));	
-				bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
+			bonus = V.maxTime > -1 && ((currentTime + bonus) > V.maxTime) ? V.maxTime - currentTime : bonus;
+			if (bonus > 0) {
+				addTime(p.getUniqueId(), bonus);
+				U.m(p, regexString(V.dailyLogin, bonus));
 			}
+			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
 		}
 	}
 	
@@ -166,30 +190,33 @@ public class TimeManager {
 		minutes = formatTime(TimeUnit.MINUTES, Math.ceil(seconds)),
 		secs = formatTime(TimeUnit.SECONDS, Math.ceil(seconds));
 		
-		//TODO check the string to see if it contains {formatted_time} before doing all this for no reason.
 		StringBuilder sb = new StringBuilder();
-		if (days > 0) 
-			regexA(sb, days, V.unitDays); 
-		if (hours > 0) 
-			regexA(sb, hours, V.unitHours);  
-		if (minutes > 0) 
-			regexA(sb, minutes, V.unitMinutes);
-		if (secs > 0 || sb.length() == 0)
-			regexA(sb, secs, V.unitSeconds);
-		if ((sb.length() > 0) && (String.valueOf(sb.charAt(sb.length() - 1)).equals(" "))) {
-			sb.substring(0, sb.length()-1);
+		if (s.contains("{FORMATTED_TIME}")) {
+			boolean addSpace = false;
+			if (days > 0) {
+				regexA(sb, days, V.unitDays, false);
+				addSpace = true;
+			} if (hours > 0) {
+				regexA(sb, hours, V.unitHours, addSpace);
+				addSpace = true;
+			} if (minutes > 0) { 
+				regexA(sb, minutes, V.unitMinutes, addSpace);
+				addSpace = true;
+			} if (secs > 0 || sb.length() == 0) {
+				regexA(sb, secs, V.unitSeconds, addSpace);
+			}
 		}
 		return s.replaceAll("\\{FORMATTED_TIME}", sb.toString())
-				.replaceAll("\\{DAYS}", String.valueOf(formatTime(TimeUnit.DAYS, seconds)))
-				.replaceAll("\\{HOURS}", String.valueOf(formatTime(TimeUnit.HOURS, seconds)))
-				.replaceAll("\\{MINUTES}", String.valueOf(formatTime(TimeUnit.MINUTES, seconds)))
-				.replaceAll("\\{SECONDS}", String.valueOf(formatTime(TimeUnit.SECONDS, seconds)));
+				.replaceAll("\\{DAYS}", String.valueOf(days))
+				.replaceAll("\\{HOURS}", String.valueOf(hours))
+				.replaceAll("\\{MINUTES}", String.valueOf(minutes))
+				.replaceAll("\\{SECONDS}", String.valueOf(secs));
 	}
 	
-	private void regexA(StringBuilder sb, long quantity, String unit) {
-		sb.append(V.timeFormat
+	private void regexA(StringBuilder sb, long quantity, String unit, boolean addSpace) {
+		sb.append((addSpace ? " " : "") + V.timeFormat
 				.replaceAll("\\{QUANTITY}", String.valueOf(quantity))
-				.replaceAll("\\{UNIT}", unit) + " ");
+				.replaceAll("\\{UNIT}", unit));
 	}
 	
 	public long formatTime(TimeUnit unit, double seconds) {

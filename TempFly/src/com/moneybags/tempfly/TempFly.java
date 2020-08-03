@@ -138,6 +138,7 @@ public class TempFly extends JavaPlugin {
 		bridge.commitAll();
 	}
 	
+	//TODO Please remove this
 	@Deprecated
 	private void registerListeners() {
 		getServer().getPluginManager().registerEvents(new GuiSession.GuiListener(), this);

@@ -68,12 +68,16 @@ public class V {
 	flyAlreadyEnabled,
 	flyAlreadyDisabled,
 	
+	disabledIdle,
+	consideredIdle,
+
 	requireFailDefault,
 	requirePassDefault,
 	requireFailCombat,
 	requirePassCombat,
 	requireFailRegion,
 	requireFailWorld,
+	requireFailHeight,
 	
 	particleType,
 	listName,
@@ -116,7 +120,6 @@ public class V {
 	damageRegion,
 	
 	actionBar,
-	actionProgress,
 	timeDecay,
 	flightToggle,
 	hideVanish,
@@ -206,12 +209,16 @@ public class V {
 		flyAlreadyEnabled	= st(C.LANG, "general.fly.already_enabled");
 		flyAlreadyDisabled	= st(C.LANG, "general.fly.already_disabled");
 		
+		disabledIdle 		= st(C.LANG, "general.fly.idle_drop");
+		consideredIdle 		= st(C.LANG, "general.fly.idle");
+		
 		requireFailDefault	= st(C.LANG, "general.requirement.fail.default");
 		requirePassDefault	= st(C.LANG, "general.requirement.pass.default");
 		requireFailCombat	= st(C.LANG, "general.requirement.fail.combat");
 		requirePassCombat	= st(C.LANG, "general.requirement.pass.combat");
 		requireFailRegion	= st(C.LANG, "general.requirement.fail.region");
 		requireFailWorld	= st(C.LANG, "general.requirement.fail.world");
+		requireFailHeight	= st(C.LANG, "general.requirement.fail.height");
 		
 		fbDays				= st(C.LANG, "aesthetic.featherboard.days");
 		fbHours				= st(C.LANG, "aesthetic.featherboard.hours");
@@ -296,7 +303,7 @@ public class V {
 		shop				= config.getBoolean("shop.general.enabled", false);
 		
 		defaultSpeed		= config.getDouble("general.flight.default_speed", 1);
-		maxY				= config.getInt("general.maximum_height");
+		maxY				= config.getInt("general.flight.maximum_height", 275);
 		
 		
 		damageCommand		= config.getBoolean("general.damage.on_command");
@@ -307,7 +314,6 @@ public class V {
 		damageRegion		= config.getBoolean("general.damage.disabled_region");
 		
 		actionBar			= config.getBoolean("aesthetic.action_bar.enabled");
-		actionProgress		= config.getBoolean("aesthetic.action_bar.progress_bar");
 		
 		double legacyBonus 	= config.getDouble("general.bonus.daily_login");
 		if (legacyBonus == 0) {

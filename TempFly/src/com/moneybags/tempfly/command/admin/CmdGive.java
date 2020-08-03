@@ -31,15 +31,19 @@ public class CmdGive extends TimeCommand {
 		}
 		
 		double amount = quantifyArguments(s, args);
-		if (amount == 0) {
+		if (amount <= 0) {
 			return;
 		}
 		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();
-		if ((V.maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= V.maxTime)) {
+		double currentTime = manager.getTime(p.getUniqueId());
+		if (V.maxTime > -1 && (currentTime + amount > V.maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
-			return;
+			amount = V.maxTime - currentTime;
+			if (amount <= 0) {
+				return;
+			}
 		}
 		manager.addTime(p.getUniqueId(), amount);
 		U.m(s, manager.regexString(V.timeGivenOther, amount)

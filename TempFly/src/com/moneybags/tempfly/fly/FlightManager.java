@@ -278,6 +278,7 @@ public class FlightManager implements Listener {
 		// Check flight requirements if player entered a new world.
 		if (!from.getWorld().equals(to.getWorld())) {
 			results.addAll((inquireFlight(user, to.getWorld())));
+			user.getEnvironment().asessRtWorld();
 		}
 		// Check flight requirements at player location. Doesn't really do anything if no hooks are enabled.
 		// Used mainly for things like islands in skyblock, faction land, etc...
@@ -307,6 +308,7 @@ public class FlightManager implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void on(PlayerRespawnEvent e) {
 		FlightUser user = getUser(e.getPlayer());
+		user.resetIdleTimer();
 		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation());
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
 		if (user.hasFlightEnabled()) {
@@ -354,6 +356,7 @@ public class FlightManager implements Listener {
 			return;
 		}
 		FlightUser user = getUser((Player)vic);
+		user.resetIdleTimer();
 		if (!user.hasDamageProtection()) {
 			return;
 		}
@@ -375,7 +378,9 @@ public class FlightManager implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerMoveEvent e) {
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
-			updateLocation(getUser(e.getPlayer()), e.getFrom(), e.getTo());
+			FlightUser user = getUser(e.getPlayer());
+			user.resetIdleTimer();
+			updateLocation(user, e.getFrom(), e.getTo());
 		}
 	}
 

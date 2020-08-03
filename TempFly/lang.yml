@@ -75,6 +75,8 @@ general:
     speed_self: "{PREFIX} &aYour fly speed was set to &f{SPEED}&a."
     already_enabled: "{PREFIX} &aYour flight is already enabled!"
     already_disabled: "{PREFIX} &cYour flight is already disabled!"
+    idle_drop: "{PREFIX} &cYou lost flight due to being idle!"
+    idle: "{PREFIX} &cYou are now considered idle."
 
   requirement:
     fail:
@@ -82,6 +84,7 @@ general:
       region: "{PREFIX} &cFlight is disabled in this region!"
       world: "{PREFIX} &cFlight is disabled in this world!"
       combat: "{PREFIX} &cYou are currently combat tagged!"
+      height: "{PREFIX} &f{MAX_Y} &cis the maximum altitude for flight!"
     pass: 
       default: "{PREFIX} &aYou may now fly!"
       combat: "{PREFIX} &aYou are no longer combat tagged, fly away!"
