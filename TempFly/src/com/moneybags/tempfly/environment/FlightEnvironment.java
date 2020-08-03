@@ -21,7 +21,7 @@ import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
 
-public class FlightEnvironment extends RequirementProvider {
+public class FlightEnvironment implements RequirementProvider {
 
 	private FlightManager manager;
 	

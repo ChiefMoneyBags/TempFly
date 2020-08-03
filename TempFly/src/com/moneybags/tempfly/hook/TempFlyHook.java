@@ -11,7 +11,7 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.DataBridge.DataTable;
 
-public abstract class TempFlyHook extends RequirementProvider {
+public abstract class TempFlyHook implements RequirementProvider {
 
 	private HookType hookType;
 	

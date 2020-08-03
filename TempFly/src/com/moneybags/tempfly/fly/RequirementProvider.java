@@ -7,7 +7,7 @@ import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 
-public abstract class RequirementProvider {
+public interface RequirementProvider {
 	
 	/**
 	 * Inquire whether a player can fly within a set of given regions.

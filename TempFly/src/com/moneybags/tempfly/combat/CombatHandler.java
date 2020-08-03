@@ -26,7 +26,7 @@ import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 
-public class CombatHandler extends RequirementProvider implements Listener {
+public class CombatHandler implements RequirementProvider, Listener {
 
 	private FlightManager manager;
 	
