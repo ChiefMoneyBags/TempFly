@@ -19,7 +19,6 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
 import com.moneybags.tempfly.util.CompatMaterial;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;

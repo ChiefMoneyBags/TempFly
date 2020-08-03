@@ -8,12 +8,10 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.Vector;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.hook.region.RegionProvider;
-import com.sk89q.worldedit.BlockVector;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -116,15 +114,11 @@ public class WorldGuardHook extends RegionProvider {
     public CompatRegion[] getApplicableRegions(Location loc) {
     	List<CompatRegion> list = new ArrayList<>();
     	for (ProtectedRegion r: getRegionSet(loc)) {
-    		list.add(new CompatRegion(r.getId(), convertVector(r.getMinimumPoint()), convertVector(r.getMaximumPoint()), null));
+    		list.add(new CompatRegion(r.getId()));
     	}
     	return list.toArray(new CompatRegion[list.size()]);
     }
 
-    private Vector convertVector(BlockVector vector) {
-    	return new Vector(vector.getX(), vector.getY(), vector.getZ());
-    }
-    
 	@Override
 	public boolean isEnabled() {
 		return enabled;

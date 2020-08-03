@@ -16,6 +16,12 @@ public class CompatRegion {
 		this.world = world;
 	}
 
+	public CompatRegion(String id) {
+		this.id = id;
+		this.min = new Vector(0, 0, 0);
+		this.max = new Vector(0, 0, 0);
+	}
+
 	public String getId() {
 		return id;
 	}

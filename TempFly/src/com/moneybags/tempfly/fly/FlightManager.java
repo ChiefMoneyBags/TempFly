@@ -258,30 +258,21 @@ public class FlightManager implements Listener {
 		
 		if (getTempFly().getHookManager().hasRegionProvider()) {
 			List<CompatRegion> regions = Arrays.asList(getTempFly().getHookManager().getRegionProvider().getApplicableRegions(to));
-
 			// Process regions
 			results.addAll(inquireFlight(user, regions.toArray(new CompatRegion[regions.size()])));
-			
 			// Update the users current regions.
 			user.getEnvironment().updateCurrentRegionSet(regions.toArray(new CompatRegion[regions.size()]));
-			
-			// If the user has flight disabled due to unmet requirements we will tell the requirement to process
-			// the users regions once more to see if the requirement is met since they may have left a conditional region.
-			if (user.hasFlightRequirements()) {
-				for (RequirementProvider requirement: user.getFlightRequirements()) {
-					user.evaluateFlightRequirement(requirement, to);
-				}
-			}
-			
 		}
 		
 		// Check flight requirements if player entered a new world.
+		// Process world
 		if (!from.getWorld().equals(to.getWorld())) {
 			results.addAll((inquireFlight(user, to.getWorld())));
 			user.getEnvironment().asessRtWorld();
 		}
 		// Check flight requirements at player location. Doesn't really do anything if no hooks are enabled.
 		// Used mainly for things like islands in skyblock, faction land, etc...
+		// Process location
 		results.addAll(inquireFlight(user, user.getPlayer().getLocation()));
 		
 		
