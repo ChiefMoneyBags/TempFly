@@ -30,7 +30,7 @@ public class CmdSet extends TimeCommand {
 			return;
 		}
 		
-		double amount = quantifyArguments(s, args);
+		double amount = quantifyArguments(s, args, 2);
 		if ((V.maxTime > -1) && (amount > V.maxTime)) {
 			amount = V.maxTime;
 		}

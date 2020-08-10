@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import com.moneybags.tempfly.TempFly;
@@ -13,10 +15,11 @@ import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.BentoHook;
 import com.moneybags.tempfly.util.Console;
+import com.moneybags.tempfly.util.data.Reloadable;
 
 import net.milkbowl.vault.economy.Economy;
 
-public class HookManager {
+public class HookManager implements Reloadable {
 	
 	public static final Class<?>[] REGIONS = new Class<?>[] {WorldGuardHook.class};
 	
@@ -82,16 +85,13 @@ public class HookManager {
     
 	
 	private void loadGenres() {
-		Console.debug("");
-		Console.debug("----------Loading Genre Hooks----------");
+		Console.debug("", "----------Loading Genre Hooks----------");
 		TempFlyHook hook;
 		for (Genre genre: Genre.values()) {
-			Console.debug("");
-			Console.debug("--< Loading: " + genre.toString());
+			Console.debug("", "--< Loading: " + genre.toString());
 			Map<HookType, TempFlyHook> loaded = new HashMap<>();
 			for (Class<?> clazz: genre.getClasses()) {
-				Console.debug("");
-				Console.debug("----< Class: " + clazz.getName());
+				Console.debug("", "----< Class: " + clazz.getName());
 				try {
 					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
 					Console.debug("----< Enabled: " + hook.isEnabled());
@@ -108,8 +108,7 @@ public class HookManager {
 				hooks.put(genre, loaded);
 			}	
 		}
-		Console.debug("--------Loading Genre Hooks End--------");
-		Console.debug("");
+		Console.debug("--------Loading Genre Hooks End--------", "");
 	}
 	
 	
@@ -218,6 +217,16 @@ public class HookManager {
 		public String getEmbeddedConfigName() {
 			return embedded;
 		}
+	}
+
+	@Override
+	public void onTempflyReload() {
+		for (Entry<Genre, Map<HookType, TempFlyHook>> entry: hooks.entrySet()) {
+			for (TempFlyHook hook: entry.getValue().values()) {
+				((Reloadable)hook).onTempflyReload();
+			}
+		}
+		
 	}
 
 }

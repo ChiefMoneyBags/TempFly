@@ -49,4 +49,12 @@ public class Console {
 			getLogger().info("[DEBUG] " + String.valueOf(obj));
 		}
 	}
+	
+	public static void debug(Object... objects) {
+		if (V.debug) {
+			for (Object obj: objects) {
+				getLogger().info("[DEBUG] " + String.valueOf(obj));	
+			}
+		}
+	}
 }

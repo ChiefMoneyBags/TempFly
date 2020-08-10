@@ -1,10 +1,9 @@
-package com.moneybags.tempfly.command.player;
+package com.moneybags.tempfly.hook.skyblock;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.gui.GuiSession;
-import com.moneybags.tempfly.hook.skyblock.PageIslandSettings;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 

@@ -32,9 +32,11 @@ import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
+import com.moneybags.tempfly.util.data.Reloadable;
 
-public class FlightManager implements Listener {
+public class FlightManager implements Listener, Reloadable {
 
 	private final TempFly tempfly;
 	private final FlightEnvironment environment;
@@ -50,7 +52,7 @@ public class FlightManager implements Listener {
 		providers.add(this.combat = new CombatHandler(this));
 		
 		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
-	}
+	}// /tf give 1m
 	
 	public TempFly getTempFly() {
 		return tempfly;
@@ -74,7 +76,17 @@ public class FlightManager implements Listener {
 	 * 
 	 */
 	
-	
+	@Override
+	public void onTempflyReload() {
+		for (RequirementProvider provider: providers) {
+			provider.onTempflyReload();
+		}
+		
+		for (FlightUser user: getUsers()) {
+			user.evaluateFlightRequirements(user.getPlayer().getLocation(), user.hasFlightEnabled());
+		}
+		
+	}
 	
 	public FlightUser getUser(Player p) {
 		return users.containsKey(p) ? users.get(p) : null;
@@ -86,7 +98,11 @@ public class FlightManager implements Listener {
 	
 	public void addUser(Player p) {
 		if (!users.containsKey(p)) {
-			users.put(p, new FlightUser(p, this));
+			FlightUser user = new FlightUser(p, this);
+			users.put(p, user);
+			for (RequirementProvider provider: providers) {
+				provider.onUserInitialized(user);
+			}
 		}
 	}
 	
@@ -286,6 +302,7 @@ public class FlightManager implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void on(PlayerTeleportEvent e) {
 		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
 		user.resetIdleTimer();
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
 			updateLocation(user, e.getFrom(), e.getTo());
@@ -294,11 +311,11 @@ public class FlightManager implements Listener {
 	
 	/**
 	 * Evaluate flight requirements on respawn
-	 * Im not resetting the idle timer on respawn because an auto-respawn plugin or client may have done it.
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void on(PlayerRespawnEvent e) {
 		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
 		user.resetIdleTimer();
 		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation());
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
@@ -315,6 +332,7 @@ public class FlightManager implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerChangedWorldEvent e) {
 		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
 		user.resetIdleTimer();
 		// The from coordinate really doesn't matter here, just the world.
 		updateLocation(user, new Location(e.getFrom(), 0, 0, 0), user.getPlayer().getLocation());
@@ -332,6 +350,7 @@ public class FlightManager implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerGameModeChangeEvent e) {
 		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
 		user.resetIdleTimer();
 		user.applyFlightCorrect();
 	}
@@ -347,15 +366,18 @@ public class FlightManager implements Listener {
 			return;
 		}
 		FlightUser user = getUser((Player)vic);
+		if (user == null) {return;}
 		user.resetIdleTimer();
-		if (!user.hasDamageProtection()) {
-			return;
-		}
+		if (!user.hasDamageProtection()) {return;}
 		e.setCancelled(true);
 		user.removeDamageProtection();
 	}
 	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
+	/**
+	 *  I will listen to player join on lowest priority so that i can initialize the flight user before
+	 *  other plugins try to access it on higher priorities.
+	 */
+	@EventHandler (priority = EventPriority.LOWEST, ignoreCancelled = false)
 	public void on(PlayerJoinEvent e) {
 		addUser(e.getPlayer());
 	}
@@ -370,6 +392,7 @@ public class FlightManager implements Listener {
 	public void on(PlayerMoveEvent e) {
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
 			FlightUser user = getUser(e.getPlayer());
+			if (user == null) {return;}
 			user.resetIdleTimer();
 			updateLocation(user, e.getFrom(), e.getTo());
 		}
@@ -377,18 +400,24 @@ public class FlightManager implements Listener {
 
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerInteractEvent e) {
-		getUser(e.getPlayer()).resetIdleTimer();
+		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
+		user.resetIdleTimer();
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(AsyncPlayerChatEvent e) {
-		getUser(e.getPlayer()).resetIdleTimer();
+		FlightUser user = getUser(e.getPlayer());
+		if (user == null) {return;}
+		user.resetIdleTimer();
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(InventoryClickEvent e) {
 		if (e.getWhoClicked() instanceof Player) {
-			getUser((Player)e.getWhoClicked()).resetIdleTimer();
+			FlightUser user = getUser((Player)e.getWhoClicked());
+			if (user == null) {return;}
+			user.resetIdleTimer();
 		}
 	}
 

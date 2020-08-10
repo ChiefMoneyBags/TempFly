@@ -194,6 +194,11 @@ public class FlightEnvironment implements RequirementProvider {
 	public boolean handles(InquiryType type) {
 		return false;
 	}
+
+	@Override
+	public void onTempflyReload() {
+		
+	}
 	
 	
 }

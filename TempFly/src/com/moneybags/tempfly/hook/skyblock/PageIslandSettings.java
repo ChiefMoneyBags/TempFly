@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
 import com.moneybags.tempfly.util.CompatMaterial;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 
 public class PageIslandSettings extends DynamicPage {
@@ -28,6 +30,8 @@ public class PageIslandSettings extends DynamicPage {
 	 * 
 	 */
 	
+	private static SkyblockHook hook;
+	
 	private static String
 	title,
 	allowLore,
@@ -36,30 +40,24 @@ public class PageIslandSettings extends DynamicPage {
 	private static ItemStack
 	background,
 	toolbar,
-	team,
-	coop,
-	visitor,
 	allowed,
 	disallowed;
 	
-	public static void initialize(SkyblockHook hook) {
+	public static void initialize(SkyblockHook skyblockHook) {
+		hook = skyblockHook;
+		
 		FileConfiguration config = hook.getConfig();
-		String path = "page.skyblock.settings";
+		String path = "gui.page.settings";
+		
 		title = U.cc(config.getString(path + ".title", "&dFlight Settings"));
 		title = U.cc(config.getString(path + ".title", "&dFlight Settings"));
 		background = U.getConfigItem(config, path + ".background");
 		toolbar = U.getConfigItem(config, path + ".toolbar");
-		team = U.getConfigItem(config, path + ".team");
-		coop = U.getConfigItem(config, path + ".coop");
-		visitor = U.getConfigItem(config, path + ".visitor");
 		allowed = U.getConfigItem(config, path + ".allowed");
 		disallowed = U.getConfigItem(config, path + ".disallowed");
 		
 		CompatMaterial.setType(background, CompatMaterial.GRAY_STAINED_GLASS_PANE);
 		CompatMaterial.setType(toolbar, CompatMaterial.BLACK_STAINED_GLASS_PANE);
-		CompatMaterial.setType(team, CompatMaterial.DIAMOND);
-		CompatMaterial.setType(coop, CompatMaterial.EMERALD);
-		CompatMaterial.setType(visitor, CompatMaterial.COAL);
 		CompatMaterial.setType(allowed, CompatMaterial.LIME_WOOL);
 		CompatMaterial.setType(disallowed, CompatMaterial.RED_WOOL);
 	}
@@ -72,8 +70,6 @@ public class PageIslandSettings extends DynamicPage {
 	 * 
 	 * 
 	 */
-	
-	private SkyblockHook hook;
 	private Inventory inv;
 	private Map<Integer, String> layout = new HashMap<>();
 	
@@ -89,23 +85,28 @@ public class PageIslandSettings extends DynamicPage {
 		for (int i = 36; i < 45; i++) {
 			inv.setItem(i, toolbar);
 		}
-		
+		List<Entry<String, Boolean>> perms = settings.getCurrentState();
+		calculateSlots(0, perms.size());
 		Iterator<Integer> itInt = getOpenSlots().iterator();
-		Iterator<Entry<String, Boolean>> itPerms = settings.getCurrentState().iterator();
+		Iterator<Entry<String, Boolean>> itPerms = perms.iterator();
 		while (itInt.hasNext() && itPerms.hasNext()) {
 			int slot = itInt.next();
 			Entry<String, Boolean> perm = itPerms.next();
-			ItemStack item = perm.getValue() ? allowed : disallowed;
+			ItemStack item = perm.getValue() ? allowed.clone() : disallowed.clone();
 			ItemMeta meta = item.getItemMeta();
-			meta.setDisplayName(meta.getDisplayName().replaceAll("\\{RANK}", perm.getKey())
+			meta.setDisplayName(meta.getDisplayName().replaceAll("\\{ROLE}", perm.getKey())
 					.replaceAll("\\{STATUS}", perm.getValue() ? allowLore : disallowLore));
-			List<String> lore = new ArrayList<>();
-			for (String line: meta.getLore()) {
-				lore.add(line.replaceAll("\\{RANK}", perm.getKey())
-					.replaceAll("\\{STATUS}", perm.getValue() ? allowLore : disallowLore));
+			if (meta.hasLore()) {
+				List<String> lore = new ArrayList<>();
+				for (String line: meta.getLore()) {
+					lore.add(line.replaceAll("\\{ROLE}", perm.getKey())
+						.replaceAll("\\{STATUS}", perm.getValue() ? allowLore : disallowLore));
+				}	
+				meta.setLore(lore);
 			}
 			item.setItemMeta(meta);
 			inv.setItem(slot, item);
+			Console.debug("putting: " + slot + " : " + perm.getKey());
 			layout.put(slot, perm.getKey());
 		}
 		
@@ -124,6 +125,8 @@ public class PageIslandSettings extends DynamicPage {
 			session.endSession();
 			return;
 		}
+		Console.debug("clicked: " + slot);
+		Console.debug("oi: " + layout.get(slot));
 		IslandSettings settings = island.getSettings();
 		String rank = layout.get(slot);
 		settings.toggleCanFly(rank);

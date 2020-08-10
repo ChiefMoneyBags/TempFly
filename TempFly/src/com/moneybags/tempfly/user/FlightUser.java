@@ -32,6 +32,8 @@ import com.moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class FlightUser {
 
+	
+	
 	private final FlightManager manager;
 	private final TimeManager timeManager;
 	private final Player p;
@@ -55,6 +57,9 @@ public class FlightUser {
 	private double
 	time;
 	
+	private long
+	accumulativeCycle;
+	
 	
 	public FlightUser(Player p, FlightManager manager) {
 		this.manager = manager;
@@ -76,11 +81,17 @@ public class FlightUser {
 			@Override
 			public void run() {
 				if (logged && (p.hasPermission("tempfly.time.infinite") || timeManager.getTime(p.getUniqueId()) > 0)) {
-					enableFlight();
+					if (!enableFlight()) {
+						sendRequirementMessage();
+						enforce(1);
+					}
 				} else {
-					enforce(0);
+					enforce(1);
 					if (V.permaTimer) {
-						timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);
+						if (timer != null) {
+							timer.cancel();
+						}
+						timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);
 					}
 				}
 				bridge.stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
@@ -132,7 +143,7 @@ public class FlightUser {
 			if (timer != null) {
 				timer.cancel();
 			}
-			timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);	
+			timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);	
 		}
 	}
 	
@@ -179,10 +190,12 @@ public class FlightUser {
 	 * Internal clean up method called when the player quits or server is reloading.
 	 */
 	public void onQuit(boolean reload) {
-		if (enabled) {
+		if (enabled || autoEnable) {
 			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), true);
 			if (!reload) disableFlight(-1, false);
 		}
+		updateList(true);
+		updateName(true);
 		save();
 		if (initialTask != null) {initialTask.cancel();}
 		if (enforceTask != null) {enforceTask.cancel();}
@@ -206,6 +219,7 @@ public class FlightUser {
 				if (enabled) return;
 				GameMode m = p.getGameMode();
 				if (!(m.equals(GameMode.CREATIVE)) && !(m.equals(GameMode.SPECTATOR))) {
+					Console.debug("--- Enforcing disabled flight ----");
 					p.setFlying(false);
 					p.setAllowFlight(false);
 				}
@@ -239,15 +253,21 @@ public class FlightUser {
 	
 	/**
 	 * Enable the users flight
+	 * @return false if the users flight can not be enabled due to flight requirements.
 	 */
-	public void enableFlight() {
+	public boolean enableFlight() {
+		if (hasFlightRequirements()) {
+			setAutoFly(true);
+			return false;
+		}
 		enabled = true;
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
 		applySpeedCorrect();
 		if (timer == null) {
-			this.timer = p.isOnGround() && !V.permaTimer && !V.groundTimer ? new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 1) : new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);	
+			this.timer = p.isOnGround() && !V.permaTimer && !V.groundTimer ? new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 1) : new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);	
 		}
+		return true;
 	}
 	
 	/**
@@ -299,10 +319,11 @@ public class FlightUser {
 			Console.debug("--| Requirements: " + requirements);
 		}
 		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
-		if (types.containsKey(failedResult.getInquiryType())) {
-			return;
+		InquiryType type = failedResult.getInquiryType();
+		if (types.containsKey(type)) {
+			types.remove(type);
 		}
-		types.put(failedResult.getInquiryType(), failedResult);
+		types.put(type, failedResult);
 		this.requirements.put(requirement, types);
 		if (enabled) {
 			autoEnable = true;
@@ -353,6 +374,13 @@ public class FlightUser {
 		this.requirements.clear();
 	}
 	
+	public void sendRequirementMessage() {
+		if (hasFlightRequirements()) {
+			// lmao whats this trash
+			U.m(p, requirements.values().iterator().next().values().iterator().next().getMessage());
+		}
+	}
+	
 	/**
 	 * Quality of life method.
 	 * Evaluate the overall flight status of the user, checks all flight requirements present on the server.
@@ -365,8 +393,7 @@ public class FlightUser {
 	public boolean evaluateFlightRequirements(Location loc, boolean failMessage) {
 		if (hasFlightRequirements()) {
 			if (failMessage) {
-				//whats this trash.
-				U.m(p, requirements.values().iterator().next().values().iterator().next().getMessage());
+				sendRequirementMessage();
 			}
 			return false;
 		}
@@ -413,9 +440,7 @@ public class FlightUser {
 		RequirementProvider provider = result.getRequirement();
 		InquiryType type = result.getInquiryType();
 		if (!result.isAllowed()) {
-			if (!hasFlightRequirement(provider, type)) {
-				submitFlightRequirement(provider, result);
-			}
+			submitFlightRequirement(provider, result);
 			if (hasFlightEnabled()) {
 				U.m(p, result.getMessage());
 			}
@@ -621,7 +646,6 @@ public class FlightUser {
 	 * 
 	 */
 	
-	
 	/**
 	 * Ground timer runs every tick when FlightTimer isnt scheduled and simply checks if the player is flying.
 	 * This way the FlightTimer will run as soon as the player starts flying. Otherwise it kinda looks laggy.
@@ -636,7 +660,7 @@ public class FlightUser {
 					return;	
 				}
 				this.cancel();
-				timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 20);
+				timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);
 			}
 		}
 		
@@ -650,18 +674,20 @@ public class FlightUser {
 	 */
 	public class FlightTimer extends BukkitRunnable {
 		
-		private boolean fixInitialTimer = true;
+		private int cycle = 10;
+		private boolean previouslyFlying;
+		private boolean fixInitialCycle = true;
+		
+		private long localCycle;
 		
 		@Override
 		public void run() {
-			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
-			if (enabled) {
-				p.setAllowFlight(true);
+			doIdentifier();
+			if (!doCycle()) {
+				return;
 			}
-			
-			updateList(!p.isFlying());
-			updateName(!p.isFlying());
-			
+			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
+			if (enabled) {p.setAllowFlight(true);}
 			if (p.hasPermission("tempfly.time.infinite")) {
 				return;
 			}
@@ -669,7 +695,10 @@ public class FlightUser {
 			if (!V.permaTimer && ((!p.isFlying() && !V.groundTimer) || !checkIdle())) {
 				this.cancel();
 				timer = new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 3);
+				accumulativeCycle += localCycle;
 				return;
+			} else {
+				localCycle = System.currentTimeMillis();
 			}
 			
 			idle++;
@@ -679,12 +708,16 @@ public class FlightUser {
 				for (RelativeTimeRegion rtr : environment.getRelativeTimeRegions()) {
 					cost *= rtr.getFactor();
 				}
-			
-				if (!fixInitialTimer) {
+				
+				if (!fixInitialCycle || accumulativeCycle >= 1000) {
+					localCycle = 0;
+					if (accumulativeCycle >= 1000) {
+						accumulativeCycle = 0;	
+					}
 					time = time-cost <= 0 ? 0 : time-cost;
 					manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);	
 				}
-				fixInitialTimer = false;
+				fixInitialCycle = false;
 				
 				if (time == 0) {
 					disableFlight(0, !V.damageTime);
@@ -694,14 +727,34 @@ public class FlightUser {
 				
 				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
 				if (V.actionBar) {doActionBar();}
-				
-			} else {
-				if (enabled) {
-					disableFlight(-1, !V.damageTime);
-					U.m(p, V.invalidTimeSelf);
-					autoEnable = true;
-				}
+				return;
 			}
+			if (enabled) {
+				disableFlight(-1, !V.damageTime);
+				U.m(p, V.invalidTimeSelf);
+				autoEnable = true;
+			}
+		}
+		
+		private void doIdentifier() {
+			if (!enabled) {
+				return;
+			}
+			if (previouslyFlying && !p.isFlying() || !previouslyFlying && p.isFlying()) {
+				updateList(!p.isFlying());
+				updateName(!p.isFlying());	
+			}
+			previouslyFlying = p.isFlying();
+		}
+		
+		private boolean doCycle() {
+			if (cycle > 0) {
+				localCycle += 100;
+			}
+			cycle++;
+			if (cycle < 10) {return false;}
+			cycle = 0;
+			return true;
 		}
 		
 		/**

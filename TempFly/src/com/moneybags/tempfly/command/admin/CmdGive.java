@@ -30,7 +30,7 @@ public class CmdGive extends TimeCommand {
 			return;
 		}
 		
-		double amount = quantifyArguments(s, args);
+		double amount = quantifyArguments(s, args, 2);
 		if (amount <= 0) {
 			return;
 		}

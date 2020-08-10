@@ -3,6 +3,8 @@ package com.moneybags.tempfly.hook.skyblock.plugins;
 import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
+
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
@@ -63,7 +65,7 @@ public class BentoHook extends SkyblockHook {
 	}
 
 	@Override
-	public String getIslandIdentifier(IslandWrapper island) {
+	public String getIslandIdentifier(Object rawIsland) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -84,6 +86,24 @@ public class BentoHook extends SkyblockHook {
 	public long getIslandLevel(IslandWrapper island) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public Player[] getOnlineMembers(IslandWrapper island) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public UUID[] getIslandMembers(IslandWrapper island) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[] getRoles() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

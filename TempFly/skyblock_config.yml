@@ -79,7 +79,6 @@ language:
     level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
 
 gui:
-  # EXPERIMENTAL
   # This setting will allow you to place a button inside the island settings panel for your respective
   # skyblock plugin that will take the user to the tempfly island settings page.
   hook_settings:
@@ -93,8 +92,13 @@ gui:
         name: "&7- Please select an option"
       toolbar:
         name: "&7- Please select an option"
-      role:
+      allowed:
         name: "&e&l{ROLE}"
         lore:
-          - "&8&m================"
-          - "&7- Set whether team {ROLE}'s can fly"
+          - "&a&m================"
+          - "&7- {ROLE}'s can currently fly"
+      disallowed:
+        name: "&e&l{ROLE}"
+        lore:
+          - "&c&m================"
+          - "&7- {ROLE}'s can not currently fly"

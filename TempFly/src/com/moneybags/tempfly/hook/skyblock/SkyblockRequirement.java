@@ -34,12 +34,12 @@ public class SkyblockRequirement {
 		this.ownerLevel = ownerLevel;
 		
 		if (V.debug) {
-			Console.debug("----< name: " + name);
-			Console.debug("----< challenges: " + U.arrayToString(this.challenges, ", "));
-			Console.debug("----< owner_challenges: " + U.arrayToString(this.ownerChallenges, ", "));
-			Console.debug("----< island_level: " + islandLevel);
-			Console.debug("----< owner_level: " + ownerLevel);
-			Console.debug("");
+			Console.debug("----< name: " + name,
+			"----< challenges: " + U.arrayToString(this.challenges, ", "),
+			"----< owner_challenges: " + U.arrayToString(this.ownerChallenges, ", "),
+			"----< island_level: " + islandLevel,
+			"----< owner_level: " + ownerLevel,
+			"");
 		}
 	}
 	

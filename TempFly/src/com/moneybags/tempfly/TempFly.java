@@ -71,9 +71,9 @@ public class TempFly extends JavaPlugin {
 		Files.createFiles(this);
 		V.loadValues();
 		this.bridge = new DataBridge(this);
-		this.hooks 	= new HookManager(this);
 		this.flight = new FlightManager(this);
 		this.time 	= new TimeManager(this);
+		this.hooks 	= new HookManager(this);
 		
 		registerListeners();
 		registerCommands();
@@ -157,11 +157,15 @@ public class TempFly extends JavaPlugin {
 	//TODO reload hooks
 	public void reloadTempfly() {
 		GuiSession.endAllSessions();
+		
 		bridge.commitAll();
 		Files.createFiles(this);
 		V.loadValues();
 		PageTrails.initialize();
 		PageShop.initialize(this);
+		
+		hooks.onTempflyReload();
+		
 		if (autosave != null) {
 			autosave.cancel();
 			autosave = new AutoSave(bridge).runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);

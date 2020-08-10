@@ -9,9 +9,10 @@ import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.Reloadable;
 import com.moneybags.tempfly.util.data.DataBridge.DataTable;
 
-public abstract class TempFlyHook implements RequirementProvider {
+public abstract class TempFlyHook implements RequirementProvider, Reloadable {
 
 	private HookType hookType;
 	
@@ -35,6 +36,8 @@ public abstract class TempFlyHook implements RequirementProvider {
 			e.printStackTrace();
 			return;
 		}
+		
+		tempfly.getFlightManager().registerRequirementProvider(this);
 	}
 	
 	private void initializeFiles() throws Exception {
@@ -75,7 +78,13 @@ public abstract class TempFlyHook implements RequirementProvider {
 		return hookType;
 	}
 	
-	public void saveData() {
-		//TODO
+	@Override
+	public void onTempflyReload() {
+		enabled = false;
+		try { initializeFiles(); } catch (Exception e) {
+			Console.severe("An error occured while trying to initilize the (" + target + ") hook.");
+			e.printStackTrace();
+			return;
+		}
 	}
 }

@@ -20,12 +20,12 @@ import com.moneybags.tempfly.command.admin.CmdSet;
 import com.moneybags.tempfly.command.admin.CmdTrailRemove;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
-import com.moneybags.tempfly.command.player.CmdIslandSettings;
 import com.moneybags.tempfly.command.player.CmdPay;
 import com.moneybags.tempfly.command.player.CmdShop;
 import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
+import com.moneybags.tempfly.hook.skyblock.CmdIslandSettings;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.V;
 

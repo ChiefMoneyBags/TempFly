@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Arrow;
@@ -37,23 +38,6 @@ public class CombatHandler implements RequirementProvider, Listener {
 		manager.getTempFly().getServer().getPluginManager().registerEvents(this, manager.getTempFly());
 	}
 	
-	public enum CombatType {
-		PLAYER_ATTACKS_FLYER(true),
-		MOB_ATTACKS_FLYER(false),
-		FLYER_ATTACKS_PLAYER(true),
-		FLYER_ATTACKS_MOB(false);
-		
-		private boolean pvp;
-		
-		private CombatType(boolean pvp) {
-			this.pvp = pvp;
-		}
-		
-		public boolean isPvp() {
-			return pvp;
-		}
-	}
-	
 	public void processCombat(Entity vic, Entity act) {
 		if (act instanceof Arrow) {
 			if (!(((Arrow)act).getShooter() instanceof Entity)) {
@@ -83,10 +67,8 @@ public class CombatHandler implements RequirementProvider, Listener {
 		Player p = (type == CombatType.FLYER_ATTACKS_MOB || type == CombatType.FLYER_ATTACKS_PLAYER) ? (Player)act : (Player)vic;
 		FlightUser user = manager.getUser(p);
 		
-		addTag(p, type.isPvp() ? V.combatTagPvp : V.combatTagPve);
-		if (!user.hasFlightRequirement(this)) {
-			user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));	
-		}
+		addTag(p.getUniqueId(), type.isPvp() ? V.combatTagPvp : V.combatTagPve);
+		user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));
 	}
 	
 	public boolean combatDisable(CombatType type) {
@@ -103,6 +85,23 @@ public class CombatHandler implements RequirementProvider, Listener {
 		return false;
 	}
 	
+	public enum CombatType {
+		PLAYER_ATTACKS_FLYER(true),
+		MOB_ATTACKS_FLYER(false),
+		FLYER_ATTACKS_PLAYER(true),
+		FLYER_ATTACKS_MOB(false);
+		
+		private boolean pvp;
+		
+		private CombatType(boolean pvp) {
+			this.pvp = pvp;
+		}
+		
+		public boolean isPvp() {
+			return pvp;
+		}
+	}
+	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(EntityDamageByEntityEvent e) {
 		Entity vic = e.getEntity();
@@ -110,27 +109,31 @@ public class CombatHandler implements RequirementProvider, Listener {
 		processCombat(vic, act);
 	}
 	
-	public boolean isTagged(Player p) {
-		return tags.containsKey(p.getUniqueId());
+	public boolean isTagged(UUID u) {
+		return tags.containsKey(u);
 	}
 	
-	public CombatTag getTag(Player p) {
-		return tags.get(p.getUniqueId());
+	public CombatTag getTag(UUID u) {
+		return tags.get(u);
 	}
 	
-	public void addTag(Player p, int time) {
-		UUID u = p.getUniqueId();
-		if (isTagged(p)) {
-			getTag(p).getTask().cancel();
+	public void cancelTag(UUID u) {
+		if (isTagged(u)) {
+			getTag(u).getTask().cancel();
+			tags.remove(u);
 		}
-		Console.debug("Adding tag for player time=: " + time);
+	}
+	
+	public void addTag(UUID u, int time) {
+		Console.debug("Adding combat tag for player, time=: " + time);
 		tags.put(u, new CombatTag(time, 
 			new BukkitRunnable() {
 			@Override
 			public void run() {
-				if (tags.containsKey(u)) {
+				if (isTagged(u)) {
 					tags.remove(u);
-					if (p.isOnline()) {
+					Player p = Bukkit.getPlayer(u);
+					if (p != null && p.isOnline()) {
 						evaluate(manager.getUser(p));	
 					}
 				}
@@ -139,10 +142,12 @@ public class CombatHandler implements RequirementProvider, Listener {
 	}
 	
 	private void evaluate(FlightUser user) {
-		if (!isTagged(user.getPlayer())) {
+		if (user == null) {
+			return;
+		}
+		if (!isTagged(user.getPlayer().getUniqueId())) {
 			if (user.hasFlightRequirement(this)) {
-				Console.debug("");
-				Console.debug("--|> User has combat requirement but is no longer tagged!");
+				Console.debug("", "--|> User has combat requirement but is no longer tagged!");
 				user.submitFlightResult(new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassCombat));	
 			}
 			return;
@@ -150,30 +155,15 @@ public class CombatHandler implements RequirementProvider, Listener {
 		user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));
 	}
 	
-	
-	@Override
-	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions) {
-		return null;
-	}
-
-	@Override
-	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
-		return null;
-	}
-
-	@Override
-	public FlightResult handleFlightInquiry(FlightUser user, World world) {
-		return null;
-	}
-
-	@Override
-	public FlightResult handleFlightInquiry(FlightUser user, Location loc) {
-		return null;
-	}
-	
-	//CombatHandler has nothing to do with locations so this is true
 	@Override
 	public boolean handles(InquiryType type) {
 		return true;
+	}
+
+	@Override
+	public void onUserInitialized(FlightUser user) {
+		if (tags.containsKey(user.getPlayer().getUniqueId())) {
+			user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, false));
+		}
 	}
 }

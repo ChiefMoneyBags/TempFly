@@ -21,12 +21,8 @@ public class CmdGiveAll extends TimeCommand {
 			U.m(s, V.invalidPermission);
 			return;
 		}
-		//TODO TODO TODO
-		List<String> ghettoQuickFix = new ArrayList<>();
-		ghettoQuickFix.add("lazyRand");
-		ghettoQuickFix.addAll(Arrays.asList(args));
 		
-		double amount = quantifyArguments(s, ghettoQuickFix.toArray(new String[ghettoQuickFix.size()]));
+		double amount = quantifyArguments(s, args, 0);
 		if (amount == 0) {
 			return;
 		}

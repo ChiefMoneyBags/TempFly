@@ -205,6 +205,34 @@ public class DataBridge extends Thread {
 		Console.debug("-----------End of stage-----------");
 	}
 
+	public synchronized boolean isStaged(DataPointer pointer) {
+		for (StagedChange change: changes) {
+			if (change.isDuplicate(pointer)) {
+				return true;	
+			}
+		}
+		return false;
+	}
+	
+	public synchronized boolean isStagedPath(String... path) {
+		for (StagedChange change: changes) {
+			if (change.comparePath(path)) {
+				return true;	
+			}
+		}
+		return false;
+	}
+	
+	public synchronized StagedChange getStageFromPath(String... path) {
+		Console.debug(U.arrayToString(path, "-"));
+		for (StagedChange change: changes) {
+			if (change.comparePath(path)) {
+				return change;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Commit all changes to the database or yaml if applicable.
 	 * Adds all the stagedchanges to the manual batch and runs the async batch collector.
@@ -221,6 +249,8 @@ public class DataBridge extends Thread {
 			this.notifyAll();
 		}
 	}
+	
+	
 	
 	/**
 	 * An infinitely looping async thread that commits any data in the manual commit queue.
@@ -366,7 +396,7 @@ public class DataBridge extends Thread {
 				ConfigurationSection csValues = df.getConfigurationSection(column + "." + row);
 				for (String key: csValues.getKeys(false)) {
 					values.put(key, df.getObject(row + "." + key, Object.class));
-				}
+				}	
 			} catch (NullPointerException e) {}
 		} else {
 			/**
@@ -391,6 +421,11 @@ public class DataBridge extends Thread {
 				return null;
 			}
 			*/
+		}
+		for (StagedChange local: changes) {
+			if (local.comparePathPartial(row)) {
+				values.put(local.getPath()[local.getPath().length-1], local.getData());
+			}
 		}
 		return values;
 	}
@@ -589,6 +624,24 @@ public class DataBridge extends Thread {
 			}
 			for (int index = 0; path.length > index && this.path.length > index; index++) {
 				if (!path[index].equals(this.path[index])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		public boolean comparePath(String[] path) {
+			for (int index = 0; path.length > index && this.path.length > index; index++) {
+				if (!path[index].equals(this.path[index])) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		public boolean comparePathPartial(String... path) {
+			for (int index = 0; path.length > index; index++) {
+				if (this.path.length <= index || !path[index].equals(this.path[index])) {
 					return false;
 				}
 			}

@@ -29,7 +29,7 @@ public class CmdRemove extends TimeCommand {
 			U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
 			return;
 		}
-		double amount = quantifyArguments(s, args);
+		double amount = quantifyArguments(s, args, 2);
 		if (amount == 0) {
 			return;
 		}

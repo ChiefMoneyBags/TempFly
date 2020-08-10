@@ -42,7 +42,7 @@ public class CmdPay extends TimeCommand {
 			return;
 		}
 		double amount = 0;
-		amount = quantifyArguments(s, args);
+		amount = quantifyArguments(s, args, 2);
 		if (amount <= 0) {
 			return;
 		}

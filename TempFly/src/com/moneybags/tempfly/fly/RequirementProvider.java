@@ -6,8 +6,9 @@ import org.bukkit.World;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.data.Reloadable;
 
-public interface RequirementProvider {
+public interface RequirementProvider extends Reloadable {
 	
 	/**
 	 * Inquire whether a player can fly within a set of given regions.
@@ -15,7 +16,7 @@ public interface RequirementProvider {
 	 * @param regions
 	 * @return
 	 */
-	public abstract FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions);
+	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions) {return null;}
 	
 	/**
 	 * Inquire whether a player can fly within a specific regions.
@@ -23,7 +24,7 @@ public interface RequirementProvider {
 	 * @param regions
 	 * @return
 	 */
-	public abstract FlightResult handleFlightInquiry(FlightUser user, CompatRegion r);
+	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {return null;}
 
 	/**
 	 * Inquire whether a player can fly within a given world.
@@ -31,7 +32,7 @@ public interface RequirementProvider {
 	 * @param regions
 	 * @return
 	 */
-	public abstract FlightResult handleFlightInquiry(FlightUser user, World world);
+	public default FlightResult handleFlightInquiry(FlightUser user, World world) {return null;}
 	
 	/**
 	 * Inquire whether a player can fly at a given location.
@@ -39,8 +40,20 @@ public interface RequirementProvider {
 	 * @param regions
 	 * @return
 	 */
-	public abstract FlightResult handleFlightInquiry(FlightUser user, Location loc);
+	public default FlightResult handleFlightInquiry(FlightUser user, Location loc) {return null;}
 
+	/**
+	 * Called when a player joins the server and their flight user is done being initialized.
+	 * @param user The new user.
+	 */
+	public default void onUserInitialized(FlightUser user) {}
+	
+	/**
+	 * Called when the user leaves the server and their user object is about to be destroyed.
+	 * @param user The user who quit.
+	 */
+	public default void onUserQuit(FlightUser user) {}
+	
 	/**
 	 * Should tempfly inquire flight for the players location or will the provider handle it.
 	 * Useful to save on unnecessary checks if the provider does not need it.
@@ -75,4 +88,5 @@ public interface RequirementProvider {
 		 */
 		OUT_OF_SCOPE;
 	}
+
 }
