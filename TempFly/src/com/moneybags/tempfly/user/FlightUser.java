@@ -43,7 +43,9 @@ public class FlightUser {
 	private Map<RequirementProvider, Map<InquiryType, FlightResult>> requirements = new ConcurrentHashMap<>();
 	
 	private BukkitTask
-	initialTask, enforceTask, timer, damageProtection;
+	initialTask, enforceTask, damageProtection;
+	
+	private TempFlyTimer timer;
 	
 	private String
 	listName, tagName, particle;
@@ -91,7 +93,7 @@ public class FlightUser {
 						if (timer != null) {
 							timer.cancel();
 						}
-						timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);
+						timer = new FlightTimer();
 					}
 				}
 				bridge.stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
@@ -131,6 +133,11 @@ public class FlightUser {
 		}
 		this.time = time;
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);
+		if ((timer instanceof FlightTimer) 
+				&& !p.hasPermission("tempfly.time.infinite")
+				&& p.isFlying()) {
+			doActionBar();
+		}
 		if (time > 0 && autoEnable && !enabled) {
 			enableFlight();
 		} else if (time == 0) {
@@ -143,7 +150,7 @@ public class FlightUser {
 			if (timer != null) {
 				timer.cancel();
 			}
-			timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);	
+			timer = new FlightTimer();	
 		}
 	}
 	
@@ -265,7 +272,7 @@ public class FlightUser {
 		p.setFlying(!p.isOnGround());
 		applySpeedCorrect();
 		if (timer == null) {
-			this.timer = p.isOnGround() && !V.permaTimer && !V.groundTimer ? new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 1) : new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);	
+			this.timer = p.isOnGround() && !V.permaTimer && !V.groundTimer ? new GroundTimer() : new FlightTimer();	
 		}
 		return true;
 	}
@@ -570,6 +577,7 @@ public class FlightUser {
 	
 	public void playTrail() {
 		if (particle == null || particle.length() == 0) {return;}
+		
 		if (V.hideVanish) {
 			for (MetadataValue meta : p.getMetadata("vanished")) {
 				if (meta.asBoolean()) {
@@ -596,6 +604,9 @@ public class FlightUser {
 						.replaceAll("\\{OLD_TAG}", tagName), time));
 	}
 	
+	public void doActionBar() {
+		ActionBarAPI.sendActionBar(p, timeManager.regexString(V.actionText, getTime()));
+	}
 	
 	
 	/**
@@ -646,13 +657,22 @@ public class FlightUser {
 	 * 
 	 */
 	
+	public abstract class TempFlyTimer extends BukkitRunnable {
+		
+	}
+	
 	/**
 	 * Ground timer runs every tick when FlightTimer isnt scheduled and simply checks if the player is flying.
 	 * This way the FlightTimer will run as soon as the player starts flying. Otherwise it kinda looks laggy.
 	 * @author Kevin
 	 *
 	 */
-	public class GroundTimer extends BukkitRunnable {
+	public class GroundTimer extends TempFlyTimer {
+		
+		public GroundTimer() {
+			this.runTaskTimer(manager.getTempFly(), 0, 3);
+		}
+		
 		@Override
 		public void run() {
 			if (p.isFlying()) {
@@ -660,7 +680,7 @@ public class FlightUser {
 					return;	
 				}
 				this.cancel();
-				timer = new FlightTimer().runTaskTimer(manager.getTempFly(), 0, 2);
+				timer = new FlightTimer();
 			}
 		}
 		
@@ -672,13 +692,17 @@ public class FlightUser {
 	 * @author Kevin
 	 *
 	 */
-	public class FlightTimer extends BukkitRunnable {
+	public class FlightTimer extends TempFlyTimer {
 		
 		private int cycle = 10;
 		private boolean previouslyFlying;
 		private boolean fixInitialCycle = true;
 		
 		private long localCycle;
+		
+		public FlightTimer() {
+			this.runTaskTimer(manager.getTempFly(), 0, 2);
+		}
 		
 		@Override
 		public void run() {
@@ -694,7 +718,7 @@ public class FlightUser {
 			
 			if (!V.permaTimer && ((!p.isFlying() && !V.groundTimer) || !checkIdle())) {
 				this.cancel();
-				timer = new GroundTimer().runTaskTimer(manager.getTempFly(), 0, 3);
+				timer = new GroundTimer();
 				accumulativeCycle += localCycle;
 				return;
 			} else {
@@ -727,6 +751,7 @@ public class FlightUser {
 				
 				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
 				if (V.actionBar) {doActionBar();}
+				
 				return;
 			}
 			if (enabled) {
@@ -734,6 +759,12 @@ public class FlightUser {
 				U.m(p, V.invalidTimeSelf);
 				autoEnable = true;
 			}
+		}
+		
+		@Override
+		public void cancel() {
+			accumulativeCycle += localCycle;
+			super.cancel();
 		}
 		
 		private void doIdentifier() {
@@ -770,8 +801,5 @@ public class FlightUser {
 			return true;
 		}
 		
-		private void doActionBar() {
-			ActionBarAPI.sendActionBar(p, timeManager.regexString(V.actionText, getTime()));
-		}
 	}
 }
