@@ -32,7 +32,6 @@ import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Reloadable;
 

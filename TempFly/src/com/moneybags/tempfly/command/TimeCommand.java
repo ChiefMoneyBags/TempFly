@@ -6,7 +6,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.command.CommandSender;
 
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -95,7 +94,6 @@ public class TimeCommand {
 				}
 			}
 			try {
-				Console.debug(parse);
 				double fin = Double.parseDouble(parse);
 				switch (unit) {
 				case DAYS: fin *= 24;

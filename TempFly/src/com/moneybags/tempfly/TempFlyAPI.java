@@ -5,14 +5,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.fly.Flyer;
 import com.moneybags.tempfly.fly.RequirementProvider;
-import com.moneybags.tempfly.fly.result.FlightResult;
-import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.user.FlightUser;
 

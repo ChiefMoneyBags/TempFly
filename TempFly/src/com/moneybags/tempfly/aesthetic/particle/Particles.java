@@ -23,12 +23,14 @@ public class Particles {
 
 	private static Class<?> dustOptions = null;
 	private static TempFly tempfly;
+	private static boolean oldParticles;
 	
 	public static void initialize(TempFly plugin) {
 		tempfly = plugin;
 		try {
 			dustOptions = Class.forName("org.bukkit.Particle$DustOptions");
 		} catch (Exception e) {}
+		oldParticles = oldParticles();
 	}
 	
 	public static boolean oldParticles() {
@@ -37,7 +39,7 @@ public class Particles {
 	}
 	
 	public static void play(Location loc, String s) {
-		if (!oldParticles()) {
+		if (!oldParticles) {
 			Particle particle = null;
 			try {particle = Particle.valueOf(s.toUpperCase());} catch (Exception e1) {
 				try {particle = Particle.valueOf(V.particleType.toUpperCase());} catch (Exception e2) {

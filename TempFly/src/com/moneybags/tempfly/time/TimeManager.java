@@ -104,8 +104,8 @@ public class TimeManager implements Listener {
 	 * @param seconds The new seconds
 	 */
 	public void setTime(UUID u, double seconds) {
-		if (seconds <= 0) {
-			return;
+		if (seconds < 0) {
+			seconds = 0;
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
