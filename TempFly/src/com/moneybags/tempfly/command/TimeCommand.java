@@ -90,8 +90,8 @@ public class TimeCommand {
 				Console.debug(parse);
 				double fin = Double.parseDouble(parse);
 				switch (unit) {
-				case DAYS: 		fin *= 24;
-				case HOURS: 	fin *= 60;
+				case DAYS:		fin *= 24;
+				case HOURS:		fin *= 60;
 				case MINUTES: 	fin *= 60;
 				case SECONDS: 	seconds += fin;
 				default:
