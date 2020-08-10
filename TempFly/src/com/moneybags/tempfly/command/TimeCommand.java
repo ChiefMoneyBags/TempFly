@@ -27,10 +27,18 @@ public class TimeCommand {
 		}
 	}
 	
+	private String regexNumeric(String s) {
+		return s.replaceAll("[0-9]", "").replaceAll("\\.", "");
+	}
+	
+	private String regexAlphabetical(String s) {
+		return s.replaceAll("[a-zA-Z]", "");
+	}
+	 
 	private int lastNumericIndex(String s) {
 		int fin = 0;
 		for (int i = 0; i < s.length(); i++) {
-			if (!String.valueOf(s.charAt(i)).matches("[0-9]")) {
+			if (!String.valueOf(s.charAt(i)).matches("[0-9]") && !String.valueOf(s.charAt(i)).equals(".")) {
 				return i > 0 ? fin-1 : fin;
 			}
 			fin++;
@@ -71,11 +79,11 @@ public class TimeCommand {
 				
 			// /tf give 1{unit}
 			} else if (lastNumericIndex(args[i]) < args[i].length()-1) {
-				if ((unit = parseUnit(args[i].replaceAll("[0-9]", "").toLowerCase())) == null) {
-					U.m(s, U.cc("&c(" + args[i].replaceAll("[0-9]", "") + ") is an unknown time argument!"));
+				if ((unit = parseUnit(regexNumeric(args[i]).toLowerCase())) == null) {
+					U.m(s, U.cc("&c(" + regexNumeric(args[i]) + ") is an unknown time argument!"));
 					return 0;
 				}
-				parse = args[i].replaceAll("[a-zA-Z]+", "");
+				parse = regexAlphabetical(args[i]);
 				
 			// /tf give 60 {unit} | /tf give 60
 			} else {
@@ -90,10 +98,10 @@ public class TimeCommand {
 				Console.debug(parse);
 				double fin = Double.parseDouble(parse);
 				switch (unit) {
-				case DAYS:		fin *= 24;
-				case HOURS:		fin *= 60;
-				case MINUTES: 	fin *= 60;
-				case SECONDS: 	seconds += fin;
+				case DAYS: fin *= 24;
+				case HOURS: fin *= 60;
+				case MINUTES: fin *= 60;
+				case SECONDS: seconds += fin;
 				default:
 					break;
 				}
