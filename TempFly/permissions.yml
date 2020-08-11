@@ -49,6 +49,10 @@ tempfly.set:
   desc: Allow user to set time. valid arguments; [s {secs}] [m {mins}] [h {hours}] [d {days}]
   command: /tf set [player] [amount]
 
+tempfly.reload:
+  desc: Reloads the plugins configs and settings.
+  command: /tf reload
+
 tempfly.help:
   desc: Allow user to see the help page.
   command: /tf help
