@@ -21,15 +21,16 @@ import com.moneybags.tempfly.util.data.DataPointer;
 
 public class Particles {
 
-	private static Class<?> dustOptions = null;
+	private static Class<?>
+	dustOptions = null,
+	blockData;
 	private static TempFly tempfly;
 	private static boolean oldParticles;
 	
 	public static void initialize(TempFly plugin) {
 		tempfly = plugin;
-		try {
-			dustOptions = Class.forName("org.bukkit.Particle$DustOptions");
-		} catch (Exception e) {}
+		try {dustOptions = Class.forName("org.bukkit.Particle$DustOptions");} catch (Exception e) {}
+		try {blockData = Class.forName("org.bukkit.block.data.BlockData");} catch (Exception e) {}
 		oldParticles = oldParticles();
 	}
 	
@@ -52,7 +53,7 @@ public class Particles {
 				if (dustOptions != null && dustOptions.equals(c)) {
 					Random rand = new Random();
 					loc.getWorld().spawnParticle(particle, loc, 1, new DustOptions(Color.fromRGB(rand.nextInt(255), rand.nextInt(255), rand.nextInt(255)), 2f));	
-				} else if (BlockData.class.equals(c)) {
+				} else if (blockData != null && blockData.equals(c)) {
 					loc.getWorld().spawnParticle(particle, loc, 1, Material.STONE.createBlockData());	
 				} else {
 					loc.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, 0.1);
