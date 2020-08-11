@@ -55,14 +55,18 @@ public class ActionBarAPI {
                   chatSerializerClass = Class.forName("net.minecraft.server." + nmsver + ".ChatSerializer");
                   m3 = chatSerializerClass.getDeclaredMethod("a", String.class);
         	  } else {
-        		  chatComponentTextClass = Class.forName("net.minecraft.server." + nmsver + ".ChatComponentText");
-        		  chatMessageTypeClass = Class.forName("net.minecraft.server." + nmsver + ".ChatMessageType");
-                  chatMessageType = null;
-                  for (Object obj : chatMessageTypeClass.getEnumConstants()) {
-                      if (obj.toString().equals("GAME_INFO")) {
-                          chatMessageType = obj;
-                      }
-                  }
+        		  try {
+            		  chatComponentTextClass = Class.forName("net.minecraft.server." + nmsver + ".ChatComponentText");
+            		  chatMessageTypeClass = Class.forName("net.minecraft.server." + nmsver + ".ChatMessageType");
+                      chatMessageType = null;
+                      for (Object obj : chatMessageTypeClass.getEnumConstants()) {
+                          if (obj.toString().equals("GAME_INFO")) {
+                              chatMessageType = obj;
+                          }
+                      }  
+        		  } catch (Exception e) {
+        			  
+        		  }
         	  }
         	  craftPlayerHandleMethod = craftPlayerClass.getDeclaredMethod("getHandle");
         } catch (Exception e) {
@@ -91,7 +95,9 @@ public class ActionBarAPI {
 				if (newConstructor) {
 					packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass, UUID.class}).newInstance(chatCompontentText, chatMessageType, UUID.randomUUID());
 				} else {
-					packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);	
+					try {packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, chatMessageTypeClass}).newInstance(chatCompontentText, chatMessageType);} catch (Exception e) {
+						packet = packetPlayOutChatClass.getConstructor(new Class<?>[]{iChatBaseComponentClass, byte.class}).newInstance(chatCompontentText, (byte) 2);
+					}
 				}
                 
             }
