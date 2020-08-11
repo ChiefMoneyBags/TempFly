@@ -68,7 +68,7 @@ public class FlightUser {
 		this.timeManager = manager.getTempFly().getTimeManager();
 		this.p = p;
 		this.environment = new UserEnvironment(this);
-		manager.updateLocation(this, p.getLocation(), p.getLocation());
+		manager.updateLocation(this, p.getLocation(), p.getLocation(), true);
 
 		final DataBridge bridge = manager.getTempFly().getDataBridge();
 		

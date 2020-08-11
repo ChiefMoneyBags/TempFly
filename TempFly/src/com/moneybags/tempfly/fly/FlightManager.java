@@ -95,14 +95,16 @@ public class FlightManager implements Listener, Reloadable {
 		return users.values().toArray(new FlightUser[users.size()]);
 	}
 	
-	public void addUser(Player p) {
+	public FlightUser addUser(Player p) {
 		if (!users.containsKey(p)) {
 			FlightUser user = new FlightUser(p, this);
 			users.put(p, user);
 			for (RequirementProvider provider: providers) {
 				provider.onUserInitialized(user);
 			}
+			return user;
 		}
+		return users.get(p);
 	}
 	
 	public void removeUser(Player p, boolean reload) {
@@ -268,7 +270,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * @param p The player to process
 	 * @param to The new location
 	 */
-	public void updateLocation(FlightUser user, Location from, Location to) {
+	public void updateLocation(FlightUser user, Location from, Location to, boolean forceWorld) {
 		final List<FlightResult> results = new ArrayList<>();
 		
 		if (getTempFly().getHookManager().hasRegionProvider()) {
@@ -281,7 +283,7 @@ public class FlightManager implements Listener, Reloadable {
 		
 		// Check flight requirements if player entered a new world.
 		// Process world
-		if (!from.getWorld().equals(to.getWorld())) {
+		if (!from.getWorld().equals(to.getWorld()) || forceWorld) {
 			results.addAll((inquireFlight(user, to.getWorld())));
 			user.getEnvironment().asessRtWorld();
 		}
@@ -304,7 +306,7 @@ public class FlightManager implements Listener, Reloadable {
 		if (user == null) {return;}
 		user.resetIdleTimer();
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
-			updateLocation(user, e.getFrom(), e.getTo());
+			updateLocation(user, e.getFrom(), e.getTo(), false);
 		}
 	}
 	
@@ -316,7 +318,7 @@ public class FlightManager implements Listener, Reloadable {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
-		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation());
+		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation(), false);
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
@@ -334,7 +336,7 @@ public class FlightManager implements Listener, Reloadable {
 		if (user == null) {return;}
 		user.resetIdleTimer();
 		// The from coordinate really doesn't matter here, just the world.
-		updateLocation(user, new Location(e.getFrom(), 0, 0, 0), user.getPlayer().getLocation());
+		updateLocation(user, new Location(e.getFrom(), 0, 0, 0), user.getPlayer().getLocation(), true);
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
@@ -393,7 +395,7 @@ public class FlightManager implements Listener, Reloadable {
 			FlightUser user = getUser(e.getPlayer());
 			if (user == null) {return;}
 			user.resetIdleTimer();
-			updateLocation(user, e.getFrom(), e.getTo());
+			updateLocation(user, e.getFrom(), e.getTo(), false);
 		}
 	}
 
