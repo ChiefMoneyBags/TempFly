@@ -267,6 +267,9 @@ public class FlightUser {
 			setAutoFly(true);
 			return false;
 		}
+		if (time == 0) {
+			return false;
+		}
 		enabled = true;
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
@@ -508,7 +511,7 @@ public class FlightUser {
 		Console.debug("");
 		Console.debug("--- updating requirements ---");
 		Console.debug("--| requirements: " + requirements.toString());
-		if (requirements.size() == 0 && !enabled && autoEnable) {
+		if (requirements.size() == 0 && !enabled && autoEnable && time > 0) {
 			Console.debug("--|> AutoFly engaged!");
 			autoEnable = false;
 			enableFlight();

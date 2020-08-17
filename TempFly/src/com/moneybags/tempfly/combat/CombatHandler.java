@@ -32,7 +32,7 @@ public class CombatHandler implements RequirementProvider, Listener {
 	public CombatHandler(FlightManager manager) {
 		this.manager = manager;
 		manager.getTempFly().getServer().getPluginManager().registerEvents(this, manager.getTempFly());
-	}
+	} 
 	
 	public FlightManager getFlightManager() {
 		return manager;
