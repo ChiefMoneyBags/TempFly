@@ -105,4 +105,24 @@ public class UserEnvironment {
 			}
 		}
 	}
+
+	/**
+	 * @param regions The list of regions to check
+	 * @return True if the list is the same.
+	 */
+	public boolean checkIdenticalRegions(List<CompatRegion> regions) {
+		if (regions.size() != encompassing.size()) {
+			return false;
+		}
+		check:
+		for (CompatRegion check: regions) {
+			for (CompatRegion current: encompassing) {
+				if (current.equals(check)) {
+					continue check;
+				}
+			}
+			return false;
+		}
+		return true;
+	}
 }

@@ -10,8 +10,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
-import org.bukkit.block.data.BlockData;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
@@ -78,17 +76,7 @@ public class Particles {
 	
 	public static String loadTrail(UUID u) {
 		String particle = (String) tempfly.getDataBridge().getOrDefault(DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()), null);
-		if (V.debug) {
-			Console.debug("");
-			Console.debug("------Loading particle trail------");
-			Console.debug("Player: " + u.toString());
-			Console.debug("Value from data: " + String.valueOf(particle));
-			Console.debug("Default trail enabled: " + V.particleDefault);
-			Console.debug("Default trail is: " + V.particleType);
-			Console.debug("Returning trail: " +  (particle != null ? particle: (V.particleDefault ? V.particleType : "")));
-			Console.debug("------End particle trail------");
-			Console.debug("");
-		}
+		if (V.debug) {Console.debug("", "------Loading particle trail------", "Player: " + u.toString(), "Value from data: " + String.valueOf(particle), "Default trail enabled: " + V.particleDefault, "Default trail is: " + V.particleType, "Returning trail: " +  (particle != null ? particle: (V.particleDefault ? V.particleType : "")), "------End particle trail------", "");}
 		return particle != null ? particle: (V.particleDefault ? V.particleType : "");
 	}
 	

@@ -6,14 +6,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 
 public class BentoHook extends SkyblockHook {
 
 	public BentoHook(TempFly plugin) {
-		super(HookType.BENTO_BOX, plugin);
+		super(plugin);
 	}
 
 	@Override
@@ -77,13 +76,13 @@ public class BentoHook extends SkyblockHook {
 	}
 
 	@Override
-	public long getIslandLevel(UUID p) {
+	public double getIslandLevel(UUID p) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public long getIslandLevel(IslandWrapper island) {
+	public double getIslandLevel(IslandWrapper island) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
@@ -104,6 +103,12 @@ public class BentoHook extends SkyblockHook {
 	public String[] getRoles() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getPluginName() {
+		// TODO Auto-generated method stub
+		return "f";
 	}
 
 

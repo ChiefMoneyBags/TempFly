@@ -275,10 +275,12 @@ public class FlightManager implements Listener, Reloadable {
 		
 		if (getTempFly().getHookManager().hasRegionProvider()) {
 			List<CompatRegion> regions = Arrays.asList(getTempFly().getHookManager().getRegionProvider().getApplicableRegions(to));
-			// Process regions
-			results.addAll(inquireFlight(user, regions.toArray(new CompatRegion[regions.size()])));
-			// Update the users current regions.
-			user.getEnvironment().updateCurrentRegionSet(regions.toArray(new CompatRegion[regions.size()]));
+			if (!user.getEnvironment().checkIdenticalRegions(regions)) {
+				// Process regions
+				results.addAll(inquireFlight(user, regions.toArray(new CompatRegion[regions.size()])));
+				// Update the users current regions.
+				user.getEnvironment().updateCurrentRegionSet(regions.toArray(new CompatRegion[regions.size()]));	
+			}
 		}
 		
 		// Check flight requirements if player entered a new world.

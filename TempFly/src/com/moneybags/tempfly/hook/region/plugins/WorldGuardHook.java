@@ -17,7 +17,7 @@ import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 
-public class WorldGuardHook extends RegionProvider {
+public class WorldGuardHook implements RegionProvider {
 	
 	private boolean enabled;
 	

@@ -27,7 +27,7 @@ public class IslandSettings {
 		String id = hook.getIslandIdentifier(island.getIsland());
 		DataBridge bridge = hook.getTempFly().getDataBridge();
 		
-		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, "islands", id);
+		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, hook, "islands", id, "settings");
 		for (Entry<String, Object> entry: values.entrySet()) {
 			if (entry.getKey().equalsIgnoreCase("OWNER")) {
 				continue;
@@ -51,25 +51,23 @@ public class IslandSettings {
 		if (role.equals("OWNER")) {
 			return;
 		}
-		Console.debug("--set: " + role,
+		Console.debug("-- Set flight for: " + role,
 				"currently: " + canFly(role),
-				settings.containsKey(role));
+				"mapped settings contains: " + settings.containsKey(role));
 		settings.put(role, canFly);
-		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly);
+		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly, hook);
 	}
 	
 	public void toggleCanFly(String role) {
 		if (role.equals("OWNER")) {
 			return;
 		}
-		Console.debug("--set: " + role,
+		Console.debug("-- Set flight for: " + role,
 				"currently: " + canFly(role),
-				settings.containsKey(role));
+				"mapped settings contains: " + settings.containsKey(role));
 		boolean canFly = !canFly(role);
-		Console.debug("oi: " + canFly);
 		settings.put(role, canFly);
-		Console.debug("oi 2 : " + settings.containsKey(role));
-		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly);
+		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly, hook);
 	}
 	
 	public List<Entry<String, Boolean>> getCurrentState() {

@@ -14,6 +14,7 @@ import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.BentoHook;
+import com.moneybags.tempfly.hook.skyblock.plugins.IridiumHook;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Reloadable;
 
@@ -26,15 +27,45 @@ public class HookManager implements Reloadable {
 	private TempFly plugin;
 	private Economy eco;
 	private RegionProvider regions;
-	private Map<Genre, Map<HookType, TempFlyHook>> hooks = new HashMap<>();
+	
+	private Map<Genre, List<TempFlyHook>> hooks = new HashMap<>();
 	
 	public HookManager(TempFly plugin) {
 		this.plugin = plugin;
 		
 		loadRegionProvider();
 		setupEconomy();
-		loadGenres();
 	}
+	
+	public boolean registerHook(TempFlyHook hook)  {
+		if (getHook(hook.getClass()) != null) {
+			throw new IllegalArgumentException("You may only register a hook once within tempfly!");
+		}
+		if (!hook.isEnabled()) {
+			throw new IllegalArgumentException("You cannot register a hook the is not enabled!");
+		}
+		List<TempFlyHook> loaded = hooks.getOrDefault(hook.getGenre(), new ArrayList<>());
+		loaded.add(hook);
+		hooks.put(hook.getGenre(), loaded);
+		plugin.getFlightManager().registerRequirementProvider(hook);
+		return true;
+	}
+	
+	public void unregisterHook(TempFlyHook hook) {
+		if (getHook(hook.getClass()) == null) {
+			return;
+		}
+		List<TempFlyHook> loaded = hooks.get(hook.getGenre());
+		loaded.remove(hook);
+		plugin.getFlightManager().unregisterRequirementProvider(hook);
+		if (loaded.size() < 1) {
+			hooks.remove(hook.getGenre());
+			return;
+		}
+		hooks.put(hook.getGenre(), loaded);
+	}
+	
+	
 	
 	/**
 	 *
@@ -84,29 +115,15 @@ public class HookManager implements Reloadable {
     }
     
 	
-	private void loadGenres() {
+	public void loadInternalGenres() {
 		Console.debug("", "----------Loading Genre Hooks----------");
 		TempFlyHook hook;
 		for (Genre genre: Genre.values()) {
 			Console.debug("", "--< Loading: " + genre.toString());
-			Map<HookType, TempFlyHook> loaded = new HashMap<>();
-			for (Class<?> clazz: genre.getClasses()) {
+			for (Class<?> clazz: genre.getInternalClasses()) {
 				Console.debug("", "----< Class: " + clazz.getName());
-				try {
-					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
-					Console.debug("----< Enabled: " + hook.isEnabled());
-					if (hook.isEnabled()) {
-						loaded.put(hook.getHookType(), hook);
-						if (genre.isSolitary()) {
-							Console.debug("----< Genre is solitary, breaking: " + genre);
-							break;
-						}
-					}
-				} catch (Exception e) {e.printStackTrace();}
+				try {hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin); Console.debug("----< Enabled: " + hook.isEnabled());} catch (Exception e) {e.printStackTrace();}
 			}
-			if (loaded.size() > 0) {
-				hooks.put(genre, loaded);
-			}	
 		}
 		Console.debug("--------Loading Genre Hooks End--------", "");
 	}
@@ -123,19 +140,37 @@ public class HookManager implements Reloadable {
     	return eco;
     }
 	
-	public TempFlyHook getHook(HookType hook) {
-		return hooks.getOrDefault(hook.getGenre(), new HashMap<>()).getOrDefault(hook, null);
+	public TempFlyHook getHook(String plugin) {
+		for (List<TempFlyHook> list: hooks.values()) {
+			for (TempFlyHook hook: list) {
+				if (hook.getPluginName().equals(plugin)) {
+					return hook;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public TempFlyHook getHook(Class<? extends TempFlyHook> clazz) {
+		for (List<TempFlyHook> list: hooks.values()) {
+			for (TempFlyHook hook: list) {
+				if (hook.getClass().equals(clazz)) {
+					return hook;
+				}
+			}
+		}
+		return null;
 	}
 	
 	public TempFlyHook[] getGenre(Genre genre) {
-		Map<HookType, TempFlyHook> map;
-		return (map = hooks.getOrDefault(genre, new HashMap<>())).values().toArray(new TempFlyHook[map.size()]);
+		List<TempFlyHook> list;
+		return (list = hooks.getOrDefault(genre, new ArrayList<>())).toArray(new TempFlyHook[list.size()]);
 	}
 	
 	public TempFlyHook[] getEnabled() {
 		List<TempFlyHook> enabled = new ArrayList<>();
-		for (Map<HookType, TempFlyHook> genre: hooks.values()) {
-			for (TempFlyHook hook: genre.values()) {
+		for (List<TempFlyHook> genre: hooks.values()) {
+			for (TempFlyHook hook: genre) {
 				if (hook.isEnabled()) {
 					enabled.add(hook);
 				}
@@ -151,17 +186,16 @@ public class HookManager implements Reloadable {
 	 * Represents the GameMode type of a hook  
 	 */
 	public static enum Genre {
-		SKYBLOCK("SkyBlock", true, AskyblockHook.class, BentoHook.class),
-		LANDS("Lands", true),
-		FACTIONS("Factions", true);
+		SKYBLOCK("SkyBlock", AskyblockHook.class, BentoHook.class, IridiumHook.class),
+		LANDS("Lands"),
+		FACTIONS("Factions"),
+		OTHER("Other");
 		
 		private String folder;
-		private boolean solitary;
 		private final Class<?>[] classes; 
 		
-		private Genre(String folder, boolean solitary, Class<?>... classes) {
+		private Genre(String folder, Class<?>... classes) {
 			this.folder = folder;
-			this.solitary = solitary;
 			this.classes = classes;
 		}
 		
@@ -169,60 +203,20 @@ public class HookManager implements Reloadable {
 			return "hooks" + File.separator + folder;
 		}
 		
-		public boolean isSolitary() {
-			return solitary;
-		}
-		
-		public Class<?>[] getClasses() {
+		/**
+		 * 
+		 * @return An array of built in TempFly classes that represent this genre. You can still add your own that
+		 * aren't on this list, i just use it internally for ease of access.
+		 */
+		public Class<?>[] getInternalClasses() {
 			return classes;
-		}
-	}
-	
-	/*
-	 * Represents the target plugin of a hook. 
-	 */
-	public static enum HookType {
-		ASKYBLOCK(
-				Genre.SKYBLOCK,
-				"ASkyBlock", "ASkyBlock", "skyblock_config"),
-		BENTO_BOX(
-				Genre.SKYBLOCK,
-				"BentoBox", "BentoBox", "skyblock_config"),
-		SUPERIOR_SKYBLOCK_2(
-				Genre.SKYBLOCK,
-				"???????", "SuperiorSkyblock", "skyblock_config");
-		
-		private Genre genre;
-		private String plugin, config, embedded;
-		
-		private HookType(Genre genre, String plugin, String config, String embedded) {
-			this.genre = genre;
-			this.plugin = plugin;
-			this.config = config;
-			this.embedded = embedded;
-		}
-		
-		public Genre getGenre() {
-			return genre;
-		}
-		
-		public String getPluginName() {
-			return plugin;
-		}
-		
-		public String getConfigName() {
-			return config;
-		}
-		
-		public String getEmbeddedConfigName() {
-			return embedded;
 		}
 	}
 
 	@Override
 	public void onTempflyReload() {
-		for (Entry<Genre, Map<HookType, TempFlyHook>> entry: hooks.entrySet()) {
-			for (TempFlyHook hook: entry.getValue().values()) {
+		for (Entry<Genre, List<TempFlyHook>> entry: hooks.entrySet()) {
+			for (TempFlyHook hook: entry.getValue()) {
 				((Reloadable)hook).onTempflyReload();
 			}
 		}

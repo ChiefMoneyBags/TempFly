@@ -1,14 +1,12 @@
 package com.moneybags.tempfly.hook.skyblock;
 
-import com.moneybags.tempfly.hook.HookManager.HookType;
-
 public class IslandWrapper {
 
 	private SkyblockHook hook;
 	private Object island;
 	private IslandSettings settings;
 	
-	public IslandWrapper(HookType type, Object island, SkyblockHook hook) {
+	public IslandWrapper(Object island, SkyblockHook hook) {
 		this.island = island;
 		this.hook = hook;
 		this.settings = new IslandSettings(this, hook);

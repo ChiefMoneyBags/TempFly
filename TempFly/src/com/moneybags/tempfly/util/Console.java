@@ -13,9 +13,7 @@ public class Console {
 	}
 	
 	public static void generateException(String message) {
-		try {
-			throw new Exception(message);
-		} catch (Exception e) {
+		try {throw new Exception(message);} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -24,12 +22,24 @@ public class Console {
 		return tempfly.getLogger();
 	}
 	
+	public static void info(String... m){
+		for (String s: m) {info(s);}
+ 	}
+	
 	public static void info(String m){
 		getLogger().info(m);
 	}
 	
+	public static void warn(String... m){
+		for (String s: m) {warn(s);}
+	}
+	
 	public static void warn(String m){
 		getLogger().warning(m);
+	}
+	
+	public static void severe(String... m){
+		for (String s: m) {severe(s);}
 	}
 	
 	public static void severe(String m){
@@ -38,23 +48,18 @@ public class Console {
 	
 	/**
 	 * lmao
-	 * @param m message to send
 	 */
 	public static void extreme(String m) {
 		for (int x = 0; x < 23; x++) severe((x > 10 && x < 13) ? m : (x == 11 || x == 13) ? "--------------" : "!!!");
 	}
 
 	public static void debug(Object obj) {
-		if (V.debug) {
-			getLogger().info("[DEBUG] " + String.valueOf(obj));
-		}
+		if (V.debug) {getLogger().info("[DEBUG] " + String.valueOf(obj));}
 	}
 	
 	public static void debug(Object... objects) {
 		if (V.debug) {
-			for (Object obj: objects) {
-				getLogger().info("[DEBUG] " + String.valueOf(obj));	
-			}
+			for (Object obj: objects) {getLogger().info("[DEBUG] " + String.valueOf(obj));}
 		}
 	}
 }

@@ -13,7 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
@@ -32,6 +32,10 @@ public class CombatHandler implements RequirementProvider, Listener {
 	public CombatHandler(FlightManager manager) {
 		this.manager = manager;
 		manager.getTempFly().getServer().getPluginManager().registerEvents(this, manager.getTempFly());
+	}
+	
+	public FlightManager getFlightManager() {
+		return manager;
 	}
 	
 	public void processCombat(Entity vic, Entity act) {
@@ -99,6 +103,14 @@ public class CombatHandler implements RequirementProvider, Listener {
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void on(PlayerDeathEvent e) {
+		Player p = e.getEntity();
+		if (isTagged(p.getUniqueId())) {
+			cancelTag(p.getUniqueId());
+		}
+	}
+	
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(EntityDamageByEntityEvent e) {
 		Entity vic = e.getEntity();
 		Entity act = e.getDamager();
@@ -115,26 +127,30 @@ public class CombatHandler implements RequirementProvider, Listener {
 	
 	public void cancelTag(UUID u) {
 		if (isTagged(u)) {
-			getTag(u).getTask().cancel();
+			getTag(u).cancel();
 			tags.remove(u);
+		}
+		
+		Player p = Bukkit.getPlayer(u);
+		if (p != null && p.isOnline()) {
+			evaluate(manager.getUser(p));	
 		}
 	}
 	
 	public void addTag(UUID u, int time) {
 		Console.debug("Adding combat tag for player, time=: " + time);
-		tags.put(u, new CombatTag(time, 
-			new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (isTagged(u)) {
-					tags.remove(u);
-					Player p = Bukkit.getPlayer(u);
-					if (p != null && p.isOnline()) {
-						evaluate(manager.getUser(p));	
-					}
-				}
+		if (isTagged(u)) {
+			Console.debug("Player is already tagged!");
+			CombatTag current = getTag(u);
+			// If combat PvP is longer than PvE, we don't want users escaping PvP by attacking a sheep and having their combat time reset to the PvE timer.
+			if (current.getRemainingTime() > time) {
+				Console.debug("Current tag has more time remaining than the new tag! returning.");
+				return;
 			}
-		}.runTaskLater(manager.getTempFly(), time)));
+			Console.debug("Canceling players current tag!");
+			current.cancel();
+		}
+		tags.put(u, new CombatTag(u, time, this));
 	}
 	
 	private void evaluate(FlightUser user) {

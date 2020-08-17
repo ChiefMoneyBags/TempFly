@@ -74,6 +74,7 @@ public class TempFly extends JavaPlugin {
 		this.flight = new FlightManager(this);
 		this.time 	= new TimeManager(this);
 		this.hooks 	= new HookManager(this);
+		hooks.loadInternalGenres();
 		
 		registerListeners();
 		registerCommands();

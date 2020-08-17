@@ -1,10 +1,8 @@
 package com.moneybags.tempfly.util.data;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,29 +16,25 @@ import java.util.zip.DataFormatException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.TempFlyHook;
+import com.moneybags.tempfly.hook.HookManager;
 import com.moneybags.tempfly.hook.HookManager.Genre;
-import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
 
-public class DataBridge extends Thread {
+public class DataBridge extends Thread implements DataFileHolder {
 
 	private TempFly tempfly;
 	private Connection connection;
 	
-	private static File dataf;
-	private static FileConfiguration data;
-	
-	private static Map<HookType, File> hookFiles = new HashMap<>();
-	private static Map<HookType, FileConfiguration> hookData = new HashMap<>();
+	private File dataf;
+	private FileConfiguration data;
 	
 	// Staged changes are held in local memory until either the autosave runs, or they are forcefully committed.
 	// The databridge will act like these changes are part of the database even though they are local. 
@@ -51,6 +45,14 @@ public class DataBridge extends Thread {
 	// if it exists in the list of changes.
 	// Should always be accessed in a synchronized block.
 	private List<DataPointer> manualCommit = new CopyOnWriteArrayList<>();
+	
+	public Connection getConnection() {
+		return connection;
+	}
+	
+	public boolean hasSqlEnabled() {
+		return connection != null;
+	}
 	
 	public DataBridge(TempFly tempfly) {
 		this.tempfly = tempfly;
@@ -126,9 +128,7 @@ public class DataBridge extends Thread {
 			saveData();
 			
 		} else if (version < 3.0) {
-			Console.warn("");
-			Console.warn("This tempfly version has a new data management system, (data.yml) will be backed for your safety.");
-			Console.warn("");
+			Console.warn("", "This tempfly version has a new data management system, (data.yml) will be backed for your safety.", "");
 			if (!backupLegacyData("update_3_backup_")) {
 				Bukkit.getPluginManager().disablePlugin(plugin);
 				return;
@@ -148,48 +148,24 @@ public class DataBridge extends Thread {
 		try {
 			data.save(f);
 		} catch (Exception e) {
-			Console.severe(U.cc("&c-----------------------------------"));
-			Console.severe("There was an error while trying to backup the data file");
-			Console.severe("For your safety the plugin will disable. Please contact the tempfly developer.");
+			Console.severe("-----------------------------------", "There was an error while trying to backup the data file", "For your safety the plugin will disable. Please contact the tempfly developer.");
 			e.printStackTrace();
 			return false;
 		}
 		return true;
 	}
 	
-	private void saveData() {
-		try { data.save(dataf); } catch (Exception e) { e.printStackTrace(); };
-	}
 	
-	public void initializeHookData(TempFlyHook hook, TempFly plugin, DataTable table) throws IOException, InvalidConfigurationException, SQLException {
-		HookType hookType = hook.getHookType();
-		String target = hook.getHookedPlugin();
-		if (connection == null) {
-			File hookDataf = new File(hookType.getGenre().getDirectory(), target + "_data.yml");
-		    if (!hookDataf.exists()) {
-		    	hookDataf.getParentFile().mkdirs();
-		    	hookDataf.createNewFile();
-		    }
-		    FileConfiguration hookData = new YamlConfiguration();
-		    hookData.load(hookDataf);	
-		} else {
-			/**
-			DatabaseMetaData meta = connection.getMetaData();
-			ResultSet results = meta.getTables(null, null, table.getSqlTable(), null);
-			if (!results.next()) {
-				PreparedStatement statement = connection.prepareStatement("create table if not exists " + table.getSqlTable());
-				statement.executeQuery();
-			}
-			*/
-		}
+	public synchronized void stageChange(DataPointer pointer, Object data) {
+		stageChange(pointer, data, null);
 	}
-	
+ 	
 	/**
 	 * Stage a change to be sent to the database later.
 	 * @param pointer The type and path of the data
 	 * @param data the data.
 	 */
-	public synchronized void stageChange(DataPointer pointer, Object data) {
+	public synchronized void stageChange(DataPointer pointer, Object data, DataFileHolder fileHolder) {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
 		if (V.debug) {
@@ -201,7 +177,7 @@ public class DataBridge extends Thread {
 				changes.remove(change);
 			}
 		}
-		changes.add(new StagedChange(value, data, path));
+		changes.add(new StagedChange(value, data, path, fileHolder));
 		Console.debug("-----------End of stage-----------");
 	}
 
@@ -235,12 +211,10 @@ public class DataBridge extends Thread {
 	
 	/**
 	 * Commit all changes to the database or yaml if applicable.
-	 * Adds all the stagedchanges to the manual batch and runs the async batch collector.
+	 * Adds all the staged changes to the manual batch and runs the async batch collector.
 	 */
 	public void commitAll() {
-		Console.debug("");
-		Console.debug("--------> DataBridge Commit <--------");
-		Console.debug("--|>> Adding (ALL) changes to the commit queue");
+		Console.debug("", "--------> DataBridge Commit <--------", "--|>> Adding (ALL) changes to the commit queue");
 		synchronized (this) {
 			manualCommit.clear();
 			for (StagedChange change: changes) {
@@ -275,16 +249,13 @@ public class DataBridge extends Thread {
 	private void executeCommit() {
 		List<StagedChange> commit = new ArrayList<>();
 		synchronized (this) {
-			if (V.debug) {
-			Console.debug(""); Console.debug("-|>>>>> Preparing to execute the commit queue");
-			}
+			if (V.debug) {Console.debug("", "-|>>>>> Preparing to execute the commit queue");}
 			Iterator<DataPointer> itPointer = manualCommit.iterator();
+			
 			pointers:
 			while (itPointer.hasNext()) {
 				DataPointer pointer = itPointer.next();
- 				if (V.debug) {
- 					Console.debug(""); Console.debug("--| Looking for data type:" + pointer.getValue().toString()); Console.debug("--| Path:" + U.arrayToString(pointer.getPath(), " | "));
- 				}
+ 				if (V.debug) {Console.debug("", "--| Looking for data type:" + pointer.getValue().toString(), "--| Path:" + U.arrayToString(pointer.getPath(), " | "));}
 	 			for (StagedChange change: changes) {
 	 				if (change.isDuplicate(pointer)) {
 						Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
@@ -298,17 +269,25 @@ public class DataBridge extends Thread {
 			manualCommit.clear();
 		}
 		
-		if (commit.size() == 0 && V.debug) {Console.debug(">>>>> No changes to save..."); Console.debug("-----------End commit---------"); Console.debug("");
+		if (commit.size() == 0 && V.debug) { Console.debug(">>>>> No changes to save...", "-----------End commit---------", "");
 			return;
 		}
 		
-		if (V.debug) Console.debug("Preparing to set value for (" + String.valueOf(commit.size()) + ") change" + (commit.size() > 1 ? "s" : "") + " found...");
+		if (V.debug) { Console.debug("Preparing to set value for (" + String.valueOf(commit.size()) + ") change" + (commit.size() > 1 ? "s" : "") + " found...");}
+		List<DataFileHolder> altered = new ArrayList<>();
 		for (StagedChange change: commit) {
+			DataFileHolder holder = change.getValue().getTable().getDataFileHolder(tempfly);
+			if (!altered.contains(holder)) {
+				altered.add(holder);
+			}
 			setValue(change);
-			saveData();
 		}
-		Console.debug("-----------End commit---------");
-		Console.debug("");
+		if (connection == null) {
+			for (DataFileHolder holder: altered) {
+				holder.saveData();
+			}
+		}
+		Console.debug("-----------End commit---------", "");
 	}
 	
 	/**
@@ -340,9 +319,7 @@ public class DataBridge extends Thread {
 	public Object getValue(DataPointer pointer) {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
-		if (V.debug) {
-			Console.debug(""); Console.debug("-----Data Bridge Get Value-----"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | "));	
-		}
+		if (V.debug) {Console.debug("", "-----Data Bridge Get Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(pointer.getPath(), " | "));	}
 		synchronized (this) {
 			Console.debug("--| Iterating local staged changes");
 			for (StagedChange change: changes) {
@@ -365,7 +342,7 @@ public class DataBridge extends Thread {
 				}
 				index++;
 			}
-			return value.getTable().getYaml().get(sb.toString());
+			return value.getTable().getDataFileHolder(tempfly).getDataConfiguration().get(sb.toString());
 		} else {
 			Console.debug("--| Using SQL");
 			//TODO sql
@@ -375,10 +352,12 @@ public class DataBridge extends Thread {
 	
 	public Object getOrDefault(DataPointer pointer, Object def) {
 		Object object = getValue(pointer);
-		if (V.debug) {
-			Console.debug(""); Console.debug("-----Data Bridge Get or Default Value-----"); Console.debug("--|> Got: " + object); Console.debug("--|> Returning: " + String.valueOf(object == null ? def : object));
-		}
+		if (V.debug) {Console.debug("", "-----Data Bridge Get or Default Value-----", "--|> Got: " + object, "--|> Returning: " + String.valueOf(object == null ? def : object));}
 		return object == null ? def : object;
+	}
+	
+	public Map<String, Object> getValues(DataTable table, String yamlPathTo, String row, String... extra) {
+		return getValues(table, null, yamlPathTo, row, extra);
 	}
 	
 	/**
@@ -388,14 +367,16 @@ public class DataBridge extends Thread {
 	 * @param row
 	 * @return
 	 */
-	public Map<String, Object> getValues(DataTable table, String column, String row) {
+	public Map<String, Object> getValues(DataTable table, DataFileHolder fileHolder, String yamlPathTo, String row, String... extra) {
 		Map<String, Object> values = new HashMap<>();
 		if (connection == null) {
-			FileConfiguration df = table.getYaml();
+			FileConfiguration df = fileHolder == null ?
+					table.getDataFileHolder(tempfly).getDataConfiguration() : fileHolder.getDataConfiguration();
 			try {
-				ConfigurationSection csValues = df.getConfigurationSection(column + "." + row);
+				String path = yamlPathTo + "." + row + "." + U.arrayToString(extra, ".");
+				ConfigurationSection csValues = df.getConfigurationSection(path);
 				for (String key: csValues.getKeys(false)) {
-					values.put(key, df.getObject(row + "." + key, Object.class));
+					values.put(key, df.get(path + "." + key));
 				}	
 			} catch (NullPointerException e) {}
 		} else {
@@ -433,9 +414,7 @@ public class DataBridge extends Thread {
 	public void setValue(StagedChange change) {
 		DataValue value = change.getValue();
 		String[] path = change.getPath();
-		if (V.debug) {
-			Console.debug(""); Console.debug("-----Data Bridge Set Value-----"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(path, " | "));	
-		}
+		if (V.debug) {Console.debug("", "-----Data Bridge Set Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(path, " | "));	}
 		if (connection == null) {
 			int index = 0;
 			StringBuilder sb = new StringBuilder();
@@ -446,11 +425,10 @@ public class DataBridge extends Thread {
 				}
 				index++;
 			}
-			if (V.debug) {
-				Console.debug("--| Setting yaml value: " + sb.toString());
-				Console.debug("--| New data: " + String.valueOf(change.getData()));
-			}
-			FileConfiguration yaml = value.getTable().getYaml();
+			if (V.debug) {Console.debug("--| Setting yaml value: " + sb.toString(), "--| New data: " + String.valueOf(change.getData()));}
+			FileConfiguration yaml = change.getFileHolder() == null ?
+					value.getTable().getDataFileHolder(tempfly).getDataConfiguration()
+					: change.getFileHolder().getDataConfiguration();
 			if (!yaml.contains(sb.toString())) {
 				yaml.createSection(sb.toString());
 			}
@@ -465,34 +443,21 @@ public class DataBridge extends Thread {
 		TEMPFLY_DATA,
 		ISLAND_SETTINGS;
 		
-		public FileConfiguration getYaml() {
+		public DataFileHolder getDataFileHolder(TempFly tempfly) {
 			switch (this) {
 			case TEMPFLY_DATA:
-				return data;
+				return tempfly.getDataBridge();
 			case ISLAND_SETTINGS:
-				for (Entry<HookType, FileConfiguration> entry: hookData.entrySet()) {
-					if (entry.getKey().getGenre() == Genre.SKYBLOCK) {
-						return entry.getValue();
-					}
+				HookManager hooks = tempfly.getHookManager();
+				TempFlyHook[] hook;
+				if ((hook = hooks.getGenre(Genre.SKYBLOCK)) != null && hook.length > 0) {
+					return (DataFileHolder) hook[0];
 				}
+				break;
 			default:
 				return null;
 			}
-		}
-		
-		public File getFile() {
-			switch (this) {
-			case TEMPFLY_DATA:
-				return dataf;
-			case ISLAND_SETTINGS:
-				for (Entry<HookType, File> entry: hookFiles.entrySet()) {
-					if (entry.getKey().getGenre() == Genre.SKYBLOCK) {
-						return entry.getValue();
-					}
-				}
-			default:
-				return null;
-			}
+			return null;
 		}
 		
 		public String getSqlTable() {
@@ -546,7 +511,7 @@ public class DataBridge extends Thread {
 				DataTable.ISLAND_SETTINGS,
 				Boolean.TYPE,
 				null,
-				null,
+				new String[] {"islands", "settings"},
 				true);
 		
 		private DataTable table;
@@ -591,17 +556,23 @@ public class DataBridge extends Thread {
 		DataValue value;
 		String[] path;
 		Object data;
+		DataFileHolder fileHolder;
 		
-		public StagedChange(DataValue value, Object data, String[] path) {
+		public StagedChange(DataValue value, Object data, String[] path, DataFileHolder fileHolder) {
 			this.value = value;
 			this.path = path;
 			this.data = data;
+			this.fileHolder = fileHolder;
 		}
 
 		public DataPointer getPointer() {
 			return DataPointer.of(value, path);
 		}
 
+		public DataFileHolder getFileHolder() {
+			return fileHolder;
+		}
+		
 		public DataValue getValue() {
 			return value;
 		}
@@ -647,6 +618,31 @@ public class DataBridge extends Thread {
 			}
 			return true;
 		}
+	}
+
+	@Override
+	public File getDataFile() {
+		return dataf;
+	}
+
+	@Override
+	public FileConfiguration getDataConfiguration() {
+		return data;
+	}
+
+	@Override
+	public void setDataFile(File file) {
+		this.dataf = file;
+	}
+
+	@Override
+	public void setDataConfiguration(FileConfiguration data) {
+		this.data = data;
+	}
+	
+	@Override
+	public void saveData() {
+		try { data.save(dataf); } catch (Exception e) {e.printStackTrace();}
 	}
 
 }

@@ -17,10 +17,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.gui.GuiSession;
-import com.moneybags.tempfly.hook.HookManager.HookType;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
-import com.moneybags.tempfly.hook.skyblock.PageIslandSettings;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
@@ -40,16 +37,17 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	private ASkyBlock asky;
 	
 	public AskyblockHook(TempFly plugin) {
-		super(HookType.ASKYBLOCK, plugin);
-		if (!super.isEnabled()) {
-			return;
-		}
-		this.api = ASkyBlockAPI.getInstance();
-		this.asky = (ASkyBlock) Bukkit.getPluginManager().getPlugin("ASkyBlock");
-		plugin.getServer().getPluginManager().registerEvents(this, plugin);
+		super(plugin);
 	}
 	
-	
+	@Override
+	public boolean initializeHook() {
+		super.initializeHook();
+		this.api = ASkyBlockAPI.getInstance();
+		this.asky = (ASkyBlock) Bukkit.getPluginManager().getPlugin("ASkyBlock");
+		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
+		return true;
+	}
 	
 	/**
 	 * 
@@ -93,7 +91,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		}
 		ItemStack clicked = e.getCurrentItem();
 		if (getSettingsButton().isSimilar(clicked)) {
-			new PageIslandSettings(GuiSession.newGuiSession(p));
+			openIslandSettings(p);
 		}
 	}
 
@@ -163,6 +161,18 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	}
 	
 	
+	/**
+	 * 
+	 * TempFlyHook Inheritance
+	 * 
+	 */
+	
+
+	@Override
+	public String getPluginName() {
+		return "ASkyBlock";
+	}
+	
 	
 	/**
 	 * 
@@ -170,6 +180,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	 * 
 	 */
 
+	
 	@Override
 	public IslandWrapper getIslandOwnedBy(UUID id) {
 		return getIslandWrapper(api.getIslandOwnedBy(id));
@@ -238,12 +249,12 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	}
 
 	@Override
-	public long getIslandLevel(UUID u) {
+	public double getIslandLevel(UUID u) {
 		return api.getLongIslandLevel(u);
 	}
 
 	@Override
-	public long getIslandLevel(IslandWrapper island) {
+	public double getIslandLevel(IslandWrapper island) {
 		return api.getLongIslandLevel(getIslandOwner(island));
 	}
 
@@ -268,8 +279,6 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		List<UUID> members = ((Island) island.getIsland()).getMembers();
 		return members.toArray(new UUID[members.size()]);
 	}
-
-
 
 	@Override
 	public String[] getRoles() {

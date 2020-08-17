@@ -20,10 +20,11 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
+import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.TempFlyHook;
-import com.moneybags.tempfly.hook.HookManager.HookType;
+import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.CompatMaterial;
@@ -32,16 +33,17 @@ import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
 /**
- * SkyblockHook is an abstract class that represents an object who's purpose is to introduce
+ * SkyblockHook is a class that represents an object who's purpose is to introduce
  * flight requirements centered around a skyblock plugin. The logic, config, data and requirements
- * are all taken care of automatically for you, all you need to do is extend the class, fill in the
- * required methods and register your hook in the HookManager, then it just works. You can still override
- * the methods here if you need to add more content to your hook. just dont forget to call the super method.
- * @author Kevin
+ * are all taken care of for you. simply extend the class and do the following;
+ * 
+ * 1) Fill in the abstract methods introduced by this class, do not return null unless it is otherwise specified you may do so.
+ * 2) Invoke the super methods onIslandEnter and onIslandExit when players enter and leave islands.
+ * 3) Profit?
  */
 public abstract class SkyblockHook extends TempFlyHook {
 
-	private Map<String, Boolean> basePerms = new HashMap<>();
+	private Map<String, Boolean> basePerms;
 	private boolean wilderness, settingsHook;
 	private ItemStack settingsButton;
 	public String
@@ -53,15 +55,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	
 	
-	private Map<SkyblockRequirementType, SkyblockRequirement[]> requirements = new HashMap<>();
+	private Map<SkyblockRequirementType, SkyblockRequirement[]> requirements;
 	
-	public SkyblockHook(HookType hookType, TempFly plugin) {
-		super(hookType, plugin);
-		if (!super.isEnabled()) {
-			return;
-		}
-		loadValues();
-		PageIslandSettings.initialize(this);
+	public SkyblockHook(TempFly plugin) {
+		super(plugin);
 	}
 	
 	@Override
@@ -73,11 +70,27 @@ public abstract class SkyblockHook extends TempFlyHook {
 		}
 	}
 	
+	@Override
+	public boolean initializeFiles() throws Exception {
+		if (!super.initializeFiles()) {
+			return false;
+		}
+		//tempfly.getDataBridge().initializeHookData(this, DataTable.ISLAND_SETTINGS);
+		return true;
+	}
+	
+	@Override
+	public boolean initializeHook() {
+		loadValues();
+		return true;
+	}
+	
 	
 	public void loadValues() {
 		Console.debug("", "----Loading Skyblock Settings----");
 		FileConfiguration config = getConfig();
-		
+		basePerms = new HashMap<>();
+		requirements = new HashMap<>();
 		this.wilderness = config.getBoolean("flight_settings.wilderness");
 		String pathPerms = "flight_settings.base_permissions";
 		ConfigurationSection csPerms = config.getConfigurationSection(pathPerms);
@@ -87,7 +100,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			}	
 		}
 		
-		String name = getHookType().getConfigName();
+		String name = getConfigName();
 		requireIsland			= V.st(config, "language.invalid.island", name);
 		requireChallengeSelf	= V.st(config, "language.requirements.challenge_self", name);
 		requireChallengeOther	= V.st(config, "language.requirements.challenge_other", name);
@@ -161,6 +174,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			}
 		}
 		Console.debug("----END Skyblock Settings----", "");
+		PageIslandSettings.initialize(this);
 	}
 	
 	/**
@@ -246,8 +260,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		Console.debug(wrapperCache);
 		IslandWrapper wrapper;
 		if (!wrapperCache.containsKey(getIslandIdentifier(rawIsland))) {
-			
-			wrapper = new IslandWrapper(getHookType(), rawIsland, this);
+			wrapper = new IslandWrapper(rawIsland, this);
 			wrapperCache.put(getIslandIdentifier(rawIsland), wrapper);
 		} else {
 			 wrapper = wrapperCache.get(getIslandIdentifier(rawIsland));
@@ -288,7 +301,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		IslandWrapper island = getIslandWrapper(rawIsland);
 		if (V.debug) {
-			Console.debug("Island: " + getIslandIdentifier(island), "------ End Island Enter ------", "");
+			Console.debug("Island: " + getIslandIdentifier(rawIsland), "------ End Island Enter ------", "");
 		}
 		
 		locationCache.put(p, island);
@@ -557,16 +570,6 @@ public abstract class SkyblockHook extends TempFlyHook {
 		return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
 	
-	/**
-	@Override
-	public FlightResult handleFlightInquiry(FlightUser user, Location loc) {
-		if (!isEnabled() || loc == null) {
-			return new ResultAllow(this, InquiryType.LOCATION, V.requirePassDefault);
-		}
-		return checkFlightRequirements(user.getPlayer().getUniqueId(), loc).setInquiryType(InquiryType.LOCATION);
-	}
-	*/
-	
 	@Override
 	public boolean handles(InquiryType type) {
 		switch (type) {
@@ -578,6 +581,41 @@ public abstract class SkyblockHook extends TempFlyHook {
 			return false;
 		}
 	}
+	
+	
+	public void openIslandSettings(Player p) {
+		new PageIslandSettings(GuiSession.newGuiSession(p));
+	}
+	
+	
+	/**
+	 * 
+	 * TempFlyHook Inheritance
+	 * 
+	 */
+	
+	@Override
+	public String getEmbeddedConfigName() {
+		return "skyblock_config";
+	}
+	
+	@Override
+	public Genre getGenre() {
+		return Genre.SKYBLOCK;
+	}
+	
+	@Override
+	public String getConfigName() {
+		return getPluginName();
+	}
+	
+	
+	/**
+	 * 
+	 * Abstract
+	 * 
+	 */
+	
 	
 	/**
 	 * @param island The island in question.
@@ -677,14 +715,14 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @param owner The player who's island is to be checked
 	 * @return The island level of the player.
 	 */
-	public abstract long getIslandLevel(UUID p);
+	public abstract double getIslandLevel(UUID p);
 	
 	/**
 	 * 
 	 * @param island The island to be checked
 	 * @return the island level
 	 */
-	public abstract long getIslandLevel(IslandWrapper island);
+	public abstract double getIslandLevel(IslandWrapper island);
 
 	/**
 	 * Return all the base roles of the skyblock plugin, for instance; OWNER, TEAM, VISITOR...

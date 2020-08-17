@@ -1,19 +1,16 @@
 package com.moneybags.tempfly.hook.region;
 
-import org.bukkit.World;
 import org.bukkit.util.Vector;
 
 public class CompatRegion {
 
 	private String id;
 	private Vector min, max;
-	private World world;
 	
-	public CompatRegion(String id, Vector min, Vector max, World world) {
+	public CompatRegion(String id, Vector min, Vector max) {
 		this.id = id;
 		this.min = min;
 		this.max = max;
-		this.world = world;
 	}
 
 	public CompatRegion(String id) {
@@ -34,16 +31,11 @@ public class CompatRegion {
 		return max;
 	}
 	
-	public World getWorld() {
-		return world;
-	}
-	
 	@Override
 	public boolean equals(Object o) {
 		return (o instanceof CompatRegion) && super.equals(o)
 				|| ((CompatRegion)o).getId().equals(id)
 				&& this.min.equals(((CompatRegion)o).getMin())
-				&& this.max.equals(((CompatRegion)o).getMax())
-				&& this.world.equals(((CompatRegion)o).getWorld()); 
+				&& this.max.equals(((CompatRegion)o).getMax()); 
 	}
 }
