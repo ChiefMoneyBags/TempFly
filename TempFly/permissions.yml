@@ -97,6 +97,14 @@ tempfly.trails.remove.other:
 tempfly.trail.[particle]: 
   desc: Gives user access to use individual trails
 
-tempfly.askyblock.panel:
-  desc: Allows island owners to adjust fly settings
+
+#-----------------#
+# Hook permissions
+#-----------------#
+
+
+tempfly.skyblock.island.settings:
+  desc:
+    - Allows island owners to adjust fly settings for skyblock plugins.
+    - Select hooks will implement this functionality directly into the island protection panel.
   command: /tf settings               
