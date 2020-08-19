@@ -84,12 +84,14 @@ general:
     # If true players can send eachother time as if it were a currency.
     payable: true
     # The maximum time in seconds a player is allowed to have. -1 for no limit.
+    # If you want one global max use this setting.
+    max_time: -1
+    # If you want permission groups remove the above setting and enable the one below.
     # The permission is "tempfly.max.{group}"
-    # For one global max you can just do-
-    # max_time: {time}
-    max_time:
-      member: -1
-      vip: -1
+
+    # max_time:
+    #   member: -1
+    #   vip: -1
   
   bonus:
     # Time in seconds given to a player when they first join the server.
