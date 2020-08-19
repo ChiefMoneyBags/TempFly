@@ -37,7 +37,7 @@ system:
   # Connect to an sql database for storage.
   # This will disable yaml data storage.
 
-  # DO NOT ENABLE SQL IT IS NOT READY IN THIS BETA VERSION
+  # DO NOT ENABLE SQL IT IS NOT READY IN THIS BETA VERSION, It wont save your data.
   sql:
     enabled: false
     host: "127.0.0.1"
@@ -47,7 +47,8 @@ system:
 
 general:
   # This feature prevents conflictions with other plugins fly features.
-  # If the player has a permission listed below tempfly will not override the command /fly
+  # By default tempfly will steal priority and take the command /fly away from other plugins.
+  # If the player has a permission listed below tempfly will not override the command /fly for them.
   fly_override_permissions:
     - 'essentials.fly'
   
@@ -189,7 +190,7 @@ aesthetic:
     enabled: true
     text: "&6Flight meter&7: {FORMATTED_TIME}"
 
-# Oddball features and things many people wont use can be found here.
+# Oddball features and things many people probably wont use can be found here.
 other:
   # relative time is a feature that lets you control how fast time will be used in worlds and regions.
   # this can be useful for many things, for example, making time move slower on larger planets on a space themed server due to higher gravity
