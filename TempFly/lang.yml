@@ -38,13 +38,15 @@ general:
     zone_self: "{PREFIX} &cYou cannot use tempfly here!"
     zone_other: "{PRFIX} &f{PLAYER} &ccannot currently use tempfly!"
     funds: "{PREFIX} &cThis costs &f{COST}&c! You do not have enough money!"
+    vault_perms: "{PREFIX} &cYou must install the plugin (&fvault&c) for the ability to set offline player time!"
     
   time:
     format: "&f{QUANTITY}&f{UNIT}"
     given_other: "{PREFIX} &f{PLAYER} &agot {FORMATTED_TIME}&a."
+    given_all: "{PREFIX} &aYou gave &fALL &aplayers {FORMATTED_TIME}&a."
     given_self: "{PREFIX} &aYou recieved {FORMATTED_TIME}&a."
     removed_other: "{PREFIX} &f{PLAYER} &clost {FORMATTED_TIME}&c."
-    removed_self: "{PREFIX} &cYou lost &f{DAYS}d, {FORMATTED_TIME}&c."
+    removed_self: "{PREFIX} &cYou lost {FORMATTED_TIME}&c."
     sent_other: "{PREFIX} &aYou sent &f{PLAYER}&a {FORMATTED_TIME}&a."
     sent_self: "{PREFIX} &f{PLAYER} &asent you {FORMATTED_TIME}&a."
     set_other: "{PREFIX} &f{PLAYER} &ahad their time set to {FORMATTED_TIME}&a."

@@ -3,7 +3,12 @@ package com.moneybags.tempfly.time;
 import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
+
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,6 +23,9 @@ import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
 import com.moneybags.tempfly.util.data.DataPointer;
+
+import net.milkbowl.vault.permission.Permission;
+
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class TimeManager implements Listener {
@@ -81,12 +89,16 @@ public class TimeManager implements Listener {
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
+		double maxTime = getMaxTime(u);
+		if (maxTime == -999) {
+			return;
+		}
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
 		double bal = user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
 		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
-		if (V.maxTime > -1 && remaining > V.maxTime) {
-			remaining = V.maxTime;
+		if (maxTime > -1 && remaining > maxTime) {
+			remaining = maxTime;
 		}
 		
 		if (user != null) {
@@ -109,8 +121,12 @@ public class TimeManager implements Listener {
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
 		DataBridge bridge = tempfly.getDataBridge();
-		if (V.maxTime > -1 && seconds > V.maxTime) {
-			seconds = V.maxTime;
+		double maxTime = getMaxTime(u);
+		if (maxTime == -999) {
+			return;
+		}
+		if (maxTime > -1 && seconds > maxTime) {
+			seconds = maxTime;
 		}
 		
 		if (user != null) {
@@ -119,6 +135,52 @@ public class TimeManager implements Listener {
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), seconds);
 		}
 	}
+	
+	
+	public double getMaxTime(UUID u) {
+		if (V.useLegacyMaxTime) {
+			return V.legacyMaxTime;
+		}
+		Player p = Bukkit.getPlayer(u);
+		double highest = 0;
+		if (p != null && p.isOnline()) {
+			for (Entry<String, Double> group: V.maxTimeGroups.entrySet()) {
+				double current = group.getValue();
+				// If the group is less than the highest found so far continue.
+				if (current < highest && current > -1) {
+					continue;
+				}
+				if (p.hasPermission("tempfly.max_time." + group.getKey())) {
+					if (current == -1) {
+						return current;
+					} else {
+						highest = current;
+					}
+				}
+			}
+		} else {
+			if (!tempfly.getHookManager().hasPermissions()) {
+				return -999;
+			}
+			OfflinePlayer op = Bukkit.getOfflinePlayer(u);
+			Permission perms = tempfly.getHookManager().getPermissions();
+			for (Entry<String, Double> group: V.maxTimeGroups.entrySet()) {
+				double current = group.getValue();
+				if (current < highest && current > -1) {
+					continue;
+				}
+				if (perms.playerHas(Bukkit.getWorlds().get(0).getName(), op, "tempfly.max_time." + group.getKey())) {
+					if (current == -1) {
+						return current;
+					} else {
+						highest = current;
+					}
+				}
+			}
+		}
+		return highest;
+	}
+	
 	
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void on(PlayerJoinEvent e) {
@@ -134,22 +196,26 @@ public class TimeManager implements Listener {
 			}
 		}
 		
+		double maxTime = getMaxTime(p.getUniqueId());
+		if (maxTime == -999) {
+			return;
+		}
 		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
 			double currentTime = getTime(p.getUniqueId());
-			double bonus = V.maxTime > -1 && ((currentTime + V.firstJoinTime) > V.maxTime) ? V.maxTime - currentTime : V.firstJoinTime;
+			double bonus = maxTime > -1 && ((currentTime + V.firstJoinTime) > maxTime) ? maxTime - currentTime : V.firstJoinTime;
 			if (bonus > 0) {
 				addTime(p.getUniqueId(), bonus);
 				U.m(p, regexString(V.firstJoin, bonus));
 			}
 		}
-		loginBonus(p);
+		loginBonus(p, maxTime);
 	}
 	
 	/**
 	 * Run the daily login bonus on a player.
 	 * @param p
 	 */
-	public void loginBonus(Player p) {
+	public void loginBonus(Player p, double maxTime) {
 		DataBridge bridge = tempfly.getDataBridge();
 		long lastBonus = (long) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), 0L);
 		long sys = System.currentTimeMillis();
@@ -161,7 +227,7 @@ public class TimeManager implements Listener {
 		double currentTime = getTime(p.getUniqueId());
 		double bonus = 0;
 		if (V.legacyBonus > 0) {
-			bonus = V.maxTime > -1 && ((currentTime + V.legacyBonus) > V.maxTime) ? V.maxTime - currentTime : V.legacyBonus;
+			bonus = maxTime > -1 && ((currentTime + V.legacyBonus) > maxTime) ? maxTime - currentTime : V.legacyBonus;
 			if (bonus > 0) {
 				addTime(p.getUniqueId(), bonus);
 				U.m(p, regexString(V.dailyLogin, bonus));
@@ -173,7 +239,7 @@ public class TimeManager implements Listener {
 					bonus += entry.getValue();
 				}
 			}
-			bonus = V.maxTime > -1 && ((currentTime + bonus) > V.maxTime) ? V.maxTime - currentTime : bonus;
+			bonus = maxTime > -1 && ((currentTime + bonus) > maxTime) ? maxTime - currentTime : bonus;
 			if (bonus > 0) {
 				addTime(p.getUniqueId(), bonus);
 				U.m(p, regexString(V.dailyLogin, bonus));

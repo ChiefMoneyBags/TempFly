@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.Nullable;
 
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.Files.C;
@@ -94,7 +95,9 @@ public class V {
 	actionText,
 	
 	trailRemovedSelf,
-	trailRemovedOther;
+	trailRemovedOther,
+	
+	vaultPermsRequired;
 
 	public static boolean
 	debug,
@@ -123,7 +126,8 @@ public class V {
 	timeDecay,
 	flightToggle,
 	hideVanish,
-	shop;
+	shop,
+	useLegacyMaxTime;
 	
 	public static int
 	idleThreshold,
@@ -134,26 +138,36 @@ public class V {
 	decayThresh;
 	
 	public static double
-	maxTime,
+	legacyMaxTime,
 	firstJoinTime,
 	legacyBonus,
 	decayAmount,
 	defaultSpeed;
 	
 	public static List<String>
-	help = new ArrayList<>(),
-	helpExtended = new ArrayList<>(),
-	disabledWorlds = new ArrayList<>(),
-	disabledRegions = new ArrayList<>(),
-	overrideFlightPermissions = new ArrayList<>();
+	help,
+	helpExtended,
+	disabledWorlds,
+	disabledRegions,
+	overrideFlightPermissions;
 	
 	public static List<Long> 
 	warningTimes;
 	
 	public static Map<String, Double>
-	dailyBonus = new HashMap<>();
+	dailyBonus,
+	maxTimeGroups;
 
 	public static void loadValues() {
+		dailyBonus 			= new HashMap<>();
+		maxTimeGroups 		= new HashMap<>();
+		
+		help 				= new ArrayList<>();
+		helpExtended 		= new ArrayList<>();
+		disabledWorlds 		= new ArrayList<>();
+		disabledRegions 	= new ArrayList<>();
+		overrideFlightPermissions = new ArrayList<>();
+		
 		FileConfiguration config = Files.config;
 		
 		prefix 				= st(C.LANG, "system.prefix");
@@ -169,6 +183,7 @@ public class V {
 		invalidReciever		= st(C.LANG, "general.invalid.reciever");
 		invalidFlyerSelf	= st(C.LANG, "general.invalid.flyer_self");
 		invalidFunds		= st(C.LANG, "general.invalid.funds");
+		vaultPermsRequired  = st(C.LANG, "general.invalid.vault_perms");
 		
 		timeGivenOther		= st(C.LANG, "general.time.given_other");
 		timeGivenSelf		= st(C.LANG, "general.time.given_self");
@@ -279,7 +294,6 @@ public class V {
 		idleDrop			= config.getBoolean("general.idle.drop_player");
 		idleThreshold 		= config.getInt("general.idle.threshold");
 		payable				= config.getBoolean("general.time.payable");
-		maxTime				= config.getDouble("general.time.max_time");
 		save 				= config.getInt("system.backup", 5);
 		particles			= config.getBoolean("aesthetic.identifier.particles.enabled");
 		particleType		= config.getString("aesthetic.identifier.particles.type", "VILLAGER_HAPPY");
@@ -310,14 +324,13 @@ public class V {
 		damageTime			= config.getBoolean("general.damage.out_of_time");
 		damageCombat		= config.getBoolean("general.damage.combat");
 		damageIdle			= config.getBoolean("general.damage.idle");
-		damageWorld		= config.getBoolean("general.damage.disabled_world");
+		damageWorld			= config.getBoolean("general.damage.disabled_world");
 		damageRegion		= config.getBoolean("general.damage.disabled_region");
 		
 		actionBar			= config.getBoolean("aesthetic.action_bar.enabled");
 		
 		double legacyBonus 	= config.getDouble("general.bonus.daily_login");
 		if (legacyBonus == 0) {
-			
 			ConfigurationSection csPerms = config.getConfigurationSection("general.bonus.daily_login");
 			if (csPerms != null) {
 				for (String key: csPerms.getKeys(false)) {
@@ -326,7 +339,15 @@ public class V {
 						dailyBonus.put(key, value);
 					}
 				}
-			}	
+			}
+		}
+		ConfigurationSection csMax = config.getConfigurationSection("general.time.max_time");
+		useLegacyMaxTime = csMax == null || csMax.getKeys(false).size() == 0;
+		legacyMaxTime = useLegacyMaxTime ? config.getDouble("general.time.max_time") : 0;
+		if (!useLegacyMaxTime) {
+			for (String s: csMax.getKeys(false)) {
+				maxTimeGroups.put(s, config.getDouble("general.time.max_time." + s));
+			}
 		}
 	}
 	

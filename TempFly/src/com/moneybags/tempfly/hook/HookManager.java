@@ -19,13 +19,15 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Reloadable;
 
 import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 
 public class HookManager implements Reloadable {
 	
 	public static final Class<?>[] REGIONS = new Class<?>[] {WorldGuardHook.class};
 	
 	private TempFly plugin;
-	private Economy eco;
+	private Economy eco = null;
+	private Permission perms = null;
 	private RegionProvider regions;
 	
 	private Map<Genre, List<TempFlyHook>> hooks = new HashMap<>();
@@ -34,7 +36,9 @@ public class HookManager implements Reloadable {
 		this.plugin = plugin;
 		
 		loadRegionProvider();
-		setupEconomy();
+		if (setupEconomy()) {
+			setupPermissions();
+		}
 	}
 	
 	public boolean registerHook(TempFlyHook hook)  {
@@ -101,6 +105,10 @@ public class HookManager implements Reloadable {
     public RegionProvider getRegionProvider() {
     	return regions;
     }
+    
+    public boolean hasPermissions() {
+    	return perms != null;
+    }
 	
     private boolean setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -112,6 +120,12 @@ public class HookManager implements Reloadable {
         }
         eco = rsp.getProvider();
         return eco != null;
+    }
+    
+    private boolean setupPermissions() {
+        RegisteredServiceProvider<Permission> rsp = plugin.getServer().getServicesManager().getRegistration(Permission.class);
+        perms = rsp.getProvider();
+        return perms != null;
     }
     
 	
@@ -128,8 +142,6 @@ public class HookManager implements Reloadable {
 		Console.debug("--------Loading Genre Hooks End--------", "");
 	}
 	
-	
-	
 	/**
 	 *
 	 * Getters
@@ -138,6 +150,10 @@ public class HookManager implements Reloadable {
 	
     public Economy getEconomy() {
     	return eco;
+    }
+    
+    public Permission getPermissions() {
+    	return perms;
     }
 	
 	public TempFlyHook getHook(String plugin) {

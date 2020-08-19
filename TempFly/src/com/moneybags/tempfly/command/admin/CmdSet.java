@@ -31,8 +31,14 @@ public class CmdSet extends TimeCommand {
 		}
 		
 		double amount = quantifyArguments(s, args, 2);
-		if ((V.maxTime > -1) && (amount > V.maxTime)) {
-			amount = V.maxTime;
+		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		if (maxTime == -999) {
+			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
+			return;
+		}
+		
+		if ((maxTime > -1) && (amount > maxTime)) {
+			amount = maxTime;
 		}
 		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();

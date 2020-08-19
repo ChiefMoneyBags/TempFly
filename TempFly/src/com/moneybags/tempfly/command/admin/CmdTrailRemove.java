@@ -47,7 +47,7 @@ public class CmdTrailRemove {
 		}
 	}
 	
-	// Invoked from the gui
+	// Invoked from the GUI because its easier this way
 	public CmdTrailRemove(Player target) {
 		removeTrail(target);
 	}

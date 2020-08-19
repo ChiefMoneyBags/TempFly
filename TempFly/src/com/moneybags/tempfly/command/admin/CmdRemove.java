@@ -33,13 +33,16 @@ public class CmdRemove extends TimeCommand {
 		if (amount == 0) {
 			return;
 		}
-		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();
-		if (p.isOnline() && manager.getTime(p.getUniqueId()) > 0) {
-			U.m((Player)p, manager.regexString(V.timeRemovedSelf, amount));
+		double time = manager.getTime(p.getUniqueId());
+		double remove = time-amount < 0 ? time : amount;
+		manager.removeTime(p.getUniqueId(), remove);
+		if (p != s) {
+			U.m(s, manager.regexString(V.timeRemovedOther, remove)
+					.replaceAll("\\{PLAYER}", p.getName()));	
 		}
-		manager.removeTime(p.getUniqueId(), amount);
-		U.m(s, manager.regexString(V.timeRemovedOther, amount)
-				.replaceAll("\\{PLAYER}", p.getName()));
+		if (p.isOnline() && time > 0) {
+			U.m((Player)p, manager.regexString(V.timeRemovedSelf, remove));
+		}
 	}
 }

@@ -54,7 +54,14 @@ public class CmdPay extends TimeCommand {
 			U.m(s, V.invalidTimeSelf);
 			return;
 		}
-		if ((V.maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= V.maxTime)) {
+		
+		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		if (maxTime == -999) {
+			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
+			return;
+		}
+		
+		if ((maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
 			return;

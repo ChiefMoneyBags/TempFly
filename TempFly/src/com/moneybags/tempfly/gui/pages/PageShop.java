@@ -103,7 +103,12 @@ public class PageShop extends DynamicPage {
 		if (layout.containsKey(slot)) {
 			Player p = session.getPlayer();
 			ShopOption option = layout.get(slot);
-			if (tempfly.getTimeManager().getTime(p.getUniqueId()) + option.getTime() > V.maxTime) {
+			double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+			if (maxTime == -999) {
+				U.m(p, "&cAn internal error occured. please contact the developer!");
+				return;
+			}
+			if (tempfly.getTimeManager().getTime(p.getUniqueId()) + option.getTime() > maxTime) {
 				U.m(p, V.timeMaxSelf);
 				return;
 			}

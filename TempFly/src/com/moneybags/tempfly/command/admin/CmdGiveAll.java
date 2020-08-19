@@ -18,19 +18,20 @@ public class CmdGiveAll extends TimeCommand {
 			return;
 		}
 		
-		double amount = quantifyArguments(s, args, 0);
+		final double amount = quantifyArguments(s, args, 1);
 		if (amount == 0) {
 			return;
 		}
-		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();
 		for (Player p: Bukkit.getOnlinePlayers()) {
-			if ((V.maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= V.maxTime)) {
-				continue;
-			}
-			manager.addTime(p.getUniqueId(), amount);
-			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount));
+			double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+			double time = manager.getTime(p.getUniqueId());
+			double amount2 = ((maxTime > -1) && (time + amount > maxTime))
+					? maxTime - time : amount;
+			manager.addTime(p.getUniqueId(), amount2);
+			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount2));
 		}
+		U.m(s, manager.regexString(V.timeGivenSelf, amount));
 	}
 	
 }

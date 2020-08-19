@@ -32,6 +32,7 @@ public class TempFlyAPI {
 	
 	/**
 	 * Set the flight time of a player in seconds.
+	 * The server must have vault installed to set flight time to an offline player
 	 * @param player Player uuid
 	 */
 	public void setFlightTime(UUID player, double seconds) {
@@ -40,6 +41,7 @@ public class TempFlyAPI {
 	
 	/**
 	 * Add flight time in seconds
+	 * The server must have vault installed to add flight time to an offline player
 	 * @param player Player uuid
 	 * @param seconds Seconds to give the player
 	 */

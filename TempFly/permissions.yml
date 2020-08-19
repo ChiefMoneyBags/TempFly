@@ -19,7 +19,7 @@ tempfly.speed.other:
   command: /tf speed [player] [speed]
 
 tempfly.speed.[speed]:
-  desc: Define the users max fly speed.
+  desc: Define the users max fly speed. goes up to 10.
 
 tempfly.time.self:
   desc: Allow user to view thier remaining time.
@@ -28,6 +28,9 @@ tempfly.time.self:
 tempfly.time.other:
   desc: Allow user to view another players remaining time.
   command: /tf time [player]
+
+tempfly.max.[time]:
+  desc: Define the users max time. The highest value will be used unless -1 is specified which is unlimited.
 
 tempfly.pay:
   desc: Allow user to pay another player time.
@@ -66,9 +69,13 @@ tempfly.shop:
   command: /tf shop
 
 tempfly.time.infinite:
-  desc: Infinite flight. This simply will not charge the player flight time for flying, it DOES NOT let them pay infinite time to other players.
+  desc:
+    - Infinite flight. This simply will not charge the player flight time for flying.
+    - However, they will still have their actual time balance stored in the background. They dont lose it.
+    - IT DOES NOT let them pay infinite time to other players.
+    - In addition it does not affect their max_time, they are completely seperate things.
 
-tempfly.bonus.{group}:
+tempfly.bonus.[group]:
   desc: Gives user the bonus defined for this group in the config daily.
 
 #  Servers using old versions of spigot will need to use the 'Effect' list for trails
@@ -87,7 +94,7 @@ tempfly.trails.remove.self:
 tempfly.trails.remove.other:
   desc: Allow user to remove another players trail.
 
-tempfly.trail.{particle}: 
+tempfly.trail.[particle]: 
   desc: Gives user access to use individual trails
 
 tempfly.askyblock.panel:

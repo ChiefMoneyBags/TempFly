@@ -34,20 +34,27 @@ public class CmdGive extends TimeCommand {
 		if (amount <= 0) {
 			return;
 		}
+		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		if (maxTime == -999) {
+			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
+			return;
+		}
 		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();
 		double currentTime = manager.getTime(p.getUniqueId());
-		if (V.maxTime > -1 && (currentTime + amount > V.maxTime)) {
+		if (maxTime > -1 && (currentTime + amount > maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
-			amount = V.maxTime - currentTime;
+			amount = maxTime - currentTime;
 			if (amount <= 0) {
 				return;
 			}
 		}
 		manager.addTime(p.getUniqueId(), amount);
-		U.m(s, manager.regexString(V.timeGivenOther, amount)
-				.replaceAll("\\{PLAYER}", p.getName()));
+		if (p != s) {
+			U.m(s, manager.regexString(V.timeGivenOther, amount)
+					.replaceAll("\\{PLAYER}", p.getName()));
+		}
 		if (p.isOnline()) {
 			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount));	
 		}
