@@ -29,8 +29,8 @@ tempfly.time.other:
   desc: Allow user to view another players remaining time.
   command: /tf time [player]
 
-tempfly.max.[time]:
-  desc: Define the users max time. The highest value will be used unless -1 is specified which is unlimited.
+tempfly.max.[group]:
+  desc: Define the users max time. These groups should be set in the config under max_time.
 
 tempfly.pay:
   desc: Allow user to pay another player time.
