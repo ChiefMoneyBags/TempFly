@@ -202,7 +202,7 @@ public class HookManager implements Reloadable {
 	 * Represents the GameMode type of a hook  
 	 */
 	public static enum Genre {
-		SKYBLOCK("SkyBlock", AskyblockHook.class, BentoHook.class, IridiumHook.class),
+		SKYBLOCK("SkyBlock", AskyblockHook.class),
 		LANDS("Lands"),
 		FACTIONS("Factions"),
 		OTHER("Other");

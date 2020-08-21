@@ -53,7 +53,8 @@ public class FlightUser {
 	
 	private boolean
 	enabled, autoEnable,
-	infinite = true;
+	infinite = true,
+	bypass = true;
 	
 	private int
 	idle = -1;
@@ -79,6 +80,7 @@ public class FlightUser {
 		this.tagName = p.getDisplayName();
 		this.particle = Particles.loadTrail(p.getUniqueId());
 		this.infinite = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, p.getUniqueId().toString()), true); 
+		this.bypass = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, p.getUniqueId().toString()), true); 
 		
 		boolean logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
 		initialTask = new BukkitRunnable() {
@@ -113,7 +115,8 @@ public class FlightUser {
 				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u.toString()),
 				DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()),
 				DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()),
-				DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()));
+				DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()),
+				DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()));
 	}
 	
 	
@@ -140,7 +143,7 @@ public class FlightUser {
 				&& p.isFlying()) {
 			if (V.actionBar) {doActionBar();}
 		}
-		if (time > 0 && autoEnable && !enabled) {
+		if (time > 0 && hasAutoFlyQueued() && !enabled) {
 			enableFlight();
 		} else if (time == 0) {
 			disableFlight(0, !V.damageTime);
@@ -169,7 +172,7 @@ public class FlightUser {
 	}
 	
 	public boolean hasAutoFlyQueued() {
-		return autoEnable;
+		return autoEnable && V.autoFly;
 	}
 	
 	public void setAutoFly(boolean auto) {
@@ -184,14 +187,52 @@ public class FlightUser {
 		return environment;
 	}
 	
+	/**
+	 * @return true if the user has infinite flight and it is enabled.
+	 */
 	public boolean hasInfiniteFlight() {
 		return p.hasPermission("tempfly.infinite") && infinite;
 	}
 	
+	/**
+	 * Set whether the user has infinite flight enabled. This has no effect if they do not have the permission tempfly.infinite
+	 * @param enable enable infinite flight?
+	 */
 	public void setInfiniteFlight(boolean enable) {
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_INFINITE, p.getUniqueId().toString()), enable);
 		this.infinite = enable;
-		if (!enable && V.actionBar && time > 0) {doActionBar();}
+		if (!enable && V.actionBar && time > 0) {
+			doActionBar();
+		} else if (!enable && time <= 0) {
+			disableFlight(0, !V.damageCommand);
+			setAutoFly(true);
+		} else if (enable && hasAutoFlyQueued()) {
+			enableFlight();
+		}
+	} 
+	
+	/**
+	 * @return true if the user has requirement bypass and it is enabled.
+	 */
+	public boolean hasRequirementBypass() {
+		return p.hasPermission("tempfly.bypass") && bypass;
+	}
+	
+	/**
+	 * Set whether the user has requirement bypass enabled. This has no effect if they do not have the permission tempfly.bypass
+	 * @param enable enable requirement bypass?
+	 */
+	public void setRequirementBypass(boolean enable) {
+		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_BYPASS, p.getUniqueId().toString()), enable);
+		this.bypass = enable;
+		if (enable && hasAutoFlyQueued()) {
+			enableFlight();
+		} else if (!enable && hasFlightEnabled() && hasFlightRequirements()) {
+			FlightResult result = getCurrentRequirement();
+			U.m(p, result.getMessage());
+			disableFlight(0, result.hasDamageProtection());
+			setAutoFly(true);
+		}
 	}
 	
 	
@@ -209,7 +250,7 @@ public class FlightUser {
 	 * Internal clean up method called when the player quits or server is reloading.
 	 */
 	public void onQuit(boolean reload) {
-		if (enabled || autoEnable) {
+		if (enabled || hasAutoFlyQueued()) {
 			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), true);
 			if (!reload) {disableFlight(-1, false);}
 		}
@@ -275,11 +316,12 @@ public class FlightUser {
 	 * @return false if the users flight can not be enabled due to flight requirements.
 	 */
 	public boolean enableFlight() {
-		if (hasFlightRequirements()) {
+		if (hasFlightRequirements() && !hasRequirementBypass()) {
 			setAutoFly(true);
 			return false;
 		}
 		if (time == 0 && !hasInfiniteFlight()) {
+			setAutoFly(true);
 			return false;
 		}
 		enabled = true;
@@ -388,6 +430,13 @@ public class FlightUser {
 		}
 	}
 	
+	public FlightResult getCurrentRequirement() {
+		if (hasFlightRequirements()) {
+			return requirements.values().iterator().next().values().iterator().next();
+		}
+		return null;
+	}
+	
 	/**
 	 * Quality of life method.
 	 * Evaluate the overall flight status of the user, checks all flight requirements present on the server.
@@ -406,7 +455,7 @@ public class FlightUser {
 		}
 		submitFlightResults(results, false);
 		if (hasFlightRequirements()) {
-			if (failMessage) {
+			if (!hasRequirementBypass() && failMessage) {
 				sendRequirementMessage();
 			}
 			return false;
@@ -449,10 +498,12 @@ public class FlightUser {
 		InquiryType type = result.getInquiryType();
 		if (!result.isAllowed()) {
 			submitFlightRequirement(provider, result);
-			if (hasFlightEnabled()) {
-				U.m(p, result.getMessage());
+			if (!hasRequirementBypass()) {
+				if (hasFlightEnabled()) {
+					U.m(p, result.getMessage());
+				}
+				disableFlight(1, result.hasDamageProtection());	
 			}
-			disableFlight(1, result.hasDamageProtection());
 			return false;
 		} else {
 			if (hasFlightRequirement(provider, type) && removeFlightRequirement(provider, type)) {
@@ -490,10 +541,12 @@ public class FlightUser {
 			}
 		}
 		if (disabled != null) {
-			if (failMessage) {
-				U.m(p, disabled.getMessage());
+			if (!hasRequirementBypass()) {
+				if (failMessage) {
+					U.m(p, disabled.getMessage());
+				}
+				disableFlight(1, disabled.hasDamageProtection());
 			}
-			disableFlight(1, disabled.hasDamageProtection());
 			return false;
 		} else if (enable != null) {
 			updateRequirements(enable.getMessage());
@@ -509,7 +562,7 @@ public class FlightUser {
 		Console.debug("", "--- updating requirements ---", "--| requirements: " + requirements.toString(),
 				"enabled: " + enabled, "auto-enable:" + autoEnable, "time: " + time);
 		
-		if (requirements.size() == 0 && !enabled && autoEnable && (time > 0 || hasInfiniteFlight())) {
+		if (requirements.size() == 0 && !enabled && hasAutoFlyQueued() && (time > 0 || hasInfiniteFlight())) {
 			Console.debug("--|> AutoFly engaged!");
 			autoEnable = false;
 			enableFlight();

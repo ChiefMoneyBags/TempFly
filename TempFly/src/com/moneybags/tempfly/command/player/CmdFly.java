@@ -90,7 +90,7 @@ public class CmdFly {
 			}
 			
 			// Requirements check 
-			if (!user.evaluateFlightRequirements(p.getLocation(), true)) {
+			if (!user.evaluateFlightRequirements(p.getLocation(), true) && !user.hasRequirementBypass()) {
 				if (!user.hasAutoFlyQueued()) {
 					user.setAutoFly(true);
 				}

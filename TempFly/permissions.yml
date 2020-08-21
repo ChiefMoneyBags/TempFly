@@ -81,6 +81,13 @@ tempfly.infinite.toggle:
 tempfly.bonus.[group]:
   desc: Gives user the bonus defined for this group in the config daily.
 
+tempfly.bypass:
+  desc: Allow the user to bypass flight requirements.
+
+tempfly.bypass.toggle:
+  desc: Allow the user to toggle their tempfly bypass.
+
+
 #  Servers using old versions of spigot will need to use the 'Effect' list for trails
 #           OLD VERSIONS = https://helpch.at/docs/1.8/org/bukkit/Effect.html           
 #                                                                                      

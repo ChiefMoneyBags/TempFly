@@ -146,9 +146,9 @@ public class TempFlyAPI {
 	 * @param enabled Toggle enabled true or false
 	 * @param fallDamage If true the player will take fall damage when their flight is toggled off.
 	 */
-	public void toggleTempfly(Player p, boolean enabled, boolean fallDamage) {
+	public void toggleTempfly(Player p, boolean enable, boolean fallDamage) {
 		FlightUser user = getUser(p);
-		if (enabled) {
+		if (enable) {
 			user.disableFlight(1, !fallDamage);
 			user.setAutoFly(false);
 		} else {

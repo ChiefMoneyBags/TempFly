@@ -68,6 +68,8 @@ public class V {
 	flyAlreadyDisabled,
 	flyInfiniteEnabled,
 	flyInfiniteDisabled,
+	flyBypassEnabled,
+	flyBypassDisabled,
 	
 	disabledIdle,
 	consideredIdle,
@@ -122,12 +124,12 @@ public class V {
 	damageWorld,
 	damageRegion,
 	
+	autoFly,
 	actionBar,
 	timeDecay,
 	flightToggle,
 	hideVanish,
-	shop,
-	useLegacyMaxTime;
+	shop;
 	
 	public static int
 	idleThreshold,
@@ -225,6 +227,8 @@ public class V {
 		flyAlreadyDisabled	= st(C.LANG, "general.fly.already_disabled");
 		flyInfiniteEnabled	= st(C.LANG, "general.fly.infinite_enabled");
 		flyInfiniteDisabled	= st(C.LANG, "general.fly.infinite_disabled");
+		flyBypassEnabled	= st(C.LANG, "general.fly.bypass_enabled");
+		flyBypassDisabled	= st(C.LANG, "general.fly.bypass_disabled");
 		
 		disabledIdle 		= st(C.LANG, "general.fly.idle_drop");
 		consideredIdle 		= st(C.LANG, "general.fly.idle");
@@ -320,6 +324,7 @@ public class V {
 		
 		defaultSpeed		= config.getDouble("general.flight.default_speed", 1);
 		maxY				= config.getInt("general.flight.maximum_height", 275);
+		autoFly			= config.getBoolean("general.flight.auto_enable", true);
 		
 		
 		damageCommand		= config.getBoolean("general.damage.on_command");

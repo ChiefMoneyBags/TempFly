@@ -18,6 +18,7 @@ import com.moneybags.tempfly.command.admin.CmdReload;
 import com.moneybags.tempfly.command.admin.CmdRemove;
 import com.moneybags.tempfly.command.admin.CmdSet;
 import com.moneybags.tempfly.command.admin.CmdTrailRemove;
+import com.moneybags.tempfly.command.player.CmdBypass;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
 import com.moneybags.tempfly.command.player.CmdInfinite;
@@ -117,6 +118,9 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 				break;
 			case "infinite":
 				new CmdInfinite(s, args, tempfly);
+				break;
+			case "bypass":
+				new CmdBypass(s, args, tempfly);
 				break;
 			default:
 				new CmdHelp(s, args);

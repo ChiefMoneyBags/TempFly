@@ -12,7 +12,7 @@
 #|               /'-'  |.--.\    /     |  '--' /|  `---.   |  |  |  | |  |              |#
 #|               `----' '--' `--'      `------' `------'   `--'  `--' `--'              |#
 #|                                                                                      |#
-#|                                      Beta  #2                                        |#
+#|                                      Beta  #3                                        |#
 #|                                                                                      |#
 ##--------------------------------------------------------------------------------------##
 #|                                                                                      |#
@@ -79,6 +79,11 @@ general:
     default_speed: 1
     # The maximum y level a player can reach before flight is disabled.
     maximum_height: 275
+    # If true a user will start flying again when they no longer have flight requirements so long as their flight is enabled.
+    # Example;
+    # - A user flies into a disabled region and loses flight.
+    # - If auto_fly is true they will fly again automatically without needing to use the fly command.
+    auto_enable: true
   
   time:
     # If true players can send eachother time as if it were a currency.

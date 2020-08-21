@@ -81,6 +81,8 @@ general:
     idle: "{PREFIX} &cYou are now considered idle."
     infinite_enabled: "{PREFIX} &aYou enabled your infinite flight!"
     infinite_disabled: "{PREFIX} &cYou disabled your infinite flight!"
+    bypass_enabled: "{PREFIX} &aYou enabled your flight requirement bypass!"
+    bypass_disabled: "{PREFIX} &cYou disabled your flight requirement bypass!"
 
   requirement:
     fail:

@@ -8,10 +8,10 @@ import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdInfinite {
+public class CmdBypass {
 
-	public CmdInfinite(CommandSender s, String[] args, TempFly tempfly) {
-		if (!U.hasPermission(s, "tempfly.infinite.toggle")) {
+	public CmdBypass(CommandSender s, String[] args, TempFly tempfly) {
+		if (!U.hasPermission(s, "tempfly.bypass.toggle")) {
 			U.m(s, V.invalidPermission);
 			return;
 		}
@@ -27,18 +27,13 @@ public class CmdInfinite {
 			case "off": case "disable":
 				break;
 			default:
-				U.m(s, "&c/tempfly infinite [on/off]");
+				U.m(s, "&c/tempfly bypass [on/off]");
 				return;
 			}
 		} else {
-			toggleVal = !user.hasInfiniteFlight();
+			toggleVal = !user.hasRequirementBypass();
 		}
-		user.setInfiniteFlight(toggleVal);
-		// If the player has auto fly queued we will auto enable their flight when they toggle infinite time. 
-		if (toggleVal && user.hasAutoFlyQueued()) {
-			user.enableFlight();
-		}
-		U.m(s, toggleVal ? V.flyInfiniteEnabled : V.flyInfiniteDisabled);
+		U.m(s, toggleVal ? V.flyBypassEnabled : V.flyBypassDisabled);
+		user.setRequirementBypass(toggleVal);
 	}
-
 }
