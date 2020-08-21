@@ -45,7 +45,7 @@ public class CmdTime {
 		double time = manager.getTime(p.getUniqueId());
 		U.m(s, manager.regexString(V.infoHeader, time));
 		U.m(s, manager.regexString(V.infoPlayer, time).replaceAll("\\{PLAYER}", p.getName()));
-		final boolean infinite = p.isOnline() && (((Player)p).hasPermission("tempfly.time.infinite")); 
+		final boolean infinite = p.isOnline() && tempfly.getFlightManager().getUser((Player)p).hasInfiniteFlight(); 
 		if (infinite) {
 			U.m(s, V.infoInfinite);
 		}

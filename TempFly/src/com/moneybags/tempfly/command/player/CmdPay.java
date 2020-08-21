@@ -44,6 +44,7 @@ public class CmdPay extends TimeCommand {
 		double amount = 0;
 		amount = quantifyArguments(s, args, 2);
 		if (amount <= 0) {
+			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
 		amount = Math.floor(amount);

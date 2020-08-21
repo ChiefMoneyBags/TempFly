@@ -31,6 +31,7 @@ public class CmdRemove extends TimeCommand {
 		}
 		double amount = quantifyArguments(s, args, 2);
 		if (amount == 0) {
+			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
 		TimeManager manager = tempfly.getTimeManager();

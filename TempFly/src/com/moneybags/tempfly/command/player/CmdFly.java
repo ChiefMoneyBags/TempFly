@@ -82,7 +82,7 @@ public class CmdFly {
 			}
 			// Time check 
 			double time = tempfly.getTimeManager().getTime(p.getUniqueId());
-			if ((time <= 0) && (!p.hasPermission("tempfly.time.infinite"))) {
+			if ((time <= 0) && (!user.hasInfiniteFlight())) {
 				U.m(s, s.equals(p)
 						? V.invalidTimeSelf
 						: V.invalidTimeOther.replaceAll("\\{PLAYER}", p.getName()));

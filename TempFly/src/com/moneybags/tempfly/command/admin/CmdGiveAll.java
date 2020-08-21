@@ -20,6 +20,7 @@ public class CmdGiveAll extends TimeCommand {
 		
 		final double amount = quantifyArguments(s, args, 1);
 		if (amount == 0) {
+			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
 		TimeManager manager = tempfly.getTimeManager();

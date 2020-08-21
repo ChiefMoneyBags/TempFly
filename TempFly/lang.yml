@@ -79,6 +79,8 @@ general:
     already_disabled: "{PREFIX} &cYour flight is already disabled!"
     idle_drop: "{PREFIX} &cYou lost flight due to being idle!"
     idle: "{PREFIX} &cYou are now considered idle."
+    infinite_enabled: "{PREFIX} &aYou enabled your infinite flight!"
+    infinite_disabled: "{PREFIX} &cYou disabled your infinite flight!"
 
   requirement:
     fail:

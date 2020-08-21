@@ -20,6 +20,7 @@ import com.moneybags.tempfly.command.admin.CmdSet;
 import com.moneybags.tempfly.command.admin.CmdTrailRemove;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
+import com.moneybags.tempfly.command.player.CmdInfinite;
 import com.moneybags.tempfly.command.player.CmdPay;
 import com.moneybags.tempfly.command.player.CmdShop;
 import com.moneybags.tempfly.command.player.CmdSpeed;
@@ -112,8 +113,10 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 			case "settings":
 			case "skyblock":
 			case "sb":
-			case "allow":
 				new CmdIslandSettings(s, args);
+				break;
+			case "infinite":
+				new CmdInfinite(s, args, tempfly);
 				break;
 			default:
 				new CmdHelp(s, args);

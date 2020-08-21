@@ -4,11 +4,8 @@ import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Nullable;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -138,11 +135,9 @@ public class TimeManager implements Listener {
 	
 	
 	public double getMaxTime(UUID u) {
-		if (V.useLegacyMaxTime) {
-			return V.legacyMaxTime;
-		}
 		Player p = Bukkit.getPlayer(u);
 		double highest = 0;
+		boolean hasGroup = false;
 		if (p != null && p.isOnline()) {
 			for (Entry<String, Double> group: V.maxTimeGroups.entrySet()) {
 				double current = group.getValue();
@@ -150,7 +145,8 @@ public class TimeManager implements Listener {
 				if (current < highest && current > -1) {
 					continue;
 				}
-				if (p.hasPermission("tempfly.max_time." + group.getKey())) {
+				if (p.hasPermission("tempfly.max." + group.getKey())) {
+					hasGroup = true;
 					if (current == -1) {
 						return current;
 					} else {
@@ -160,6 +156,8 @@ public class TimeManager implements Listener {
 			}
 		} else {
 			if (!tempfly.getHookManager().hasPermissions()) {
+				// We are returning -999 to indicate something is wrong and we cannot check the players max balance.
+				// In this case it is because the server does not have Vault and i can't check the offline players permissions.
 				return -999;
 			}
 			OfflinePlayer op = Bukkit.getOfflinePlayer(u);
@@ -169,7 +167,8 @@ public class TimeManager implements Listener {
 				if (current < highest && current > -1) {
 					continue;
 				}
-				if (perms.playerHas(Bukkit.getWorlds().get(0).getName(), op, "tempfly.max_time." + group.getKey())) {
+				if (perms.playerHas(Bukkit.getWorlds().get(0).getName(), op, "tempfly.max." + group.getKey())) {
+					hasGroup = true;
 					if (current == -1) {
 						return current;
 					} else {
@@ -178,7 +177,7 @@ public class TimeManager implements Listener {
 				}
 			}
 		}
-		return highest;
+		return hasGroup ? highest : V.maxTimeBase;
 	}
 	
 	
@@ -302,6 +301,7 @@ public class TimeManager implements Listener {
 	
 	public String getPlaceHolder(Player p, Placeholder type) {
 		double supply = getTime(p.getUniqueId());
+		FlightUser user = tempfly.getFlightManager().getUser(p);
 		switch (type) {
 		case TIME_FORMATTED:
 		{
@@ -312,7 +312,7 @@ public class TimeManager implements Listener {
 			seconds = formatTime(TimeUnit.SECONDS, supply);
 			
 			StringBuilder sb = new StringBuilder();
-			if (U.hasPermission(p, "tempfly.time.infinite")) {
+			if (user.hasInfiniteFlight()) {
 				sb.append(V.infinity);
 			} else {
 				if (days > 0) 

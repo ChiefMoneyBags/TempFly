@@ -68,12 +68,15 @@ tempfly.shop:
   desc: Allow user to open the tempfly shop
   command: /tf shop
 
-tempfly.time.infinite:
+tempfly.infinite:
   desc:
     - Infinite flight. This simply will not charge the player flight time for flying.
     - However, they will still have their actual time balance stored in the background. They dont lose it.
     - IT DOES NOT let them pay infinite time to other players.
     - In addition it does not affect their max_time, they are completely seperate things.
+
+tempfly.infinite.toggle:
+  desc: Allow the user to toggle their infinite flight.
 
 tempfly.bonus.[group]:
   desc: Gives user the bonus defined for this group in the config daily.

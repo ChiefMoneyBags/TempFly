@@ -503,7 +503,12 @@ public class DataBridge extends Thread implements DataFileHolder {
 				"trail",
 				new String[] {"players", "trail"},
 				false),
-		
+		PLAYER_INFINITE(
+				DataTable.TEMPFLY_DATA,
+				String.class,
+				"infinite",
+				new String[] {"players", "infinite"},
+				false),
 		
 		
 		

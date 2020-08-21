@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.jetbrains.annotations.Nullable;
-
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.Files.C;
 
@@ -68,6 +66,8 @@ public class V {
 	flySpeedSelf,
 	flyAlreadyEnabled,
 	flyAlreadyDisabled,
+	flyInfiniteEnabled,
+	flyInfiniteDisabled,
 	
 	disabledIdle,
 	consideredIdle,
@@ -138,7 +138,7 @@ public class V {
 	decayThresh;
 	
 	public static double
-	legacyMaxTime,
+	maxTimeBase,
 	firstJoinTime,
 	legacyBonus,
 	decayAmount,
@@ -223,6 +223,8 @@ public class V {
 		flySpeedSelf		= st(C.LANG, "general.fly.speed_self");
 		flyAlreadyEnabled	= st(C.LANG, "general.fly.already_enabled");
 		flyAlreadyDisabled	= st(C.LANG, "general.fly.already_disabled");
+		flyInfiniteEnabled	= st(C.LANG, "general.fly.infinite_enabled");
+		flyInfiniteDisabled	= st(C.LANG, "general.fly.infinite_disabled");
 		
 		disabledIdle 		= st(C.LANG, "general.fly.idle_drop");
 		consideredIdle 		= st(C.LANG, "general.fly.idle");
@@ -341,12 +343,11 @@ public class V {
 				}
 			}
 		}
-		ConfigurationSection csMax = config.getConfigurationSection("general.time.max_time");
-		useLegacyMaxTime = csMax == null || csMax.getKeys(false).size() == 0;
-		legacyMaxTime = useLegacyMaxTime ? config.getDouble("general.time.max_time") : 0;
-		if (!useLegacyMaxTime) {
+		maxTimeBase = config.getDouble("general.time.max.base", -1);
+		ConfigurationSection csMax = config.getConfigurationSection("general.time.max.groups");
+		if (csMax != null) {
 			for (String s: csMax.getKeys(false)) {
-				maxTimeGroups.put(s, config.getDouble("general.time.max_time." + s));
+				maxTimeGroups.put(s, config.getDouble("general.time.max.groups." + s));
 			}
 		}
 	}

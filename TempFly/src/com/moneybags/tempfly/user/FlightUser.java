@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -51,7 +52,8 @@ public class FlightUser {
 	listName, tagName, particle;
 	
 	private boolean
-	enabled, autoEnable;
+	enabled, autoEnable,
+	infinite = true;
 	
 	private int
 	idle = -1;
@@ -76,13 +78,13 @@ public class FlightUser {
 		this.listName = p.getPlayerListName();
 		this.tagName = p.getDisplayName();
 		this.particle = Particles.loadTrail(p.getUniqueId());
-		
+		this.infinite = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, p.getUniqueId().toString()), true); 
 		
 		boolean logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
 		initialTask = new BukkitRunnable() {
 			@Override
 			public void run() {
-				if (logged && (p.hasPermission("tempfly.time.infinite") || timeManager.getTime(p.getUniqueId()) > 0)) {
+				if (logged && (hasInfiniteFlight() || timeManager.getTime(p.getUniqueId()) > 0)) {
 					if (!enableFlight()) {
 						sendRequirementMessage();
 						enforce(1);
@@ -102,8 +104,7 @@ public class FlightUser {
 	}
 	
 	public void save() {
-		Console.debug("");
-		Console.debug("-----< Save FlightUser: (" + p.getUniqueId().toString() + ") >-----");
+		Console.debug("", "-----< Save FlightUser: (" + p.getUniqueId().toString() + ") >-----");
 		DataBridge bridge = manager.getTempFly().getDataBridge();
 		UUID u = p.getUniqueId();
 		bridge.manualCommit(
@@ -111,7 +112,8 @@ public class FlightUser {
 				DataPointer.of(DataValue.PLAYER_DAILY_BONUS, u.toString()),
 				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u.toString()),
 				DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()),
-				DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()));
+				DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()),
+				DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()));
 	}
 	
 	
@@ -134,9 +136,9 @@ public class FlightUser {
 		this.time = time;
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);
 		if ((timer instanceof FlightTimer) 
-				&& !p.hasPermission("tempfly.time.infinite")
+				&& !hasInfiniteFlight()
 				&& p.isFlying()) {
-			doActionBar();
+			if (V.actionBar) {doActionBar();}
 		}
 		if (time > 0 && autoEnable && !enabled) {
 			enableFlight();
@@ -182,6 +184,16 @@ public class FlightUser {
 		return environment;
 	}
 	
+	public boolean hasInfiniteFlight() {
+		return p.hasPermission("tempfly.infinite") && infinite;
+	}
+	
+	public void setInfiniteFlight(boolean enable) {
+		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_INFINITE, p.getUniqueId().toString()), enable);
+		this.infinite = enable;
+		if (!enable && V.actionBar && time > 0) {doActionBar();}
+	}
+	
 	
 	/**
 	 * 
@@ -199,7 +211,7 @@ public class FlightUser {
 	public void onQuit(boolean reload) {
 		if (enabled || autoEnable) {
 			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), true);
-			if (!reload) disableFlight(-1, false);
+			if (!reload) {disableFlight(-1, false);}
 		}
 		updateList(true);
 		updateName(true);
@@ -267,7 +279,7 @@ public class FlightUser {
 			setAutoFly(true);
 			return false;
 		}
-		if (time == 0) {
+		if (time == 0 && !hasInfiniteFlight()) {
 			return false;
 		}
 		enabled = true;
@@ -322,12 +334,7 @@ public class FlightUser {
 	}
 	
 	public void submitFlightRequirement(RequirementProvider requirement, FlightResult failedResult) {
-		if (V.debug) {
-			Console.debug("");
-			Console.debug("---- Submitting failed requirement to user ----");
-			Console.debug("--| Requirement: " + requirement.getClass().toGenericString());
-			Console.debug("--| Requirements: " + requirements);
-		}
+		if (V.debug) {Console.debug("", "---- Submitting failed requirement to user ----", "--| Requirement: " + requirement.getClass().toGenericString(), "--| Requirements: " + requirements);}
 		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
 		InquiryType type = failedResult.getInquiryType();
 		if (types.containsKey(type)) {
@@ -347,12 +354,7 @@ public class FlightUser {
 	 * @return true if there are no more requirements
 	 */
 	public boolean removeFlightRequirement(RequirementProvider requirement, InquiryType type) {
-		if (V.debug) {
-			Console.debug("");
-			Console.debug("---- Removing flight requirement from user ----");
-			Console.debug("--| Requirement: " + requirement.getClass().toGenericString());
-			Console.debug("--| Requirements: " + requirements);
-		}
+		if (V.debug) {Console.debug("", "---- Removing flight requirement from user ----", "--| Requirement: " + requirement.getClass().toGenericString(), "--| Requirements: " + requirements);}
 		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
 		types.remove(type);
 		if (types.size() == 0) {
@@ -370,12 +372,7 @@ public class FlightUser {
 	 * @return true if there are no more requirements
 	 */
 	public boolean removeFlightRequirement(RequirementProvider requirement) {
-		if (V.debug) {
-			Console.debug("");
-			Console.debug("---- Removing flight requirement from user ----");
-			Console.debug("--| Requirement: " + requirement.getClass().toGenericString());
-			Console.debug("--| Requirements: " + requirements);
-		}
+		if (V.debug) {Console.debug("", "---- Removing flight requirement from user ----", "--| Requirement: " + requirement.getClass().toGenericString(), "--| Requirements: " + requirements);}
 		this.requirements.remove(requirement);
 		return !hasFlightRequirements();
 	}
@@ -401,19 +398,20 @@ public class FlightUser {
 	 * @return false if the user fails.
 	 */
 	public boolean evaluateFlightRequirements(Location loc, boolean failMessage) {
-		if (hasFlightRequirements()) {
-			if (failMessage) {
-				sendRequirementMessage();
-			}
-			return false;
-		}
 		List<FlightResult> results = new ArrayList<>();
 		results.addAll(manager.inquireFlight(this, loc.getWorld()));
 		results.addAll(manager.inquireFlight(this, loc));
 		if (manager.getTempFly().getHookManager().hasRegionProvider()) {
 			results.addAll(manager.inquireFlight(this, manager.getTempFly().getHookManager().getRegionProvider().getApplicableRegions(p.getLocation())));
 		}
-		return submitFlightResults(results, failMessage);
+		submitFlightResults(results, false);
+		if (hasFlightRequirements()) {
+			if (failMessage) {
+				sendRequirementMessage();
+			}
+			return false;
+		}
+		return true;
 	}
 	
 	/**
@@ -508,10 +506,10 @@ public class FlightUser {
 	 * @return True if there are no more requirements.
 	 */
 	public boolean updateRequirements(String enableMessage) {
-		Console.debug("");
-		Console.debug("--- updating requirements ---");
-		Console.debug("--| requirements: " + requirements.toString());
-		if (requirements.size() == 0 && !enabled && autoEnable && time > 0) {
+		Console.debug("", "--- updating requirements ---", "--| requirements: " + requirements.toString(),
+				"enabled: " + enabled, "auto-enable:" + autoEnable, "time: " + time);
+		
+		if (requirements.size() == 0 && !enabled && autoEnable && (time > 0 || hasInfiniteFlight())) {
 			Console.debug("--|> AutoFly engaged!");
 			autoEnable = false;
 			enableFlight();
@@ -715,7 +713,7 @@ public class FlightUser {
 			}
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
 			if (enabled) {p.setAllowFlight(true);}
-			if (p.hasPermission("tempfly.time.infinite")) {
+			if (hasInfiniteFlight()) {
 				return;
 			}
 			

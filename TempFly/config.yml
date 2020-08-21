@@ -75,7 +75,7 @@ general:
 
   flight:
     # Set the default maximum speed players can fly unless otherwise specified by the tempfly.speed.[speed] permission.
-    # This does not automatically set the speed to this number unless it is less than 1, it specifies their default maximum allowed speed.
+    # This does not automatically set the speed to this number unless it is set below 1. (decimals are valid)
     default_speed: 1
     # The maximum y level a player can reach before flight is disabled.
     maximum_height: 275
@@ -83,21 +83,23 @@ general:
   time:
     # If true players can send eachother time as if it were a currency.
     payable: true
-    # The maximum time in seconds a player is allowed to have. -1 for no limit.
-    # If you want one global max use this setting.
-    max_time: -1
-    # If you want permission groups remove the above setting and enable the one below.
-    # The permission is "tempfly.max.{group}"
-
-    # max_time:
-    #   member: -1
-    #   vip: -1
+    # Here you can set the maximum time players can have in their balance. -1 for no limit.
+    max:
+      # The base maximum time in seconds applied to everyone.
+      base: -1
+      # Optionally you can include permission groups for a higher max time.
+      # The groups listed below will override the global base defined above.
+      # If a player inherits more than 1 group the highest value will always be used.
+      # The permission is "tempfly.max.[group]"
+      groups:
+        member: 60
+        vip: 120
   
   bonus:
     # Time in seconds given to a player when they first join the server.
     first_join: 10
     # Permission based time given to a player as a daily login bonus.
-    # The permission is "tempfly.bonus.{group}"
+    # The permission is "tempfly.bonus.[group]"
     # Time will stack for each permission the player inherits. Make sure to configure your permissions properly.
     daily_login: 
       member: 10

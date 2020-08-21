@@ -33,23 +33,7 @@ public class FlightEnvironment implements RequirementProvider {
 	
 	public FlightEnvironment(FlightManager manager) {
 		this.manager = manager;
-		blackRegion = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
-		blackWorld = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
-	
-		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
-		if (csRtW != null) {
-			for (String s : csRtW.getKeys(false)) {
-				rtWorlds.put(s, new RelativeTimeRegion(
-						Files.config.getDouble("other.relative_time.worlds." + s, 1), true, s));
-			}
-		}
-		ConfigurationSection csRtR = Files.config.getConfigurationSection("other.relative_time.regions");
-		if (csRtW != null) {
-			for (String s : csRtR.getKeys(false)) {
-				rtRegions.put(s, new RelativeTimeRegion(
-						Files.config.getDouble("other.relative_time.regions." + s, 1), false, s));
-			}
-		}
+		onTempflyReload();
 	}
 
 	public FlightManager getFlightManager() {
@@ -197,7 +181,23 @@ public class FlightEnvironment implements RequirementProvider {
 
 	@Override
 	public void onTempflyReload() {
-		
+		blackRegion = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
+		blackWorld = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
+	
+		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
+		if (csRtW != null) {
+			for (String s : csRtW.getKeys(false)) {
+				rtWorlds.put(s, new RelativeTimeRegion(
+						Files.config.getDouble("other.relative_time.worlds." + s, 1), true, s));
+			}
+		}
+		ConfigurationSection csRtR = Files.config.getConfigurationSection("other.relative_time.regions");
+		if (csRtW != null) {
+			for (String s : csRtR.getKeys(false)) {
+				rtRegions.put(s, new RelativeTimeRegion(
+						Files.config.getDouble("other.relative_time.regions." + s, 1), false, s));
+			}
+		}
 	}
 	
 	

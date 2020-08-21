@@ -22,7 +22,6 @@ import com.moneybags.tempfly.hook.HookManager;
 import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.tab.TabHandle;
 import com.moneybags.tempfly.time.TimeManager;
-import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.AutoSave;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.ParticleTask;
@@ -165,14 +164,12 @@ public class TempFly extends JavaPlugin {
 		PageTrails.initialize();
 		PageShop.initialize(this);
 		
+		flight.onTempflyReload();
 		hooks.onTempflyReload();
 		
 		if (autosave != null) {
 			autosave.cancel();
 			autosave = new AutoSave(bridge).runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
-		}
-		for (FlightUser user: flight.getUsers()) {
-			user.evaluateFlightRequirements(user.getPlayer().getLocation(), user.hasFlightEnabled());
 		}
 	}
 	
