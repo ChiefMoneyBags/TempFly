@@ -20,10 +20,15 @@ public class TabHandle implements TabCompleter {
 					"toggle",
 					"time",
 					"give",
+					"giveall",
 					"remove",
 					"pay",
 					"set",
-					"speed"));
+					"speed",
+					"infinite",
+					"bypass",
+					"shop",
+					"trails"));
 		}
 		if (args.length == 1 || args.length == 2) {
 			List<String> names = new ArrayList<>();
