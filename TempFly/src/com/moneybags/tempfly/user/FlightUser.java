@@ -560,13 +560,15 @@ public class FlightUser {
 	 */
 	public boolean updateRequirements(String enableMessage) {
 		Console.debug("", "--- updating requirements ---", "--| requirements: " + requirements.toString(),
-				"enabled: " + enabled, "auto-enable:" + autoEnable, "time: " + time);
+				"--| flight enabled: " + enabled, "--| auto flight: " + autoEnable, "--| time: " + time);
 		
-		if (requirements.size() == 0 && !enabled && hasAutoFlyQueued() && (time > 0 || hasInfiniteFlight())) {
-			Console.debug("--|> AutoFly engaged!");
+		if (requirements.size() == 0 && !hasFlightEnabled() && hasAutoFlyQueued() && (time > 0 || hasInfiniteFlight())) {
+			if (V.debug) Console.debug(hasRequirementBypass() ? "--|> Autofly will not be invoked, User has requirement bypass mode..." : "--|> AutoFly engaged!");
 			autoEnable = false;
-			enableFlight();
-			U.m(p, enableMessage);
+			if (!hasRequirementBypass()) {
+				enableFlight();
+				U.m(p, enableMessage);	
+			}
 			return true;
 		}
 		return requirements.size() == 0;
