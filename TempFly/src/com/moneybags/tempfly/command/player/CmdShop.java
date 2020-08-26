@@ -1,17 +1,26 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdShop {
+public class CmdShop extends TempFlyCommand {
 
-	public CmdShop(TempFly tempfly, CommandSender s) {
+	public CmdShop(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		if (!V.shop || tempfly.getHookManager().getEconomy() == null) {
 			U.m(s, V.invalidCommand);
 			return;
@@ -25,5 +34,10 @@ public class CmdShop {
 			return;
 		}
 		new PageShop(GuiSession.newGuiSession((Player)s), 0);
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		return new ArrayList<>();
 	}
 }

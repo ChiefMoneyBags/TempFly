@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -13,8 +15,12 @@ import com.moneybags.tempfly.util.V;
 
 public class CmdSet extends TimeCommand {
 
-	@SuppressWarnings("deprecation")
-	public CmdSet(TempFly tempfly, CommandSender s, String[] args) {
+	public CmdSet(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override @SuppressWarnings("deprecation")
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.set")) {
 			U.m(s, V.invalidPermission);
 			return;
@@ -30,7 +36,7 @@ public class CmdSet extends TimeCommand {
 			return;
 		}
 		
-		double amount = quantifyArguments(s, args, 2);
+		double amount = quantifyArguments(s, 2);
 		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
 		if (maxTime == -999) {
 			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
@@ -47,6 +53,15 @@ public class CmdSet extends TimeCommand {
 				.replaceAll("\\{PLAYER}", p.getName()));
 		if (p.isOnline()) {
 			U.m((Player)p, manager.regexString(V.timeSetSelf, amount));	
+		}
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		} else {
+			return getTimeArguments(cleanArgs(args, 2));
 		}
 	}
 	

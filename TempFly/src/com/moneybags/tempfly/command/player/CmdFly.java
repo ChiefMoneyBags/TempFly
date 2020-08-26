@@ -1,49 +1,55 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
+import com.moneybags.tempfly.command.CommandManager;
+import com.moneybags.tempfly.command.CommandManager.CommandType;
 import com.moneybags.tempfly.event.FlightEnabledEvent;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdFly {
+public class CmdFly extends TempFlyCommand {
 
-	public CmdFly(TempFly tempfly, CommandSender s, String[] args) {
+	public CmdFly(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
+		CommandManager manager = tempfly.getCommandManager();
 		Player p = null;
 		boolean
-			toggle = false,
+			manual = false,
 			toggleVal = false;
 		if (args.length > 0) {
-			toggle = true;
-			switch (args[0].toLowerCase()) {
-			case "on":
-			case "enable":
+			manual = true;
+			if (tempfly.getCommandManager().getEnable().contains(args[0])) {
 				toggleVal = true;
-				break;
-			case "off":
-			case "disable":
+			} else if (tempfly.getCommandManager().getDisable().contains(args[0])) {
 				toggleVal = false;
-				break;
-			default:
-				U.m(s, U.cc("&c/tf [on / off]"));
+			} else {
+				U.m(s, U.cc("&c/tf [on/off]"));
 				return;
 			}
 			if (args.length > 1) {
-				if (args.length > 1) {
-					p = Bukkit.getPlayer(args[1]);
-					if (s.equals(p) && !U.hasPermission(s, "tempfly.toggle.self")
-							|| !s.equals(p) && !U.hasPermission(s, "tempfly.toggle.other")) {
-						U.m(s, V.invalidPermission);
-						return;
-					}
-					if (p == null) {
-						U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
-						return;
-					}
+				p = Bukkit.getPlayer(args[1]);
+				if (s.equals(p) && !U.hasPermission(s, "tempfly.toggle.self")
+						|| !s.equals(p) && !U.hasPermission(s, "tempfly.toggle.other")) {
+					U.m(s, V.invalidPermission);
+					return;
+				}
+				if (p == null) {
+					U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
+					return;
 				}
 			} else {
 				if (!U.isPlayer(s)) {
@@ -75,7 +81,7 @@ public class CmdFly {
 		FlightUser user = tempfly.getFlightManager().getUser(p);
 		// if command is /fly on and player is not flying || command is base && player is not flying
 		// try to enable flight
-		if (toggle && toggleVal || !toggle && !toggleVal && !user.hasFlightEnabled()) {
+		if (manual && toggleVal || !manual && !toggleVal && !user.hasFlightEnabled()) {
 			if (user.hasFlightEnabled()) {
 				U.m(p, V.flyAlreadyEnabled);
 				return;
@@ -111,13 +117,13 @@ public class CmdFly {
 			}
 		// if command is /fly off and player is flying || command is base && player is flying
 		// disable flight
-		} else if (toggle && !toggleVal && user.hasFlightEnabled() || !toggle && user.hasFlightEnabled()) {
+		} else if (manual && !toggleVal && user.hasFlightEnabled() || !manual && user.hasFlightEnabled()) {
 			user.disableFlight(0, !V.damageCommand);
 			U.m(p, V.flyDisabledSelf);
 			if (!s.equals(p)) {
 				U.m(s, V.flyDisabledOther.replaceAll("\\{PLAYER}", p.getName()));	
 			}
-		} else if (toggle && !toggleVal && user.hasAutoFlyQueued()) {
+		} else if (manual && !toggleVal && user.hasAutoFlyQueued()) {
 			user.setAutoFly(false);
 			U.m(p, V.flyDisabledSelf);
 			if (!s.equals(p)) {
@@ -126,5 +132,13 @@ public class CmdFly {
 		} else {
 			U.m(p, V.flyAlreadyDisabled);
 		}
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length == 2) {
+			return getPlayerArguments(args[1]);
+		}
+		return new ArrayList<>();
 	}
 }

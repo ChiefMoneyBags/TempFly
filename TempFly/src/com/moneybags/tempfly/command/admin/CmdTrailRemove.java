@@ -1,18 +1,27 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdTrailRemove {
+public class CmdTrailRemove extends TempFlyCommand {
 
+	public CmdTrailRemove(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
 	
 	// Invoked from command
-	public CmdTrailRemove(CommandSender s, String[] args) {
+	@Override
+	public void executeAs(CommandSender s) {
 		Player target = null;
 		if (args.length == 2
 				|| ((args.length > 2 && (target = Bukkit.getPlayerExact(args[3])) != null && target == s))) {
@@ -47,14 +56,22 @@ public class CmdTrailRemove {
 		}
 	}
 	
-	// Invoked from the GUI because its easier this way
-	public CmdTrailRemove(Player target) {
+	// Invoked from the GUI because it's easier this way
+	public void executeFromGui(Player target) {
 		removeTrail(target);
 	}
 
 	private void removeTrail(Player target) {
 		Particles.setTrail(target.getUniqueId(), "");
 		U.m(target, V.trailRemovedSelf);
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		}
+		return new ArrayList<>();
 	}
 	
 }

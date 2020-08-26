@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
@@ -8,14 +10,19 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdTime {
+public class CmdTime extends TempFlyCommand {
 
+	public CmdTime(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
 	@SuppressWarnings("deprecation")
-	public CmdTime(TempFly tempfly, CommandSender s, String[] args) {
+	public void executeAs(CommandSender s) {
 		if (args.length > 1) {
 			if (!U.hasPermission(s, "tempfly.time.other")) {
 				U.m(s, V.invalidPermission);
@@ -69,5 +76,14 @@ public class CmdTime {
 			U.m(s, manager.regexString(V.infoSeconds, time));	
 		}
 		U.m(s, manager.regexString(V.infoFooter, time));
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		}
+		return new ArrayList<>();
+		
 	}
 }

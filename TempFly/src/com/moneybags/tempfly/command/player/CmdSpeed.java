@@ -1,17 +1,27 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
+import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdSpeed {
+public class CmdSpeed extends TempFlyCommand {
 
-	public CmdSpeed(TempFly tempfly, CommandSender s, String[] args) {
-		
+	public CmdSpeed(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		Player p = null;
 		float speed = 1;
 		
@@ -70,5 +80,15 @@ public class CmdSpeed {
 					.replaceAll("\\{PLAYER}", p.getName()));
 		}
 	}
-	
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (s instanceof Player) {
+			FlightUser user = tempfly.getFlightManager().getUser((Player)s);
+			Console.debug(user.getMaxSpeed());
+			return getRange(1, (int)Math.floor(user.getMaxSpeed()));
+		} else {
+			return getRange(0, 10);
+		}
+	}
 }

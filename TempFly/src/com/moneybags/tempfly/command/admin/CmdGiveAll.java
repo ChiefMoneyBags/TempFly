@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,13 +14,18 @@ import com.moneybags.tempfly.util.V;
 
 public class CmdGiveAll extends TimeCommand {
 
-	public CmdGiveAll(TempFly tempfly, CommandSender s, String[] args) {
+	public CmdGiveAll(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.giveall")) {
 			U.m(s, V.invalidPermission);
 			return;
 		}
 		
-		final double amount = quantifyArguments(s, args, 1);
+		final double amount = quantifyArguments(s, 1);
 		if (amount == 0) {
 			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
@@ -34,5 +41,9 @@ public class CmdGiveAll extends TimeCommand {
 		}
 		U.m(s, manager.regexString(V.timeGivenSelf, amount));
 	}
-	
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		return getTimeArguments(cleanArgs(args, 1));
+	}
 }

@@ -107,8 +107,88 @@ aesthetic:
     removed_self: "{PREFIX} &aYour trail was removed!"
     removed_other: "{PREFIX} &e{PLAYER} &ahad their trail removed!"
 
-syntax_error:
-  cmd_fly:
-    toggle_other: "&c/tf [player] [on / off]"
-    toggle_self: "&c/tf [on / off]"
+command:
+  # Here you can configure the command arguments. This will help players on foriegn servers that dont understand english.
+  # Everything here must be unique so be careful, you could break the commands if you put duplicate entries.
+  # Note: I do not reccomend putting hundreds of translations in here. just the main ones your server would need.
+  unit:
+    seconds:
+      # The unit that will be shown on tab completion of the command
+      tab_complete: "second"
+      # Identifiers that represent this time unit.
+      recognized:
+        - "s"
+        - "sec"
+        - "second"
+        - "zweite" #German
+    minutes:
+      tab_complete: "minute"
+      recognized:
+        - "m"
+        - "min"
+        - "minute" # english and german
+    hours:
+      tab_complete: "hour"
+      recognized:
+        - "h"
+        - "hour"
+        - "stunde" #German
+    days:
+      tab_complete: "day"
+      recognized:
+        - "d"
+        - "day"
+        - "tag" #German
+
+  # Here you can specify all the tempfly sub commands.
+  base:
+    give:
+      - "give"
+      - "add"
+    givall:
+      - "givall"
+      - "addall"
+    reload:
+      - "reload"
+    remove:
+      - "remove"
+      - "take"
+    set:
+      - "set"
+    trail_remove:
+      - "remove_trail"
+    bypass:
+      - "bypass"
+    help:
+      - "help"
+      - "commands"
+    infinite:
+      - "infinite"
+    pay:
+      - "pay"
+      - "send"
+    shop:
+      - "shop"
+      - "buy"
+    speed:
+      - "speed"
+    time:
+      - "time"
+      - "bal"
+      - "balance"
+    trails:
+      - "trails"
+      - "particles"
+
+  enable:
+    - "on"
+    - "enable"
+  disable:
+    - "off"
+    - "disable"
+
+  syntax_error:
+    cmd_fly:
+      toggle_other: "&c/tf [player] [on / off]"
+      toggle_self: "&c/tf [on / off]"
     

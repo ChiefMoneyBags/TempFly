@@ -1,5 +1,8 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -7,14 +10,20 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.command.CommandManager.CommandType;
 import com.moneybags.tempfly.time.TimeManager;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
 public class CmdGive extends TimeCommand {
-
-	@SuppressWarnings("deprecation")
-	public CmdGive(TempFly tempfly, CommandSender s, String[] args) {
+	
+	public CmdGive(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.give")) {
 			U.m(s, V.invalidPermission);
 			return;
@@ -30,9 +39,8 @@ public class CmdGive extends TimeCommand {
 			return;
 		}
 		
-		double amount = quantifyArguments(s, args, 2);
+		double amount = quantifyArguments(s, 2);
 		if (amount <= 0) {
-			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
 		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
@@ -60,7 +68,13 @@ public class CmdGive extends TimeCommand {
 			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount));	
 		}
 	}
-	
-	
 
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		} else {
+			return getTimeArguments(cleanArgs(args, 2));
+		}
+	}
 }

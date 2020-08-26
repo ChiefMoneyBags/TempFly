@@ -17,6 +17,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.command.admin.CmdTrailRemove;
 import com.moneybags.tempfly.gui.GuiSession;
@@ -27,6 +28,7 @@ import com.moneybags.tempfly.util.data.Files;
 
 public class PageTrails extends DynamicPage {
 	
+	private static TempFly tempfly;
 	private static String title;
 	private static ItemStack
 		background,
@@ -35,7 +37,8 @@ public class PageTrails extends DynamicPage {
 		prev,
 		remove;
 	
-	public static void initialize() {
+	public static void initialize(TempFly plugin) {
+		tempfly = plugin;
 		FileConfiguration config = Files.page;
 		String path = "page.trails";
 		title = U.cc(config.getString(path + ".title", "&dParticle Trails"));
@@ -145,7 +148,7 @@ public class PageTrails extends DynamicPage {
 		} else if (slot == 45 && getPageNumber() > 0) {
 			new PageTrails(session, getPageNumber()-1, false);
 		} else if (slot == 49 && session.getPlayer().hasPermission("tempfly.trails.remove.self")) {
-			new CmdTrailRemove(session.getPlayer());
+			new CmdTrailRemove(tempfly, null).executeFromGui(session.getPlayer());
 			new PageTrails(session, getPageNumber(), false);
 		}
 	}

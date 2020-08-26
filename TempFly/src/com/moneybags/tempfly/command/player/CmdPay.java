@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -13,8 +15,12 @@ import com.moneybags.tempfly.util.V;
 
 public class CmdPay extends TimeCommand {
 
-	@SuppressWarnings("deprecation")
-	public CmdPay(TempFly tempfly, CommandSender s, String[] args) {
+	public CmdPay(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override @SuppressWarnings("deprecation")
+	public void executeAs(CommandSender s) {
 		if (!V.payable) {
 			U.m(s, V.invalidCommand);
 			return;
@@ -42,7 +48,7 @@ public class CmdPay extends TimeCommand {
 			return;
 		}
 		double amount = 0;
-		amount = quantifyArguments(s, args, 2);
+		amount = quantifyArguments(s, 2);
 		if (amount <= 0) {
 			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
@@ -77,5 +83,15 @@ public class CmdPay extends TimeCommand {
 					.replaceAll("\\{PLAYER}", s.getName()));	
 		}
 	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		} else {
+			return getTimeArguments(cleanArgs(args, 2));
+		}
+	}
+
 
 }

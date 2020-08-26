@@ -13,6 +13,7 @@ import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.ClipAPI;
 import com.moneybags.tempfly.aesthetic.MvdWAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
+import com.moneybags.tempfly.command.CommandManager;
 import com.moneybags.tempfly.command.TempFlyExecutor;
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.gui.GuiSession;
@@ -20,7 +21,6 @@ import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.gui.pages.PageTrails;
 import com.moneybags.tempfly.hook.HookManager;
 import com.moneybags.tempfly.hook.TempFlyHook;
-import com.moneybags.tempfly.tab.TabHandle;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.AutoSave;
 import com.moneybags.tempfly.util.Console;
@@ -42,6 +42,7 @@ public class TempFly extends JavaPlugin {
 	private DataBridge bridge;
 	private FlightManager flight;
 	private TimeManager time;
+	private CommandManager commands;
 	private BukkitTask autosave;
 	
 	public HookManager getHookManager() {
@@ -59,6 +60,10 @@ public class TempFly extends JavaPlugin {
 	public TimeManager getTimeManager() {
 		return time;
 	}
+	
+	public CommandManager getCommandManager() {
+		return commands;
+	}
 
 	
 	
@@ -73,10 +78,10 @@ public class TempFly extends JavaPlugin {
 		this.flight = new FlightManager(this);
 		this.time 	= new TimeManager(this);
 		this.hooks 	= new HookManager(this);
+		this.commands = new CommandManager(this);
 		hooks.loadInternalGenres();
 		
 		registerListeners();
-		registerCommands();
 		initializeGui();
 		initializeAesthetics();
 
@@ -127,7 +132,7 @@ public class TempFly extends JavaPlugin {
 	}
 	
 	private void initializeGui() {
-		PageTrails.initialize();
+		PageTrails.initialize(this);
 		PageShop.initialize(this);
 	}
 	
@@ -144,13 +149,6 @@ public class TempFly extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(new GuiSession.GuiListener(), this);
 	}
 	
-	private void registerCommands() {
-		CommandExecutor c = new TempFlyExecutor(this);
-		TabCompleter t = new TabHandle();
-		getCommand("tempfly").setExecutor(c);
-		getCommand("tempfly").setTabCompleter(t);
-	}
-	
 	/*
 	 * Reload the plugin, this is the method called upon command /tempfly reload
 	 */
@@ -161,8 +159,7 @@ public class TempFly extends JavaPlugin {
 		bridge.commitAll();
 		Files.createFiles(this);
 		V.loadValues();
-		PageTrails.initialize();
-		PageShop.initialize(this);
+		initializeGui();
 		
 		flight.onTempflyReload();
 		hooks.onTempflyReload();

@@ -1,16 +1,25 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdInfinite {
+public class CmdInfinite extends TempFlyCommand {
 
-	public CmdInfinite(CommandSender s, String[] args, TempFly tempfly) {
+	public CmdInfinite(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.infinite.toggle")) {
 			U.m(s, V.invalidPermission);
 			return;
@@ -39,6 +48,11 @@ public class CmdInfinite {
 			user.enableFlight();
 		}
 		U.m(s, toggleVal ? V.flyInfiniteEnabled : V.flyInfiniteDisabled);
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		return new ArrayList<>();
 	}
 
 }

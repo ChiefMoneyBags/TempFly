@@ -1,16 +1,26 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
+import com.mysql.fabric.xmlrpc.base.Array;
 
-public class CmdBypass {
+public class CmdBypass extends TempFlyCommand {
 
-	public CmdBypass(CommandSender s, String[] args, TempFly tempfly) {
+	public CmdBypass(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.bypass.toggle")) {
 			U.m(s, V.invalidPermission);
 			return;
@@ -35,5 +45,10 @@ public class CmdBypass {
 		}
 		U.m(s, toggleVal ? V.flyBypassEnabled : V.flyBypassDisabled);
 		user.setRequirementBypass(toggleVal);
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		return new ArrayList<>();
 	}
 }

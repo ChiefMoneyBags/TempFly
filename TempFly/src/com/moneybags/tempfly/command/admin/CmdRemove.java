@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -13,8 +15,12 @@ import com.moneybags.tempfly.util.V;
 
 public class CmdRemove extends TimeCommand {
 
-	@SuppressWarnings("deprecation")
-	public CmdRemove(TempFly tempfly, CommandSender s, String[] args) {
+	public CmdRemove(TempFly tempfly, String[] args) {
+		super(tempfly, args);
+	}
+	
+	@Override @SuppressWarnings("deprecation")
+	public void executeAs(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.remove")) {
 			U.m(s, V.invalidPermission);
 			return;
@@ -29,7 +35,7 @@ public class CmdRemove extends TimeCommand {
 			U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
 			return;
 		}
-		double amount = quantifyArguments(s, args, 2);
+		double amount = quantifyArguments(s, 2);
 		if (amount == 0) {
 			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
@@ -44,6 +50,15 @@ public class CmdRemove extends TimeCommand {
 		}
 		if (p.isOnline() && time > 0) {
 			U.m((Player)p, manager.regexString(V.timeRemovedSelf, remove));
+		}
+	}
+
+	@Override
+	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3) {
+			return getPlayerArguments(args[1]);
+		} else {
+			return getTimeArguments(cleanArgs(args, 2));
 		}
 	}
 }

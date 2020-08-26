@@ -33,99 +33,18 @@ import com.moneybags.tempfly.util.V;
 
 public class TempFlyExecutor implements CommandExecutor, Listener {
 
-	private TempFly tempfly;
+	private CommandManager manager;
 	
-	public TempFlyExecutor(TempFly tempfly) {
-		this.tempfly = tempfly;
-		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
+	public TempFlyExecutor(CommandManager manager) {
+		this.manager = manager;
+		manager.getTempFly().getServer().getPluginManager().registerEvents(this, manager.getTempFly());
 	}
 	
 	@Override
 	public boolean onCommand(CommandSender s, Command cmd, String label, String[] args) {
-		if (args.length == 0) {
-			new CmdFly(tempfly, s, args);
-			return true;
-		} else {
-			base:
-			switch (args[0]) {
-			case "help":
-			case "commands":
-				new CmdHelp(s, args);
-				break;
-			case "toggle":
-			case "on":
-			case "enable":
-			case "off":
-			case "disable":
-				new CmdFly(tempfly, s, args);
-				break;
-			case "give":
-			case "add":
-				new CmdGive(tempfly, s, args);
-				break;
-			case "giveall":
-				new CmdGiveAll(tempfly, s, args);
-				break;
-			case "remove":
-			case "take":
-				new CmdRemove(tempfly, s, args);
-				break;
-			case "pay":
-			case "send":
-				new CmdPay(tempfly, s, args);
-				break;
-			case "time":
-			case "info":
-			case "remaining":
-			case "balance":
-			case "bal":
-			case "seconds":
-				new CmdTime(tempfly, s, args);
-				break;
-			case "set":
-				new CmdSet(tempfly, s, args);
-				break;
-			case "speed":
-			case "momentum":
-				new CmdSpeed(tempfly, s, args);
-				break;
-			case "trail":
-				if (args.length > 1) {
-					switch (args[1]) {
-					case "remove":
-					case "delete":
-						new CmdTrailRemove(s, args);
-						break base;
-					}
-				}
-			case "trails":
-			case "particle":
-				new CmdTrails(s);
-				break;
-			case "shop":
-			case "buy":
-			case "purchase":
-				new CmdShop(tempfly, s);
-				break;
-			case "reload":
-				new CmdReload(tempfly, s);
-				break;
-			case "island":
-			case "settings":
-			case "skyblock":
-			case "sb":
-				new CmdIslandSettings(s, args);
-				break;
-			case "infinite":
-				new CmdInfinite(s, args, tempfly);
-				break;
-			case "bypass":
-				new CmdBypass(s, args, tempfly);
-				break;
-			default:
-				new CmdHelp(s, args);
-				break;
-			}
+		TempFlyCommand command = manager.getCommand(args);
+		if (command != null) {
+			command.executeAs(s);
 		}
 		return true;
 	}
@@ -133,8 +52,8 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 	/**
 	 * This handler catches the CommandPreprocessEvent and listens for command /fly.
 	 * If the player has a permission listed under fly_override_permissions in the config
-	 * such as essentials.fly, tempfly will not override the flight command, so it returns.
-	 * otherwise we just steal the command base without registering it and run the tempfly executor.
+	 * such as essentials.fly, manager.getTempFly() will not override the flight command, so it returns.
+	 * otherwise we just steal the command base without registering it and run the manager.getTempFly() executor.
 	 * @param e
 	 */
 	//TODO test change ignoreCanlled true for AuthMe fly fix.
@@ -148,7 +67,7 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 		if (ls[0].equals("/fly")) {
 			for (String perm : V.overrideFlightPermissions) {
 				if (p.hasPermission(perm)) {
-					FlightUser user = tempfly.getFlightManager().getUser(p);
+					FlightUser user = manager.getTempFly().getFlightManager().getUser(p);
 					user.disableFlight(-1, false);
 					return;
 				}
