@@ -30,21 +30,14 @@ public class CmdSpeed extends TempFlyCommand {
 				U.m(s, V.invalidPermission);
 				return;
 			}
-			p = Bukkit.getPlayer(args[1]);
+			p = Bukkit.getPlayer(args[2]);
 			if (p == null) {
-				U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
+				U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[2]));
 				return;
 			}
-			
-			try {
-				speed = Float.parseFloat(args[2]);
-			} catch (Exception e) {
-				U.m(s, V.invalidNumber);
-				return;
-			}
-			
-			
-		} else if (args.length > 1) {
+		}
+		
+		if (args.length > 1) {
 			if (!U.isPlayer(s)) {
 				U.m(s, V.invalidSender);
 				return;
@@ -53,7 +46,7 @@ public class CmdSpeed extends TempFlyCommand {
 				U.m(s, V.invalidPermission);
 				return;
 			}
-			p = (Player)s;
+			p = args.length > 2 ? p : (Player)s;
 			
 			try {
 				speed = Float.parseFloat(args[1]);
@@ -83,6 +76,15 @@ public class CmdSpeed extends TempFlyCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length > 3) {
+			return new ArrayList<>();
+		}
+		if (args.length == 3) {
+			return U.hasPermission(s, "tempfly.speed.other") ? getPlayerArguments(args[2]) : new ArrayList<>();
+		}
+		if (args.length >= 2 && !U.hasPermission(s, "tempfly.speed.self")) {
+			return new ArrayList<>();
+		}
 		if (s instanceof Player) {
 			FlightUser user = tempfly.getFlightManager().getUser((Player)s);
 			Console.debug(user.getMaxSpeed());
