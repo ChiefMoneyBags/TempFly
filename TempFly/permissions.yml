@@ -16,7 +16,7 @@ tempfly.speed.self:
 
 tempfly.speed.other:
   desc: Allows user to set another users fly speed.
-  command: /tf speed [player] [speed]
+  command: /tf speed [speed] [player]
 
 tempfly.speed.[speed]:
   desc: Define the users max fly speed. goes up to 10.
