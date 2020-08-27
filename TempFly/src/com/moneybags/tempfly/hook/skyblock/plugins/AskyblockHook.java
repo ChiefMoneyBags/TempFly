@@ -18,6 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
+import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
@@ -192,8 +193,8 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	}
 
 	@Override
-	public boolean isChallengeCompleted(UUID id, String challenge) {
-		return api.getChallengeStatus(id).getOrDefault(challenge, false);
+	public boolean isChallengeCompleted(UUID id, SkyblockChallenge challenge) {
+		return challenge.getRequiredProgress() == 0 || api.getChallengeStatus(id).getOrDefault(challenge.getName(), false);
 	}
 
 	@Override

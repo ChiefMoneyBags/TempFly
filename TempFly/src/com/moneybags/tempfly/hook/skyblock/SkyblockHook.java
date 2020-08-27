@@ -114,9 +114,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 		String path;
 		if (config.contains(path = "unlockables.environment.wilderness")) {
 			Console.debug("", "<< Loading wilderness requirements >>");
+			
 			requirements.put(SkyblockRequirementType.WILDERNESS, new SkyblockRequirement[] {
 					new SkyblockRequirement(
-							config.getStringList(path + ".challenges"), null,
+							loadChallenges(config, path + ".challenges"), null,
 							config.getLong(path + ".island_level"), 0,
 							null, SkyblockRequirementType.WILDERNESS)
 			});
@@ -129,7 +130,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			for (String world: csRequireWorld.getKeys(false)) {
 				path = "unlockables.environment.worlds." + world;
 				list.add(new SkyblockRequirement(
-							config.getStringList(path + ".challenges"), null,
+							loadChallenges(config, path + ".challenges"), null,
 							config.getLong(path + ".island_level"), 0,
 							world, SkyblockRequirementType.WORLD));
 			}
@@ -145,7 +146,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			for (String region: csRequireRegion.getKeys(false)) {
 				path = "unlockables.environment.regions." + region;
 				list.add(new SkyblockRequirement(
-							config.getStringList(path + ".challenges"), null,
+							loadChallenges(config, path + ".challenges"), null,
 							config.getLong(path + ".island_level"), 0,
 							region, SkyblockRequirementType.REGION));
 			}
@@ -165,7 +166,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 				
 				path = "unlockables.island_roles." + role;
 				list.add(new SkyblockRequirement(
-							config.getStringList(path + ".challenges"), config.getStringList(path + ".owner_challenges"),
+							loadChallenges(config, path + ".challenges"), loadChallenges(config, path + ".owner_challenges"),
 							config.getLong(path + ".island_level"), config.getLong(path + ".owner_level"),
 							role.toUpperCase(), SkyblockRequirementType.ISLAND_ROLE));
 			}
@@ -175,6 +176,18 @@ public abstract class SkyblockHook extends TempFlyHook {
 		}
 		Console.debug("----END Skyblock Settings----", "");
 		PageIslandSettings.initialize(this);
+	}
+	
+	private SkyblockChallenge[] loadChallenges(FileConfiguration config, String path) {
+		ConfigurationSection csChallenges = config.getConfigurationSection(path);
+		List<SkyblockChallenge> challenges = new ArrayList<>();
+		if (csChallenges != null) {
+			for (String key: csChallenges.getKeys(false)) {
+				challenges.add(new SkyblockChallenge(key, config.getInt(path + "." + key + ".progress")));
+			}
+			
+		}
+		return challenges.size() > 0 ? challenges.toArray(new SkyblockChallenge[challenges.size()]) : null;
 	}
 	
 	/**
@@ -458,31 +471,27 @@ public abstract class SkyblockHook extends TempFlyHook {
 					.replaceAll("\\{ROLE}", ir.getName()), true);
 		}
 		
-		for (String challenge : ir.getChallenges()) {
-			if (challenge == null || challenge.length() == 0) {
-				continue;
-			}
+		for (SkyblockChallenge challenge : ir.getChallenges()) {
 			if (!isChallengeCompleted(u, challenge)) {
 				if (V.debug) {
 					Console.debug("fail island challenge: " + challenge, "-----End flight requirements-----", "");	
 				}
 				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 						requireChallengeSelf
-						.replaceAll("\\{CHALLENGE}", challenge)
+						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
 			}
 		}	
-		for (String challenge : ir.getOwnerChallenges()) {
-			if (challenge == null || challenge.length() == 0) {
-				continue;
-			}
+		for (SkyblockChallenge challenge : ir.getOwnerChallenges()) {
 			if (!isChallengeCompleted(getIslandOwner(island), challenge)) {
 				if (V.debug) {
 					Console.debug("fail island challenge | island owner: " + challenge, "-----End flight requirements-----", "");	
 				}
 				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
 						requireChallengeOther
-						.replaceAll("\\{CHALLENGE}", challenge)
+						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
 			}
 		}	
@@ -655,7 +664,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @param challenge The name of the challenge
 	 * @return true if the challenge has been completed, false if not completed or if it doesn't exist.
 	 */
-	public abstract boolean isChallengeCompleted(UUID p, String challenge);
+	public abstract boolean isChallengeCompleted(UUID p, SkyblockChallenge challenge);
 	
 	/**
 	 * Check if an island has this role present. Island is included as a parameter to support

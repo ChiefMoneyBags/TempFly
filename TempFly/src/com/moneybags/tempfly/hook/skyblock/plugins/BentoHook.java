@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
+import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 
 public class BentoHook extends SkyblockHook {
@@ -34,7 +35,7 @@ public class BentoHook extends SkyblockHook {
 	}
 
 	@Override
-	public boolean isChallengeCompleted(UUID p, String challenge) {
+	public boolean isChallengeCompleted(UUID p, SkyblockChallenge challenge) {
 		// TODO Auto-generated method stub
 		return false;
 	}

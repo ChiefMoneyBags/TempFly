@@ -1,10 +1,34 @@
-# This setting allows you to disable the skyblock hook even if you have skyblock on the server.
-# If you just want to disable flight in the island worlds use disabled worlds in the base config.
+##----------------------------------------------------##
+#|                     Usage Info                     |#
+##----------------------------------------------------##
+#| Depending on your specific skyblock plugin.        |#
+#| When island level is specified in in the config    |#
+#| it will refer to either;                           |#
+#| a) The level of the island in question.            |#
+#| b) The worth/value of the island if applicable     |#
+##----------------------------------------------------##
+#| Depending on your specific skyblock plugin.        |#
+#| When challenges are specified in the config,       |#
+#| The value progress will refer to either;           |#
+#| a) how many times the challenge has been completed |#
+#| b) the percentage of progress towards completion   |#
+#| c) Whether the challenge was completed. Just put 1 |#
+#|  - Some plugins only complete challenges once      |#
+##----------------------------------------------------##
+#| Please see the generated file skyblock.readme for  |#
+#| config info about your specific skyblock plugin.   |#
+##----------------------------------------------------##
+#| This default config has been configured for the    |#
+#| plugin askyblock and hence may need to be altered  |#
+#| to properly support your plugin.                   |#
+##----------------------------------------------------##
+
+# This setting allows you to disable the skyblock hook even if you have a skyblock plugin on the server.
+# If you just want to disable flight in the island worlds use disabled worlds in the base config and disable the hook.
 enable_hook: true
 
 # Unlockables allow you to set island requirements to allow users flight on islands and elsewhere on the server.
-# Island level is the minimum level the players island must be to fly in the area.
-# Challenges are a list of challenges that must be completed to fly in the area.
+
 unlockables:
 
   environment:
@@ -13,46 +37,56 @@ unlockables:
       super_awesome_vip_region:
         island_level: 950
         challenges:
-          - 'alchemist'
-          - 'dj'
-          - 'beaconator'
+          alchemist:
+            progress: 1
+          dj:
+            progress: 1
+          beaconator:
+            progress: 1
   
     # Requirements needed for island members to fly in specified worlds
     worlds:
       example_world:
         island_level: 1
-        challenges:
-          - ''
   
     # requirements to fly when not on an island.
     wilderness:
       island_level: 0
-      challenges:
-        - ''
 
-  # Below are flight requirements based on island roles.
-  # Valid requirements include;
-  # island_level: the island level for the player trying to fly.
-  # owner_level: the island level for the island they are trying to fly on.
-  # challenges: the challenges for the player trying to fly.
-  # owner_challenges: the challenges for the owner of the island they are trying to fly on.
-
-  # If the role specified is a member of the island, for example, (team, moderator, owner) there
-  # is no need to specify both island_level and owner_level as they will be the same thing.
+  ##--------------------------------------------------------##
+  #|       Flight requirements based on island roles        |#
+  #|               Valid requirements include;              |#
+  ##------------------+-------------------------------------##
+  #| island_level     | the island level for the player     |#
+  #|                  | trying to fly.                      |#
+  ##------------------+-------------------------------------##
+  #| owner_level      | the island level for the island     |#
+  #|                  | they are trying to fly on.          |#
+  ##------------------+-------------------------------------##
+  #| challenges       | the challenges for the player       |#
+  #|                  | trying to fly.                      |#
+  ##------------------+-------------------------------------##
+  #| owner_challenges | the challenges for the owner of the |#
+  #|                  | island they are trying to fly on.   |#
+  ##------------------+-------------------------------------##
+  #| If the role specified is a member of the island,       |#
+  #| for example, (team, moderator, owner) there is no need |#
+  #| to specify both island_level and owner_level.          |#
+  ##--------------------------------------------------------##
   island_roles:
     owner:
       island_level: 5
-      challenges:
-        - ''
 
     visitor:
       island_level: 75
       owner_level: 50
 
       challenges:
-        - 'stewmaker'
+        stewmaker:
+          progress: 1
       owner_challenges:
-        - 'papermaker'
+        papermaker:
+          progress: 1
 
 flight_settings:
   # If false the player cannot fly when they are not on an island
@@ -60,6 +94,7 @@ flight_settings:
 
   # The following settings are the default values for the tempfly's island protection panel
   # Island owners may allow or disallow island roles flight on their island.
+  # You will need to enter the roles specific to your skyblock plugin here. The defaults may not apply to you.
   base_permissions:
     # Team members can fly on the island
     team: true
@@ -73,8 +108,10 @@ language:
     island: "{PREFIX} &cYou must have an island to fly here!"
 
   requirements:
+    # Challenges support the placeholders; {CHALLENGE} | {PROGRESS} | {ROLE}
     challenge_self: "{PREFIX} &cYou must complete the challenge &f{CHALLENGE} &cto fly here!"
     challenge_other: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
+    # Levels support the placeholders; {LEVEL} | {ROLE}
     level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
     level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
 
@@ -85,7 +122,9 @@ gui:
     enabled: true
     button:
       name: "&dTemp&fFly &fIsland Settings"
+
   page:
+    # Placeholders; {ROLE}
     settings:
       title: "&dIsland Flight Settings"
       background:

@@ -16,20 +16,21 @@ public class SkyblockRequirement {
 	private long islandLevel;
 	private long ownerLevel;
 	@Nullable
-	private String[] challenges;
-	private String[] ownerChallenges;
+	private SkyblockChallenge[] challenges;
+	private SkyblockChallenge[] ownerChallenges;
 	@Nullable
 	private String name;
 	
 	public SkyblockRequirement(
-			List<String> challenges, List<String> ownerChallenges,
+			SkyblockChallenge[] challenges, SkyblockChallenge[] ownerChallenges,
 			long islandLevel, long ownerLevel,
 			String name, SkyblockRequirementType type) {
 		this.type = type;
 		this.name = name;
 		
-		this.challenges = challenges == null ? null : challenges.toArray(new String[challenges.size()]);
-		this.ownerChallenges = ownerChallenges == null ? null : ownerChallenges.toArray(new String[challenges.size()]);
+		this.challenges = challenges == null ? new SkyblockChallenge[0] : challenges;
+		this.ownerChallenges = ownerChallenges == null ? new SkyblockChallenge[0] : ownerChallenges;
+		
 		this.islandLevel = islandLevel;
 		this.ownerLevel = ownerLevel;
 		
@@ -57,11 +58,11 @@ public class SkyblockRequirement {
 	}
 	
 	@Nullable
-	public String[] getChallenges() {
+	public SkyblockChallenge[] getChallenges() {
 		return challenges;
 	}
 	
-	public String[] getOwnerChallenges() {
+	public SkyblockChallenge[] getOwnerChallenges() {
 		return ownerChallenges;
 	}
 	
