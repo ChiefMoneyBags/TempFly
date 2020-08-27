@@ -15,6 +15,7 @@ import com.iridium.iridiumskyblock.IslandManager;
 import com.iridium.iridiumskyblock.User;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
+import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.util.U;
 
@@ -81,7 +82,7 @@ public class IridiumHook extends SkyblockHook {
 	}
 
 	@Override
-	public boolean isChallengeCompleted(UUID p, String challenge) {
+	public boolean isChallengeCompleted(UUID p, SkyblockChallenge challenge) {
 		
 		return false;
 	}
