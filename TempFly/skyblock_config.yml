@@ -10,10 +10,12 @@
 #| Depending on your specific skyblock plugin.        |#
 #| When challenges are specified in the config,       |#
 #| The value progress will refer to either;           |#
-#| a) how many times the challenge has been completed |#
-#| b) the percentage of progress towards completion   |#
-#| c) Whether the challenge was completed. Just put 1 |#
-#|  - Some plugins only complete challenges once      |#
+#| a) the percentage of progress towards completion   |#
+#|                                                    |#
+#| b) how many times the challenge has been completed |#
+#| If your plugin does not allow for completion of    |#
+#| challenges multiple times setting a value higher   |#
+#| than 1 will have no effect.                        |#
 ##----------------------------------------------------##
 #| Please see the generated file skyblock.readme for  |#
 #| config info about your specific skyblock plugin.   |#
