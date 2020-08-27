@@ -1,6 +1,7 @@
 package com.moneybags.tempfly.command.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -68,8 +69,10 @@ public class CmdTrailRemove extends TempFlyCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
-		if (args.length < 3) {
+		if (args.length < 3 && U.hasPermission(s, "tempfly.trails.remove.other")) {
 			return getPlayerArguments(args[1]);
+		} else if (args.length < 3 && U.hasPermission(s, "tempfly.trails.remove.self")) {
+			return Arrays.asList(((Player)s).getName());
 		}
 		return new ArrayList<>();
 	}

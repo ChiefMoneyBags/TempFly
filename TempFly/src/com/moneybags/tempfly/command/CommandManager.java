@@ -28,6 +28,7 @@ import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
 import com.moneybags.tempfly.util.Console;
+import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
 
 import net.minecraft.server.v1_15_R1.EnchantmentSlotType;
@@ -53,6 +54,9 @@ public class CommandManager {
 		tempfly.getCommand("tempfly").setTabCompleter(tab);
 		
 		for (CommandType type: CommandType.values()) {
+			if (!type.isEnabled(tempfly)) {
+				continue;
+			}
 			List<String> subs = Files.lang.getStringList("command.base." + type.toString().toLowerCase());
 			if (subs == null || subs.size() == 0) {
 				subCommands.put(type, Arrays.asList(type.getBase()));
@@ -143,8 +147,24 @@ public class CommandManager {
 		return args;
 	}
 	
-	public String getTimeComplete(TimeUnit unit) {
+	public List<String> getTimeCompletions(List<TimeUnit> exclude) {
+		List<String> args = new ArrayList<>();
+		for (Entry<TimeUnit, String> entry: timeComplete.entrySet()) {
+			if (exclude.contains(entry.getKey())) continue;
+			args.add(entry.getValue());
+		}
+		return args;
+	}
+	
+	public String getTimeCompletion(TimeUnit unit) {
 		return timeComplete.getOrDefault(unit, "{unit}");
+	}
+	
+	public List<String> getToggleCompletions(boolean filter) {
+		if (filter) return Arrays.asList(enable.get(0), disable.get(0));
+		List<String> all = new ArrayList<>();
+		all.addAll(enable); all.addAll(disable);
+		return all;
 	}
 	
 	public TempFlyCommand getCommand(String[] args) {
@@ -154,7 +174,6 @@ public class CommandManager {
 		if (args.length == 0 || getEnable().contains(args[0]) || getDisable().contains(args[0])) {
 			return new CmdFly(tempfly, args);
 		} else {
-			Console.debug("else");
 			for (CommandType type: CommandType.values()) {
 				for (String base: getCommandBases(type)) {
 					if (base.equals(args[0])) {
@@ -170,8 +189,7 @@ public class CommandManager {
 	
 	public List<String> getAllCommandBases() {
 		List<String> bases = new ArrayList<>();
-		bases.add(getEnable().get(0));
-		bases.add(getDisable().get(0));
+		bases.addAll(getToggleCompletions(true));
 		for (CommandType type: CommandType.values()) {
 			for (String base: getCommandBases(type)) {
 				bases.add(base);
@@ -182,8 +200,6 @@ public class CommandManager {
 	
 	public List<String> getPartialCommandBases(String partial) {
 		List<String> matches = new ArrayList<>();
-		matches.add(getEnable().get(0));
-		matches.add(getDisable().get(0));
 		for (CommandType type: CommandType.values()) {
 			bases:
 			for (String base: getCommandBases(type)) {
@@ -198,8 +214,24 @@ public class CommandManager {
 					}
 				}
 				matches.add(base);
+				continue bases;
 			}
 		}
+		toggle:
+		for (String base: getToggleCompletions(false)) {
+			char[] baseChars = base.toCharArray();
+			if (partial.length() > baseChars.length) {
+				continue;
+			}
+			for (int i = 0; i < partial.length(); i++) {
+				char partialChar = partial.charAt(i);
+				if (partialChar != baseChars[i]) {
+					continue toggle;
+				}
+			}
+			matches.add(base);
+		}
+		
 		return matches;
 	}
 	
@@ -255,6 +287,15 @@ public class CommandManager {
 		private CommandType(Class<? extends TempFlyCommand> clazz, String base) {
 			this.clazz = clazz;
 			this.base = base;
+		}
+		
+		public boolean isEnabled(TempFly tempfly) {
+			switch (this) {
+			case SHOP:
+				return V.shop;
+			default:
+				return true;
+			}
 		}
 		
 		public String getBase() {

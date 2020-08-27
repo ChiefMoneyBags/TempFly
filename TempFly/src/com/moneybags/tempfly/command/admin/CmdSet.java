@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -58,6 +59,9 @@ public class CmdSet extends TimeCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (!U.hasPermission(s, "tempfly.set")) {
+			return new ArrayList<>();
+		}
 		if (args.length < 3) {
 			return getPlayerArguments(args[1]);
 		} else {

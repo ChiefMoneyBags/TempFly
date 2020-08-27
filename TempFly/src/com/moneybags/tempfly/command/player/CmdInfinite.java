@@ -52,6 +52,9 @@ public class CmdInfinite extends TempFlyCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3 && U.hasPermission(s, "tempfly.infinite.toggle")) {
+			return tempfly.getCommandManager().getToggleCompletions(true);
+		}
 		return new ArrayList<>();
 	}
 

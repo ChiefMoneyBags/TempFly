@@ -20,13 +20,13 @@ public abstract class TimeCommand extends TempFlyCommand {
 		super(tempfly, args);
 	}
 	
-	public List<String> getPartialUnits(String partial, double val) {
+	public List<String> getPartialUnits(String partial, List<TimeUnit> exclusion) {
 		if (partial == null || partial.isEmpty()) {
-			return tempfly.getCommandManager().getAllTimeCompletions();
+			return tempfly.getCommandManager().getTimeCompletions(exclusion);
 		}
 		List<String> matches = new ArrayList<>();
 		units:
-		for (String identifier: tempfly.getCommandManager().getAllTimeCompletions()) {
+		for (String identifier: tempfly.getCommandManager().getTimeCompletions(exclusion)) {
 			char[] unitChars = identifier.toCharArray();
 			if (partial.length() > unitChars.length) {
 				continue;
@@ -37,7 +37,7 @@ public abstract class TimeCommand extends TempFlyCommand {
 					continue units;
 				}
 			}
-			matches.add(val != -999 ? String.valueOf(val) + identifier : identifier);
+			matches.add(identifier);
 		}
 		return matches;
 	}
@@ -124,11 +124,21 @@ public abstract class TimeCommand extends TempFlyCommand {
 		if (args == null || args.length == 0 || args.length == 1 && args[0].isEmpty()) {
 				return getRange(1, 9);
 		}
+		List<TimeUnit> exclusion = new ArrayList<>();
+		for (String s : args) {
+			TimeUnit unit;
+			if ((unit = tempfly.getCommandManager().parseUnit(s)) != null) {
+				exclusion.add(unit);
+			}
+		}
+		if (exclusion.size() == 4) {
+			return new ArrayList<>();
+		}
 		
 		String lastArg = args[args.length-1];
 		// /tf give 1 {unit}
 		return ((lastArg.isEmpty() || !isNumeric(lastArg)) && args.length > 1 && isNumeric(args[args.length-2]))
-			? getPartialUnits(lastArg, -999) : getRange(1, 9);
+			? getPartialUnits(lastArg, exclusion) : getRange(1, 9);
 		
 	}
 }

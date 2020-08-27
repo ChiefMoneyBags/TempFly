@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.command.admin;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -71,6 +72,9 @@ public class CmdGive extends TimeCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (!U.hasPermission(s, "tempfly.give")) {
+			return new ArrayList<>();
+		}
 		if (args.length < 3) {
 			return getPlayerArguments(args[1]);
 		} else {

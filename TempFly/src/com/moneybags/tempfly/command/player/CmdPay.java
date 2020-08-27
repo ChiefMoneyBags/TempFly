@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.command.player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -86,6 +87,9 @@ public class CmdPay extends TimeCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (!U.hasPermission(s, "tempfly.pay") || !V.payable) {
+			return new ArrayList<>();
+		}
 		if (args.length < 3) {
 			return getPlayerArguments(args[1]);
 		} else {

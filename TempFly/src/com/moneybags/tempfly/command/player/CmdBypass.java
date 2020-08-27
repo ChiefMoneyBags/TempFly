@@ -1,6 +1,7 @@
 package com.moneybags.tempfly.command.player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.command.CommandSender;
@@ -49,6 +50,9 @@ public class CmdBypass extends TempFlyCommand {
 
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
+		if (args.length < 3 && U.hasPermission(s, "tempfly.bypass.toggle")) {
+			return tempfly.getCommandManager().getToggleCompletions(true);
+		}
 		return new ArrayList<>();
 	}
 }

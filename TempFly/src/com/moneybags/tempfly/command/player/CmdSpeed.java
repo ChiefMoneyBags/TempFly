@@ -1,6 +1,7 @@
 package com.moneybags.tempfly.command.player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -80,9 +81,10 @@ public class CmdSpeed extends TempFlyCommand {
 			return new ArrayList<>();
 		}
 		if (args.length == 3) {
-			return U.hasPermission(s, "tempfly.speed.other") ? getPlayerArguments(args[2]) : new ArrayList<>();
+			return U.hasPermission(s, "tempfly.speed.other") ? getPlayerArguments(args[2]) 
+					: U.hasPermission(s, "tempfly.speed.self") ? Arrays.asList(((Player)s).getName()) : new ArrayList<>();
 		}
-		if (args.length >= 2 && !U.hasPermission(s, "tempfly.speed.self")) {
+		if (args.length >= 2 && !U.hasPermission(s, "tempfly.speed.self") || (s instanceof Player)) {
 			return new ArrayList<>();
 		}
 		if (s instanceof Player) {
