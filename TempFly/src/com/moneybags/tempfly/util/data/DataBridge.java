@@ -68,6 +68,8 @@ public class DataBridge extends Thread implements DataFileHolder {
 				connection = DriverManager.getConnection(
 						"jdbc:mysql://" + host + ":"+ port + "/" + name, user, pass);
 			} catch (Exception e) {
+				connection = null;
+				Console.severe("There was a problem connecting to sql database. Yaml storage will be used.");
 				e.printStackTrace();
 			}
 		}
