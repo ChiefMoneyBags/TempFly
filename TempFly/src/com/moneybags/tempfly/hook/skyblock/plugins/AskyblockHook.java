@@ -194,7 +194,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 
 	@Override
 	public boolean isChallengeCompleted(UUID id, SkyblockChallenge challenge) {
-		return challenge.getRequiredProgress() == 0 || api.getChallengeStatus(id).getOrDefault(challenge.getName(), false);
+		return challenge.getRequiredCompletions() == 0 && challenge.getRequiredProgress() == 0 || api.getChallengeStatus(id).getOrDefault(challenge.getName(), false);
 	}
 
 	@Override
