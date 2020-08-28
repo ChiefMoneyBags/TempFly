@@ -1,21 +1,33 @@
 ##----------------------------------------------------##
 #|                     Usage Info                     |#
+#|    Depending on your specific skyblock plugin      |#
 ##----------------------------------------------------##
-#| Depending on your specific skyblock plugin.        |#
-#| When island level is specified in in the config    |#
-#| it will refer to either;                           |#
-#| a) The level of the island in question.            |#
-#| b) The worth/value of the island if applicable     |#
+
 ##----------------------------------------------------##
-#| Depending on your specific skyblock plugin.        |#
-#| When challenges are specified in the config,       |#
-#| The value progress will refer to either;           |#
-#| a) the percentage of progress towards completion   |#
+#|  When island level is specified it will refer to   |#
+##----------------------------------------------------##
+#| a) The level of the island.                        |#
+#| b) The worth/value of the island                   |#
+##----------------------------------------------------##
+
+##----------------------------------------------------##
+#|           When challenges are specified            |#
+##----------------------------------------------------##
+#|         The value progress will refer to;          |#
+#|        ----------------------------------          |#
+#| a) The percentage of progress towards completion   |#
+#| b) The required step within a multi step challenge |#
 #|                                                    |#
-#| b) how many times the challenge has been completed |#
-#| If your plugin does not allow for completion of    |#
-#| challenges multiple times setting a value higher   |#
-#| than 1 will have no effect.                        |#
+#| Some plugins do not support this feature and hence |#
+#|    putting it in the config will have no effect.   |#
+##----------------------------------------------------##
+#|         The value completed will refer to          |#
+#|        ----------------------------------          |#
+#| a) The amount of times the challenge was completed |#
+#|                                                    |#
+#| In plugins that do not support the ability to      |#
+#| complete a challenge multiple times, setting this  |#
+#| to anything higher than 1 has no effect.           |#
 ##----------------------------------------------------##
 #| Please see the generated file skyblock.readme for  |#
 #| config info about your specific skyblock plugin.   |#
@@ -40,11 +52,11 @@ unlockables:
         island_level: 950
         challenges:
           alchemist:
-            progress: 1
+            completed: 1
           dj:
-            progress: 1
+            completed: 1
           beaconator:
-            progress: 1
+            completed: 1
   
     # Requirements needed for island members to fly in specified worlds
     worlds:
@@ -85,10 +97,10 @@ unlockables:
 
       challenges:
         stewmaker:
-          progress: 1
+          completed: 1
       owner_challenges:
         papermaker:
-          progress: 1
+          completed: 1
 
 flight_settings:
   # If false the player cannot fly when they are not on an island

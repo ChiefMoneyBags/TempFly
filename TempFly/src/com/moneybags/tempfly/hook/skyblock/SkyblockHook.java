@@ -183,7 +183,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 		List<SkyblockChallenge> challenges = new ArrayList<>();
 		if (csChallenges != null) {
 			for (String key: csChallenges.getKeys(false)) {
-				challenges.add(new SkyblockChallenge(key, config.getInt(path + "." + key + ".progress")));
+				challenges.add(new SkyblockChallenge(key, 
+						config.getInt(path + "." + key + ".progress", 0),
+						config.getInt(path + "." + key + ".completed", 0)));
 			}
 			
 		}
