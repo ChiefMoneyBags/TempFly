@@ -65,16 +65,6 @@ public class FlightManager implements Listener, Reloadable {
 		return combat;
 	}
 	
-	
-	
-	/**
-	 * 
-	 * --=------------=--
-	 *    User Control
-	 * --=------------=--
-	 * 
-	 */
-	
 	@Override
 	public void onTempflyReload() {
 		for (RequirementProvider provider: providers) {
@@ -86,6 +76,15 @@ public class FlightManager implements Listener, Reloadable {
 		}
 		
 	}
+	
+	
+	/**
+	 * 
+	 * --=------------=--
+	 *    User Control
+	 * --=------------=--
+	 * 
+	 */
 	
 	public FlightUser getUser(Player p) {
 		return users.containsKey(p) ? users.get(p) : null;

@@ -10,10 +10,14 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 public class ClipAPI {
 	
 	private static TempFly tempfly;
+	private static PlaceHolders instance;
 	
 	public static void initialize(TempFly plugin) {
 		tempfly = plugin;
-		new PlaceHolders().register();
+		if (instance == null) {
+			instance = new PlaceHolders();
+			instance.register();
+		}
 	}
 	
 	public static class PlaceHolders extends PlaceholderExpansion {
@@ -59,6 +63,10 @@ public class ClipAPI {
 				return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_MINUTES);
 			case "time-seconds":
 				return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_SECONDS);
+			case "list-name":
+				return p.isOnline() ? tempfly.getFlightManager().getUser(p).getListPlaceholder() : "";
+			case "name-tag":
+				return p.isOnline() ? tempfly.getFlightManager().getUser(p).getTagPlaceholder() : "";
 			default:
 				return null;
 			}

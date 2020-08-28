@@ -84,7 +84,11 @@ public class V {
 	
 	particleType,
 	listName,
+	listPlaceholderOn,
+	listPlaceholderOff,
 	tagName,
+	tagPlaceholderOn,
+	tagPlaceholderOff,
 	
 	fbDays,
 	fbHours,
@@ -307,8 +311,12 @@ public class V {
 		hideVanish			= config.getBoolean("aesthetic.identifier.particles.hide_vanish");
 		list				= config.getBoolean("aesthetic.identifier.tab_list.enabled");
 		listName			= st(C.CONFIG, "aesthetic.identifier.tab_list.name");
+		listPlaceholderOn	= st(C.CONFIG, "aesthetic.identifier.tab_list.placeholder.enabled");
+		listPlaceholderOff	= st(C.CONFIG, "aesthetic.identifier.tab_list.placeholder.disabled");
 		tag					= config.getBoolean("aesthetic.identifier.name_tag.enabled");
 		tagName				= st(C.CONFIG, "aesthetic.identifier.name_tag.name");
+		tagPlaceholderOn	= st(C.CONFIG, "aesthetic.identifier.name_tag.placeholder.enabled");
+		tagPlaceholderOff	= st(C.CONFIG, "aesthetic.identifier.name_tag.placeholder.disabled");
 		attackP				= config.getBoolean("general.combat.attack_player");
 		attackM				= config.getBoolean("general.combat.attack_mob");
 		attackedP			= config.getBoolean("general.combat.attacked_by_player");
@@ -324,7 +332,7 @@ public class V {
 		
 		defaultSpeed		= config.getDouble("general.flight.default_speed", 1);
 		maxY				= config.getInt("general.flight.maximum_height", 275);
-		autoFly			= config.getBoolean("general.flight.auto_enable", true);
+		autoFly				= config.getBoolean("general.flight.auto_enable", true);
 		
 		
 		damageCommand		= config.getBoolean("general.damage.on_command");

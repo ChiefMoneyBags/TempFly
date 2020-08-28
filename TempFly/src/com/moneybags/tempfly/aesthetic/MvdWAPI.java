@@ -70,6 +70,26 @@ public class MvdWAPI {
 					return null;
 				} 
 			  });
+			  PlaceholderAPI.registerPlaceholder(tempfly, "tempfly_list-name", new PlaceholderReplacer() {
+				@Override
+				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
+					Player p = e.getPlayer();
+					if (p != null && p.isOnline()) {
+						return tempfly.getFlightManager().getUser(p).getListPlaceholder();
+					}
+					return null;
+				} 
+			  });
+			  PlaceholderAPI.registerPlaceholder(tempfly, "tempfly_name_tag", new PlaceholderReplacer() {
+				@Override
+				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
+					Player p = e.getPlayer();
+					if (p != null && p.isOnline()){
+						return tempfly.getFlightManager().getUser(p).getTagPlaceholder();
+					}
+					return null;
+				} 
+			  });
 		}
 	}
 }

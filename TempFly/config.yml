@@ -1,4 +1,4 @@
-##--------------------------------------------------------------------------------------##
+##======================================================================================##
 #|                                                                                      |#
 #|                ,--------.                       ,------.,--.                         |# 
 #|                '--.  .--',---. ,--,--,--. ,---. |  .---'|  |,--. ,--.                |# 
@@ -27,6 +27,24 @@
 #|    https://github.com/ChiefMoneyBags/TempFly/blob/Master/TempFly/permissions.yml     |#
 #|                                                                                      |#
 ##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                              Time Placeholder Usage                                  |#
+#|                                                                                      |#
+#|                                    Single Units                                      |#
+#|                        {SECONDS} {MINUTES} {HOURS} {DAYS}                            |#
+#|                        ----------------------------------                            |#
+#| Single unit placeholders will show the amount of time for only the unit specified.   |#
+#| If a player has 65 secs of time {SECONDS} will be 5s and {MINUTES} will be 1m        |#
+#|                                                                                      |#
+#|                                  Formatted Time                                      |#
+#|                                 {TIME_FORMATTED}                                     |#
+#|                        ----------------------------------                            |#
+#| Formatted time only includes time units currently applicable to the player.          |#
+#| It does not display zeroes in between units like this [1d 0h 0m 1s]                  |#
+#| If a player has 86401 seconds of time it will display [1d 1s]                        |#
+#|                                                                                      |#
+##======================================================================================##
+
 
 system:
   # Time in minutes to backup data
@@ -34,16 +52,6 @@ system:
   # If true your console will be subjected to spam from the internal workings of the plugin.
   # If you have an issue i may ask you to turn it on.
   debug: false
-  # Connect to an sql database for storage.
-  # This will disable yaml data storage.
-
-  # DO NOT ENABLE SQL IT IS NOT READY IN THIS BETA VERSION, It wont save your data.
-  sql:
-    enabled: false
-    host: "127.0.0.1"
-    port: "0000"
-    user: "user"
-    pass: "pass"
 
 general:
   # This feature prevents conflictions with other plugins fly features.
@@ -160,17 +168,29 @@ aesthetic:
     tab_list:
       # If enabled, the players name on tab will change to this when they are in tempflight.
       enabled: true
-      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name on tab, including prefixes.
+      # Valid placeholders: {PLAYER} The players name | {OLD_TAG} The original name on tab, including prefixes.
       # Supports placeholders for time
       name: "&d~{OLD_TAG}"
+      # For use on servers with a custom tab overlay. This option will allow you to implement placeholders
+      # for tempfly in the tablist plugin so long as it supports placeholders from the authors clip or maximvdw.
+      # If you are using the placeholder you can set enabled to false so tempfly doesn't try to alter tab.
+      placeholder:
+        enabled: "&8[&6Fly&8]"
+        disabled: ""
 
     name_tag:
-      # If enabled, the players name tag will change to this when they are in tempflight.
+      # If enabled, the players name tag above their head will change to this when they are in tempflight.
       # (Not currently compatible with plugin "essentials")
       enabled: true
-      # Valid placeholers: {PLAYER} The players name | {OLD_TAG} The origional name tag, including prefixes.
+      # Valid placeholders: {PLAYER} The players name | {OLD_TAG} The original name tag, including prefixes.
       # Supports placeholders for time      
       name: "&d~{OLD_TAG}"
+      # For use on servers with a custom name tags. This option will allow you to implement placeholders
+      # for tempfly in the tablist plugin so long as it supports placeholders from the authors clip or maximvdw.
+      # If you are using the placeholder you can set enabled to false so tempfly doesn't try to alter the name.
+      placeholder:
+        enabled: "&8[&6Fly&8]"
+        disabled: ""
 
     particles:
       # If false all trails are disabled.
@@ -185,7 +205,9 @@ aesthetic:
 
   # Title to warn players of remaining flight time
   warning:
-    # valid placeholders {SECONDS} {MINUTES} {HOURS} {DAYS}
+    # If enabled, players will recieve a warning title when they reach a flight marker defined under seconds.
+    enabled: true
+    # Supports placeholders for time.
     title: "&cWARNING!"
     subtitle: "&fYou have &c{SECONDS} &fseconds of flight remaining!"
     # Time intervals in seconds to display the title to players.

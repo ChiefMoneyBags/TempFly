@@ -644,6 +644,18 @@ public class FlightUser {
 		Particles.play(p.getLocation(), particle);
 	}
 	
+	public String getListPlaceholder() {
+		return timeManager.regexString((p.isFlying() && hasFlightEnabled() ? V.listPlaceholderOn : V.listPlaceholderOff)
+				.replaceAll("\\{PLAYER}", p.getName())
+				.replaceAll("\\{OLD_TAG}", listName), time);
+	}
+	
+	public String getTagPlaceholder() {
+		return timeManager.regexString((p.isFlying() && hasFlightEnabled() ? V.tagPlaceholderOn : V.tagPlaceholderOff)
+				.replaceAll("\\{PLAYER}", p.getName())
+				.replaceAll("\\{OLD_TAG}", tagName), time);
+	}
+	
 	private void updateList(boolean reset) {
 		if (!V.list) {return;}
 		p.setPlayerListName(!p.isFlying() || reset
