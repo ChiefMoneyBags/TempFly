@@ -93,7 +93,7 @@ public class FlightUser {
 					}
 				} else {
 					enforce(1);
-					if (V.permaTimer) {
+					if (V.permaTimer && time > 0) {
 						if (timer != null) {
 							timer.cancel();
 						}
@@ -164,7 +164,7 @@ public class FlightUser {
 	}
 	
 	public boolean isIdle() {
-		return V.idleThreshold > -1 && idle >= V.idleThreshold;
+		return V.idleThreshold > -1 && idle >= (V.idleThreshold*20);
 	}
 	
 	public boolean hasFlightEnabled() {
@@ -294,7 +294,7 @@ public class FlightUser {
 	public void disableFlight(int delay, boolean fallSafely) {
 		if (!enabled) {return;}
 		enabled = false;
-		if (!V.permaTimer) {
+		if (timer != null && (!V.permaTimer || time <= 0)) {
 			timer.cancel();
 			timer = null;
 		}
@@ -329,7 +329,7 @@ public class FlightUser {
 		p.setFlying(!p.isOnGround());
 		applySpeedCorrect();
 		if (timer == null) {
-			this.timer = p.isOnGround() && !V.permaTimer && !V.groundTimer ? new GroundTimer() : new FlightTimer();	
+			this.timer = new FlightTimer();	
 		}
 		return true;
 	}
@@ -737,15 +737,20 @@ public class FlightUser {
 	 */
 	public class GroundTimer extends TempFlyTimer {
 		
+		private static final int DELAY = 3;
+		
 		public GroundTimer() {
-			this.runTaskTimer(manager.getTempFly(), 0, 3);
+			Console.debug("--- new ground timer ---");
+			this.runTaskTimer(manager.getTempFly(), 1, DELAY);
 		}
 		
 		@Override
 		public void run() {
-			if (p.isFlying()) {
-				if (isIdle() && !V.idleTimer) {
-					return;	
+			idle += DELAY;
+			//Console.debug("ground timer run");
+			if (p.isFlying() || V.permaTimer || (V.groundTimer && p.isOnGround())) {
+				if (!V.idleTimer && isIdle()) {
+					return;
 				}
 				this.cancel();
 				timer = new FlightTimer();
@@ -762,77 +767,92 @@ public class FlightUser {
 	 */
 	public class FlightTimer extends TempFlyTimer {
 		
-		private int cycle = 10;
-		private boolean previouslyFlying;
-		private boolean fixInitialCycle = true;
+		private static final int DELAY = 3;
 		
-		private long localCycle;
+		private boolean previouslyFlying;
 		
 		public FlightTimer() {
-			this.runTaskTimer(manager.getTempFly(), 0, 2);
+			Console.debug("--- new flight timer--- ");
+			this.runTaskTimer(manager.getTempFly(), 0, DELAY);
+			if (doFlightTimer() && V.actionBar && !hasInfiniteFlight() && time > 0) {
+				doActionBar();
+			}
 		}
 		
 		@Override
 		public void run() {
+			idle += DELAY;
+			// Update the players identifiers each tick as it isn't resource heavy it looks good.
 			doIdentifier();
-			if (!doCycle()) {
-				return;
-			}
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
 			if (enabled) {p.setAllowFlight(true);}
+			
+			//Console.debug("flight timer run");
 			if (hasInfiniteFlight()) {
 				return;
 			}
-			
-			if (!V.permaTimer && ((!p.isFlying() && !V.groundTimer) || !checkIdle())) {
+			if (!doFlightTimer()) {
 				this.cancel();
-				timer = new GroundTimer();
-				accumulativeCycle += localCycle;
-				return;
-			} else {
-				localCycle = System.currentTimeMillis();
-			}
-			
-			idle++;
-			
-			if (time > 0) {
-				double cost = 1;
-				for (RelativeTimeRegion rtr : environment.getRelativeTimeRegions()) {
-					cost *= rtr.getFactor();
-				}
-				
-				if (!fixInitialCycle || accumulativeCycle >= 1000) {
-					localCycle = 0;
-					if (accumulativeCycle >= 1000) {
-						accumulativeCycle = 0;	
-					}
-					time = time-cost <= 0 ? 0 : time-cost;
-					manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);	
-				}
-				fixInitialCycle = false;
-				
-				if (time == 0) {
-					disableFlight(0, !V.damageTime);
-					U.m(p, V.invalidTimeSelf);
-					autoEnable = true;
-				}
-				
-				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
-				if (V.actionBar) {doActionBar();}
-				
+				timer = time > 0 ? new GroundTimer() : null;
 				return;
 			}
-			if (enabled) {
-				disableFlight(-1, !V.damageTime);
-				U.m(p, V.invalidTimeSelf);
-				autoEnable = true;
+			accumulativeCycle += DELAY * 50;
+
+			if (accumulativeCycle >= 1000) {
+				accumulativeCycle = 0;
+				executeTimer();
+				return;
 			}
 		}
 		
 		@Override
 		public void cancel() {
-			accumulativeCycle += localCycle;
 			super.cancel();
+		}
+		
+		private void executeTimer() {
+			if (time > 0) {
+				double cost = 1;
+				for (RelativeTimeRegion rtr : environment.getRelativeTimeRegions()) {
+					cost *= rtr.getFactor();
+				}
+				time = time-cost <= 0 ? 0 : time-cost;
+				manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);	
+				
+				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
+				if (V.actionBar) {doActionBar();}
+				
+				if (time == 0) {
+					timeExpired();
+				}
+			} else if (enabled) {
+				timeExpired();
+			}
+		}
+		
+		private void timeExpired() {
+			disableFlight(-1, !V.damageTime);
+			U.m(p, V.invalidTimeSelf);
+			autoEnable = true;
+		}
+		
+		private boolean doFlightTimer() {
+			if (time <= 0) {
+				return false;
+			}
+			if (V.permaTimer) {
+				return doIdleCheck();
+			}
+			if (!p.isFlying()) {
+				if (V.groundTimer && !doIdleCheck()) {
+					return false;
+				}
+				return V.groundTimer;
+			}
+			if (doIdleCheck()) {
+				return true;
+			}
+			return false;
 		}
 		
 		private void doIdentifier() {
@@ -846,23 +866,15 @@ public class FlightUser {
 			previouslyFlying = p.isFlying();
 		}
 		
-		private boolean doCycle() {
-			if (cycle > 0) {
-				localCycle += 100;
-			}
-			cycle++;
-			if (cycle < 10) {return false;}
-			cycle = 0;
-			return true;
-		}
-		
 		/**
 		 * 
 		 * @return True if the timer should continue, false if it can switch to ground timer.
 		 */
-		private boolean checkIdle() {
+		private boolean doIdleCheck() {
 			if (isIdle()) {
-				if (V.idleDrop) {disableFlight(0, !V.damageIdle);} 
+				if (V.idleDrop) {
+					disableFlight(0, !V.damageIdle);
+				}
 				U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
 				return V.idleTimer;
 			}
