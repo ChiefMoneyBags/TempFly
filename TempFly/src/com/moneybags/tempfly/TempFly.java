@@ -16,6 +16,7 @@ import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.command.CommandManager;
 import com.moneybags.tempfly.command.TempFlyExecutor;
 import com.moneybags.tempfly.fly.FlightManager;
+import com.moneybags.tempfly.gui.GuiManager;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.pages.PageShop;
 import com.moneybags.tempfly.gui.pages.PageTrails;
@@ -43,6 +44,7 @@ public class TempFly extends JavaPlugin {
 	private FlightManager flight;
 	private TimeManager time;
 	private CommandManager commands;
+	private GuiManager gui;
 	private BukkitTask autosave;
 	
 	public HookManager getHookManager() {
@@ -65,6 +67,9 @@ public class TempFly extends JavaPlugin {
 		return commands;
 	}
 
+	public GuiManager getGuiManager() {
+		return gui;
+	}
 	
 	
 	@Override
@@ -74,14 +79,15 @@ public class TempFly extends JavaPlugin {
 		
 		Files.createFiles(this);
 		V.loadValues();
-		this.bridge = new DataBridge(this);
-		this.flight = new FlightManager(this);
-		this.time 	= new TimeManager(this);
-		this.hooks 	= new HookManager(this);
-		this.commands = new CommandManager(this);
-		hooks.loadInternalGenres();
 		
-		registerListeners();
+		this.bridge   = new DataBridge(this);
+		this.flight   = new FlightManager(this);
+		this.time     = new TimeManager(this);
+		this.hooks    = new HookManager(this);
+		this.commands = new CommandManager(this);
+		this.gui      = new GuiManager(this);
+		
+		hooks.loadInternalGenres();
 		initializeGui();
 		initializeAesthetics();
 
@@ -115,11 +121,13 @@ public class TempFly extends JavaPlugin {
 	
 	private void initializeAesthetics() {
 		Particles.initialize(this);
+		
 		if (V.particles) {
 			new ParticleTask(this).runTaskTimer(this, 0, 5);
 		}
-		
-		if (V.actionBar) {ActionBarAPI.initialize(this);}
+		if (V.actionBar) {
+			ActionBarAPI.initialize(this);
+		}
 		
 		if (Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
 			Console.info("Initializing MvdwAPI");
@@ -139,14 +147,8 @@ public class TempFly extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		flight.onDisable();
-		GuiSession.endAllSessions();
+		gui.endAllSessions();
 		bridge.commitAll();
-	}
-	
-	//TODO Please remove this
-	@Deprecated
-	private void registerListeners() {
-		getServer().getPluginManager().registerEvents(new GuiSession.GuiListener(), this);
 	}
 	
 	/*
@@ -154,7 +156,7 @@ public class TempFly extends JavaPlugin {
 	 */
 	//TODO reload hooks
 	public void reloadTempfly() {
-		GuiSession.endAllSessions();
+		gui.endAllSessions();
 		
 		bridge.commitAll();
 		Files.createFiles(this);
