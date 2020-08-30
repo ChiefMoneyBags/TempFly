@@ -74,6 +74,7 @@ public class V {
 	disabledIdle,
 	consideredIdle,
 
+	requireFailOther,
 	requireFailDefault,
 	requirePassDefault,
 	requireFailCombat,
@@ -237,6 +238,7 @@ public class V {
 		disabledIdle 		= st(C.LANG, "general.fly.idle_drop");
 		consideredIdle 		= st(C.LANG, "general.fly.idle");
 		
+		requireFailOther	= st(C.LANG, "general.requirement.fail.default_other");
 		requireFailDefault	= st(C.LANG, "general.requirement.fail.default");
 		requirePassDefault	= st(C.LANG, "general.requirement.pass.default");
 		requireFailCombat	= st(C.LANG, "general.requirement.fail.combat");
