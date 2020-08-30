@@ -28,15 +28,13 @@ general:
   invalid:
     time_other: "{PREFIX} &f{PLAYER} &chas no more flight time!"
     time_self: "{PREFIX} &cYou have no more flight time!"
-    number: "{PREFIX} &cPlease enter a valid number."
-    player: "{PREFIX} &cThe specified player was not found."
-    permission: "{PREFIX} &cYou have insufficient permissions."
-    command: "&fUnknown command. Type &e/help &ffor help."
+    number: "{PREFIX} &f{NUMBER} &cis not a valid number!"
+    player: "{PREFIX} &cThe player &f{PLAYER} &cwas not found..."
+    permission: "{PREFIX} &cYou have insufficient permissions..."
+    command: "&fUnknown command. Type /help for more information."
     reciever: "{PREFIX} &cYou cannot pay yourself!"
     sender: "{PREFIX} &cOnly players can use this command!"
     flyer_self: "{PREFIX} &cYou are not flying!"
-    zone_self: "{PREFIX} &cYou cannot use tempfly here!"
-    zone_other: "{PRFIX} &f{PLAYER} &ccannot currently use tempfly!"
     funds: "{PREFIX} &cThis costs &f{COST}&c! You do not have enough money!"
     vault_perms: "{PREFIX} &cYou must install the plugin (&fvault&c) for the ability to set offline player time!"
     
@@ -81,11 +79,12 @@ general:
     idle: "{PREFIX} &cYou are now considered idle."
     infinite_enabled: "{PREFIX} &aYou enabled your infinite flight!"
     infinite_disabled: "{PREFIX} &cYou disabled your infinite flight!"
-    bypass_enabled: "{PREFIX} &aYou enabled your flight requirement bypass!"
-    bypass_disabled: "{PREFIX} &cYou disabled your flight requirement bypass!"
+    bypass_enabled: "{PREFIX} &aYou enabled flight bypass mode!"
+    bypass_disabled: "{PREFIX} &cYou disabled flight bypass mode!"
 
   requirement:
     fail:
+      default_other: "{PREFIX} &f{PLAYER} &ccannot currently fly!"
       default: "{PREFIX} &cThe requirements have not been met to fly in this area."
       region: "{PREFIX} &cFlight is disabled in this region!"
       world: "{PREFIX} &cFlight is disabled in this world!"
