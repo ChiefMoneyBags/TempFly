@@ -29,7 +29,7 @@ public class CmdTrails extends TempFlyCommand {
 			U.m(s, V.invalidPermission);
 			return;
 		}
-		new PageTrails(GuiSession.newGuiSession((Player)s), 0, true);
+		new PageTrails(tempfly.getGuiManager().createSession((Player)s), 0, true);
 	}
 
 	@Override
