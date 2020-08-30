@@ -12,7 +12,7 @@
 #|               /'-'  |.--.\    /     |  '--' /|  `---.   |  |  |  | |  |              |#
 #|               `----' '--' `--'      `------' `------'   `--'  `--' `--'              |#
 #|                                                                                      |#
-#|                                      Beta  #3                                        |#
+#|                                      Beta  #4                                        |#
 #|                                                                                      |#
 ##--------------------------------------------------------------------------------------##
 #|                                                                                      |#
@@ -67,12 +67,13 @@ general:
       - 'test'
   
   timer:
-    # If true the players timer will count down no matter what as long as they are on the server.
+    # If true the players timer will count down even when they have flight disabled.
     # If you want the time to count down while they are offline please see the feature "time_decay"
     constant: false
     # If false the player will not lose flight time if standing on the ground with flight enabled.
     ground: false
     # If false the player will not lose flight time if they go idle with flight enabled.
+    # This will override the constant and ground timers.
     idle: false
   
   idle:
