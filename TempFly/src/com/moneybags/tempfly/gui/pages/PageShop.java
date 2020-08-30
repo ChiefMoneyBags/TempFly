@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
+import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.CompatMaterial;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -103,24 +104,27 @@ public class PageShop extends DynamicPage {
 		if (layout.containsKey(slot)) {
 			Player p = session.getPlayer();
 			ShopOption option = layout.get(slot);
-			double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+			TimeManager manager = tempfly.getTimeManager();
+			double maxTime = manager.getMaxTime(p.getUniqueId());
 			if (maxTime == -999) {
 				U.m(p, "&cAn internal error occured. please contact the developer!");
 				return;
 			}
-			if (tempfly.getTimeManager().getTime(p.getUniqueId()) + option.getTime() > maxTime) {
+			
+			if (manager.getMaxTime(p.getUniqueId()) > -1 &&
+					manager.getTime(p.getUniqueId()) + option.getTime() > maxTime) {
 				U.m(p, V.timeMaxSelf);
 				return;
 			}
 			Economy eco = tempfly.getHookManager().getEconomy();
 			double balance = eco.getBalance(p);
 			if (option.getCost() > balance) {
-				U.m(p, tempfly.getTimeManager().regexString(V.invalidFunds, option.getTime())
+				U.m(p, manager.regexString(V.invalidFunds, option.getTime())
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));
 			} else {
 				eco.withdrawPlayer(p, option.getCost());
-				tempfly.getTimeManager().addTime(p.getUniqueId(), option.getTime());
-				U.m(p, tempfly.getTimeManager().regexString(V.timePurchased, option.getTime())
+				manager.addTime(p.getUniqueId(), option.getTime());
+				U.m(p, manager.regexString(V.timePurchased, option.getTime())
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));	
 			}
 		} else if (slot == 53 && allOptions.size() > (getPageNumber()+1)*21) {
