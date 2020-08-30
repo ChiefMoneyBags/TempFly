@@ -83,7 +83,7 @@ public class CmdFly extends TempFlyCommand {
 		// try to enable flight
 		if (manual && toggleVal || !manual && !toggleVal && !user.hasFlightEnabled()) {
 			if (user.hasFlightEnabled()) {
-				U.m(p, V.flyAlreadyEnabled);
+				if (s == p) {U.m(s, V.flyAlreadyEnabled);}
 				return;
 			}
 			// Time check 
@@ -100,6 +100,7 @@ public class CmdFly extends TempFlyCommand {
 				if (!user.hasAutoFlyQueued()) {
 					user.setAutoFly(true);
 				}
+				if (s != p) {U.m(s, V.requireFailOther.replaceAll("\\{PLAYER}", p.getName()));}
 				return;
 			}
 			
