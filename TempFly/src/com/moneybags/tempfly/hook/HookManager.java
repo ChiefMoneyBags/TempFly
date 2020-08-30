@@ -41,12 +41,9 @@ public class HookManager implements Reloadable {
 		}
 	}
 	
-	public boolean registerHook(TempFlyHook hook)  {
+	public boolean registerHook(TempFlyHook hook) throws IllegalArgumentException  {
 		if (getHook(hook.getClass()) != null) {
 			throw new IllegalArgumentException("You may only register a hook once within tempfly!");
-		}
-		if (!hook.isEnabled()) {
-			throw new IllegalArgumentException("You cannot register a hook the is not enabled!");
 		}
 		List<TempFlyHook> loaded = hooks.getOrDefault(hook.getGenre(), new ArrayList<>());
 		loaded.add(hook);
@@ -202,7 +199,7 @@ public class HookManager implements Reloadable {
 	 * Represents the GameMode type of a hook  
 	 */
 	public static enum Genre {
-		SKYBLOCK("SkyBlock", AskyblockHook.class),
+		SKYBLOCK("SkyBlock", AskyblockHook.class, IridiumHook.class),
 		LANDS("Lands"),
 		FACTIONS("Factions"),
 		OTHER("Other");

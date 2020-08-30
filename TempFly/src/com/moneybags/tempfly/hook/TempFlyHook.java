@@ -42,19 +42,31 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 			e.printStackTrace();
 			return;
 		}
-		
-		if (!initializeHook()) {
+		initializeHook();
+	}
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+	
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		if (enabled) {
+			try {tempfly.getHookManager().registerHook(this);} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+				setEnabled(false);
+			}
 			return;
 		}
-		
-		enabled = true;
-		tempfly.getHookManager().registerHook(this);
+		tempfly.getHookManager().unregisterHook(this);
 	}
+
 	
 	protected boolean initializeFiles() throws Exception {
 		Console.debug("--<[ Initializing hook files...");
 		File hookConfigf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory(), getConfigName() + ".yml");
 	    if (!hookConfigf.exists()) {
+	    	Console.info("Config for ( "+ target + ") hook does not exist, creating...");
 	    	hookConfigf.getParentFile().mkdirs();
 	    	Files.createConfig(tempfly.getResource(getEmbeddedConfigName() + ".yml"), hookConfigf);
 	    }
@@ -111,10 +123,6 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		return hookConfig;
 	}
 	
-	public boolean isEnabled() {
-		return enabled;
-	}
-	
 	@Override
 	public void onTempflyReload() {
 		enabled = false;
@@ -134,9 +142,11 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	public abstract String getEmbeddedConfigName();
 	
 	/**
-	 * Called from within the TempFlyHook constructor before the hook is registered
-	 * and begins operation. 
-	 * @return false if the hook should not be enabled.
+	 * Called from within the TempFlyHook constructor as a means of constructing the class structure in
+	 * a reversed mannor allowing the child classes to finish their initialization first. 
+	 * This will not be called if there is an error while setting up the tempfly hook.
+	 * 
+	 * @return false if there is a problem while initializing the hook.
 	 */
 	public abstract boolean initializeHook();
 

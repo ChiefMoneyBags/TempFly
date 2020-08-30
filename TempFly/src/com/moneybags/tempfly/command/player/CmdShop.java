@@ -33,7 +33,7 @@ public class CmdShop extends TempFlyCommand {
 			U.m(s, V.invalidPermission);
 			return;
 		}
-		new PageShop(GuiSession.newGuiSession((Player)s), 0);
+		new PageShop(tempfly.getGuiManager().createSession((Player)s), 0);
 	}
 
 	@Override

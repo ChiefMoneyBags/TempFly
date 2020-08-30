@@ -21,6 +21,7 @@ import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.wasteofplastic.askyblock.ASkyBlock;
 import com.wasteofplastic.askyblock.ASkyBlockAPI;
@@ -43,11 +44,23 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	
 	@Override
 	public boolean initializeHook() {
-		super.initializeHook();
-		this.api = ASkyBlockAPI.getInstance();
+		try {this.api = ASkyBlockAPI.getInstance();} catch (Exception e) {
+			Console.severe("There was an error while initializing the ASkyBlockAPI hook!");
+			return false;
+		}
+		
 		this.asky = (ASkyBlock) Bukkit.getPluginManager().getPlugin("ASkyBlock");
-		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
-		return true;
+		if (this.asky == null) {
+			Console.severe("There was an error while initializing the ASkyBlock Plugin hook!");
+			return false;
+		}
+		
+		if (super.initializeHook()) {
+			tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
+			setEnabled(true);
+			return true;
+		}
+		return false;
 	}
 	
 	/**
@@ -107,9 +120,12 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(IslandExitEvent e) {
 		Player p = Bukkit.getPlayer(e.getPlayer());
+		if (!isCurrentlyTracking(p)) {
+			return;
+		}
 		Island rawIsland = api.getIslandAt(p.getLocation());
 		if (rawIsland != null) {
-			onIslandExit(p, rawIsland);
+			onIslandExit(p);
 		}
 	}
 	
@@ -120,9 +136,13 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerRespawnEvent e) {
 		Player p = e.getPlayer();
+		if (!isCurrentlyTracking(p)) {
+			return;
+		}
 		Island rawIsland = api.getIslandAt(p.getLocation());
-		if (rawIsland != null) {
-			onIslandExit(p, rawIsland);
+		Island newIsland = api.getIslandAt(e.getRespawnLocation());
+		if (rawIsland != null && !rawIsland.equals(newIsland)) {
+			onIslandExit(p);
 		}
 	}
 	
@@ -234,6 +254,11 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		return U.locationToString( (rawIsland instanceof IslandWrapper) ?
 				((Island) ((IslandWrapper) rawIsland).getIsland()).getCenter()
 				: ((Island) rawIsland).getCenter());
+	}
+	
+	@Override
+	public IslandWrapper getIslandFromIdentifier(String identifier) {
+		return getIslandWrapper(api.getIslandAt(U.locationFromString(identifier)));
 	}
 	
 	@Override

@@ -112,6 +112,12 @@ public class BentoHook extends SkyblockHook {
 		return "f";
 	}
 
+	@Override
+	public IslandWrapper getIslandFromIdentifier(String identifier) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 }

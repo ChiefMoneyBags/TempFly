@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.zip.DataFormatException;
 
 import com.moneybags.tempfly.util.Console;
+import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
 import com.moneybags.tempfly.util.data.DataBridge.DataTable;
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
@@ -62,9 +63,7 @@ public class IslandSettings {
 		if (role.equals("OWNER")) {
 			return;
 		}
-		Console.debug("-- Set flight for: " + role,
-				"currently: " + canFly(role),
-				"mapped settings contains: " + settings.containsKey(role));
+		if (V.debug) {Console.debug("-- Set flight for: " + role, "--| currently: " + canFly(role), "--| mapped settings contains: " + settings.containsKey(role));}
 		boolean canFly = !canFly(role);
 		settings.put(role, canFly);
 		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly, hook);

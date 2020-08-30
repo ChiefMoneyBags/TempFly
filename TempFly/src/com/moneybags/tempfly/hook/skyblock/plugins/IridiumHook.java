@@ -7,28 +7,99 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.iridium.iridiumskyblock.IridiumSkyblock;
 import com.iridium.iridiumskyblock.Island;
 import com.iridium.iridiumskyblock.IslandManager;
 import com.iridium.iridiumskyblock.User;
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
+import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
+import com.moneybags.tempfly.util.V;
 
-public class IridiumHook extends SkyblockHook {
+public class IridiumHook extends SkyblockHook implements Listener {
 
 	public static final String[] ROLES = new String[] {"OWNER", "COOWNER", "MODERATOR", "MEMBER", "COOP", "VISITOR"};
 	
 	public IridiumHook(TempFly tempfly) {
 		super(tempfly);
-		if (!super.isEnabled()) {
+	}
+	
+	@Override
+	public boolean initializeHook() {
+		// initial iridium hook stuff.
+		
+		//
+		if (super.initializeHook()) {
+			tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
+			setEnabled(true);
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Iridium skyblock has no internal tracking or events for player location and islands
+	 * Im sorry :(
+	 * @param e
+	 */
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void on(PlayerMoveEvent e) {
+		Location to = e.getTo();
+		if (e.getFrom().getBlock().equals(to.getBlock())) {
 			return;
 		}
+		
+		IslandManager manager = IridiumSkyblock.getIslandManager();
+		Player p = e.getPlayer();
+		
+		if (isCurrentlyTracking(p)) {
+			IslandWrapper island = getTrackedIsland(p);
+			if ( !((Island)island.getIsland()).isInIsland(to) || !manager.isIslandWorld(to)) {
+				super.onIslandExit(p);	
+			} else {
+				return;
+			}
+		}
+		
+		Island rawIsland = manager.getIslandViaLocation(to);
+		if (rawIsland == null) {
+			return;
+		}
+		super.onIslandEnter(p, rawIsland, to);
 	}
+	
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
+	public void on(PlayerRespawnEvent e) {
+		Player p = e.getPlayer();
+		if (!isCurrentlyTracking(p)) {
+			return;
+		}
+		IslandManager manager = IridiumSkyblock.getIslandManager();
+		Island rawIsland = manager.getIslandViaLocation(p.getLocation());
+		Island newIsland = manager.getIslandViaLocation(e.getRespawnLocation());
+		if (rawIsland != null && !rawIsland.equals(newIsland)) {
+			onIslandExit(p);
+		}
+	}
+	
+	
+	
+	
+	
+	
 
 	@Override
 	public Player[] getOnlineMembers(IslandWrapper island) {
@@ -124,10 +195,19 @@ public class IridiumHook extends SkyblockHook {
 		return UUID.fromString(((Island)island.getIsland()).getOwner());
 	}
 
+	/**
+	 * Each island in iridium skyblock has an int ID. this will be our identifier.
+	 */
 	@Override
 	public String getIslandIdentifier(Object rawIsland) {
-		return U.locToString(((Island)rawIsland).getCenter());
+		return String.valueOf(((Island)rawIsland).getId());
 	}
+	
+	@Override
+	public IslandWrapper getIslandFromIdentifier(String identifier) {
+		return getIslandWrapper(IridiumSkyblock.getIslandManager().getIslandViaId(Integer.valueOf(identifier)));
+	}
+	
 
 	@Override
 	public boolean isIslandMember(UUID u, IslandWrapper island) {
