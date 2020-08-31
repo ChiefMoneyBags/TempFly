@@ -16,6 +16,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.iridium.iridiumskyblock.IridiumSkyblock;
+import com.iridium.iridiumskyblock.Island;
+import com.iridium.iridiumskyblock.IslandManager;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
@@ -237,16 +240,13 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	public boolean hasRequirement(SkyblockRequirementType type, String name) {
 		if (!hasRequirement(type)) {
-			Console.debug(false);
 			return false;
 		}
 		for (SkyblockRequirement require: getRequirements(type)) {
 			if (require.getName().equals(name)) {
-				Console.debug(true);
 				return true;
 			}
 		}
-		Console.debug(false);
 		return false;
 	}
 	
@@ -272,7 +272,6 @@ public abstract class SkyblockHook extends TempFlyHook {
 		if (rawIsland == null) {
 			return null;
 		}
-		Console.debug(wrapperCache);
 		IslandWrapper wrapper;
 		if (!wrapperCache.containsKey(getIslandIdentifier(rawIsland))) {
 			wrapper = new IslandWrapper(rawIsland, this);
@@ -294,6 +293,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public void onIslandEnter(Player p, Object rawIsland, Location loc) {
 		if (V.debug) {
 			Console.debug("", "------ On Island Enter ------", "--| Player: " + p.getName());
+		}
+		if (rawIsland instanceof IslandWrapper) {
+			rawIsland = ((IslandWrapper)rawIsland).getIsland();
 		}
 		if (locationCache.containsKey(p)) {
 			// Player already being tracked.
@@ -353,24 +355,31 @@ public abstract class SkyblockHook extends TempFlyHook {
 		}.runTaskLater(tempfly, 1);
 	}
 	
-	/** I dont think i will need this anymore.
-	 * 
-	 * @param p The player leaving the island.
-	 *
-	public void onIslandExitManual(Player p) {
-		if (V.debug) {
-			Console.debug("", "------ On Island Exit Manual ------", "Player: " + p.getName());
-		}
-		IslandWrapper currentIsland = null;
-		if (locationCache.containsKey(p)) {
-			currentIsland = locationCache.get(p);
-			locationCache.remove(p);
-			if(!locationCache.containsValue(currentIsland)) {
-				wrapperCache.remove(getIslandIdentifier(currentIsland.getIsland()));
+	/**
+	 * Called by the children of SkyblockHook. This method is used for plugins that do not have internal island tracking or events
+	 * such as IridiumSkyblock where we will need to process the player locations ourselves. Such as on player teleport, player respawn etc.
+	 * @param p The player to update.
+	 * @param loc The new location of the player.
+	 */
+	public void updateLocation(Player p, Location loc) {
+		if (isCurrentlyTracking(p)) {
+			IslandWrapper island = getTrackedIsland(p);
+			if (!((Island)island.getIsland()).isInIsland(loc)) {
+				onIslandExit(p);
 			}
 		}
+		if (!isIslandWorld(loc)) {
+			return;
+		}
+		IslandWrapper rawIsland = getIslandAt(loc);
+		
+		if (rawIsland == null) {
+			return;
+		}
+		if (!isCurrentlyTracking(p)) {
+			onIslandEnter(p, rawIsland, loc);	
+		}
 	}
-	*/
 	
 	/**
 	 * This method is called by the children of SkyblockHook when an island level is updated or changes.
@@ -501,7 +510,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public FlightResult checkFlightRequirements(UUID u, IslandWrapper island) {
 		Console.debug("", "--- SkyblockHook check flight requirements B ---");
 		if (!isEnabled()) {
-			return new ResultAllow(this, null, V.requirePassDefault);
+			return new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassDefault);
 		}
 		return checkRoleRequirements(u, island);
 	}
@@ -533,7 +542,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @return The flight result.
 	 */
 	public FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, UUID u) {
-		Console.debug("", "-----Running island flight requirements-----");
+		if (V.debug) {Console.debug("", "-----Running island flight requirement-----","--| name: " + ir.getName(),"--| level: " + ir.getIslandLevel(),"--| owner level: " + ir.getOwnerLevel());}
+		Console.debug("players level: " + getIslandLevel(u));
 		if (ir.getIslandLevel() > 0 && ir.getIslandLevel() > getIslandLevel(u)) {
 			if (V.debug) {
 				Console.debug("fail island level: " + ir.getIslandLevel() + " / " + getIslandLevel(u), "-----End flight requirements-----", "");
@@ -705,6 +715,12 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	public abstract IslandWrapper getIslandAt(Location loc);
 
+	/**
+	 * @param loc The location to check.
+	 * @return True if the world given contains islands.
+	 */
+	public abstract boolean isIslandWorld(Location loc);
+	
 	/**
 	 * 
 	 * @param id The player
