@@ -476,6 +476,56 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	/**
+	 * Check all requirements for a player including wilderness.
+	 * @param u The player trying to fly
+	 * @param loc The location they are trying to fly at.
+	 * @return The flight result
+	 */
+	public FlightResult checkFlightRequirements(UUID u, Location loc) {
+		Console.debug("", "--- SkyblockHook check flight requirements A ---");
+		IslandWrapper island = getIslandAt(loc);
+		if (island == null) {
+			return canFlyWilderness() ?
+					new ResultAllow(this, null, V.requirePassDefault)
+					: new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE, V.requireFailDefault, true);
+		}
+		return checkFlightRequirements(u, island);
+	}
+	
+	/**
+	 * Check all requirements for a player.
+	 * @param u The player trying to fly
+	 * @param loc The location they are trying to fly at.
+	 * @return The flight result
+	 */
+	public FlightResult checkFlightRequirements(UUID u, IslandWrapper island) {
+		Console.debug("", "--- SkyblockHook check flight requirements B ---");
+		if (!isEnabled()) {
+			return new ResultAllow(this, null, V.requirePassDefault);
+		}
+		return checkRoleRequirements(u, island);
+	}
+	
+	/**
+	 * Check the role requirements of a player on a specific island.
+	 * @param u
+	 * @param island
+	 * @return
+	 */
+	public FlightResult checkRoleRequirements(UUID u, IslandWrapper island) { 
+		Console.debug("", "--- SkyblockHook check role requirements ---");
+		String role = getIslandRole(u, island);
+		Console.debug("--| Role: " + role);
+		IslandSettings settings = island.getSettings();	
+		return !settings.canFly(role) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
+				V.requireFailDefault, true) :
+			(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, role)
+					? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, role), island, u)
+							.setInquiryType(InquiryType.OUT_OF_SCOPE)
+					: new ResultAllow(this, null, V.requirePassDefault));
+	}
+	
+	/**
 	 * Process the requirements for a player to check if a player can fly on the given island.
 	 * @param ir The requirement to check
 	 * @param island The island the player is trying to fly on.
@@ -529,56 +579,6 @@ public abstract class SkyblockHook extends TempFlyHook {
 			}
 		}	
 		return new ResultAllow(this, null, V.requirePassDefault);
-	}
-	
-	/**
-	 * Check the role requirements of a player on a specific island.
-	 * @param u
-	 * @param island
-	 * @return
-	 */
-	public FlightResult checkRoleRequirements(UUID u, IslandWrapper island) { 
-		Console.debug("", "--- SkyblockHook check role requirements ---");
-		String role = getIslandRole(u, island);
-		Console.debug("--| Role: " + role);
-		IslandSettings settings = island.getSettings();	
-		return !settings.canFly(role) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
-				V.requireFailDefault, true) :
-			(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, role)
-					? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, role), island, u)
-							.setInquiryType(InquiryType.OUT_OF_SCOPE)
-					: new ResultAllow(this, null, V.requirePassDefault));
-	}
-	
-	/**
-	 * Check all requirements for a player including wilderness.
-	 * @param u The player trying to fly
-	 * @param loc The location they are trying to fly at.
-	 * @return The flight result
-	 */
-	public FlightResult checkFlightRequirements(UUID u, Location loc) {
-		Console.debug("", "--- SkyblockHook check flight requirements A ---");
-		IslandWrapper island = getIslandAt(loc);
-		if (island == null) {
-			return canFlyWilderness() ?
-					new ResultAllow(this, null, V.requirePassDefault)
-					: new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE, V.requireFailDefault, true);
-		}
-		return checkFlightRequirements(u, island);
-	}
-	
-	/**
-	 * Check all requirements for a player.
-	 * @param u The player trying to fly
-	 * @param loc The location they are trying to fly at.
-	 * @return The flight result
-	 */
-	public FlightResult checkFlightRequirements(UUID u, IslandWrapper island) {
-		Console.debug("", "--- SkyblockHook check flight requirements B ---");
-		if (!isEnabled()) {
-			return new ResultAllow(this, null, V.requirePassDefault);
-		}
-		return checkRoleRequirements(u, island);
 	}
 	
 	@Override
