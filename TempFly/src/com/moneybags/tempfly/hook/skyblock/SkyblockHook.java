@@ -38,7 +38,7 @@ import com.moneybags.tempfly.util.V;
  * are all taken care of for you. simply extend the class and do the following;
  * 
  * 1) Fill in the abstract methods introduced by this class, do not return null unless it is otherwise specified you may do so.
- * 2) Invoke the super methods onIslandEnter and onIslandExit when players enter and leave islands.
+ * 2) Invoke the super methods onIslandEnter and onIslandExit when players enter and leave islands as well as onIslandLevelChange and onChallengeComplete.
  * 3) Profit?
  */
 public abstract class SkyblockHook extends TempFlyHook {
@@ -353,9 +353,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 		}.runTaskLater(tempfly, 1);
 	}
 	
-	/**
+	/** I dont think i will need this anymore.
+	 * 
 	 * @param p The player leaving the island.
-	 */
+	 *
 	public void onIslandExitManual(Player p) {
 		if (V.debug) {
 			Console.debug("", "------ On Island Exit Manual ------", "Player: " + p.getName());
@@ -369,7 +370,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			}
 		}
 	}
-	
+	*/
 	
 	/**
 	 * This method is called by the children of SkyblockHook when an island level is updated or changes.
@@ -394,6 +395,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	/**
 	 * This method is called by the children of SkyblockHook when a player completes a challenge.
+	 * 
+	 * Alternatively it will be called during a multi stage challenge when a player completes a portion
+	 * of a challenge or their progress towards completion changes.
+	 * 
 	 * It will re-evaluate flight requirements of the player.
 	 * 
 	 * @param island The island.
