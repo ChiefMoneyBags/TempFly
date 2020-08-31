@@ -12,8 +12,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.iridium.iridiumskyblock.IridiumSkyblock;
 import com.iridium.iridiumskyblock.Island;
@@ -52,47 +54,32 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	
 	/**
 	 * Iridium skyblock has no internal tracking or events for player location and islands
-	 * Im sorry :(
+	 * >:(
 	 * @param e
 	 */
+	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerMoveEvent e) {
 		Location to = e.getTo();
 		if (e.getFrom().getBlock().equals(to.getBlock())) {
 			return;
 		}
-		
-		IslandManager manager = IridiumSkyblock.getIslandManager();
-		Player p = e.getPlayer();
-		
-		if (isCurrentlyTracking(p)) {
-			IslandWrapper island = getTrackedIsland(p);
-			if ( !((Island)island.getIsland()).isInIsland(to) || !manager.isIslandWorld(to)) {
-				super.onIslandExit(p);	
-			} else {
-				return;
-			}
-		}
-		
-		Island rawIsland = manager.getIslandViaLocation(to);
-		if (rawIsland == null) {
-			return;
-		}
-		super.onIslandEnter(p, rawIsland, to);
+		super.updateLocation(e.getPlayer(), e.getTo());
 	}
 	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void on(PlayerRespawnEvent e) {
-		Player p = e.getPlayer();
-		if (!isCurrentlyTracking(p)) {
-			return;
-		}
-		IslandManager manager = IridiumSkyblock.getIslandManager();
-		Island rawIsland = manager.getIslandViaLocation(p.getLocation());
-		Island newIsland = manager.getIslandViaLocation(e.getRespawnLocation());
-		if (rawIsland != null && !rawIsland.equals(newIsland)) {
-			onIslandExit(p);
-		}
+		super.updateLocation(e.getPlayer(), e.getRespawnLocation());
+	}
+	
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void on(PlayerTeleportEvent e) {
+		super.updateLocation(e.getPlayer(), e.getTo());
+	}
+	
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void on(PlayerChangedWorldEvent e) {
+		super.updateLocation(e.getPlayer(), e.getPlayer().getLocation());
 	}
 	
 	
@@ -184,7 +171,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		}
 		
 		if (isIslandMember(u, island)) {
-			return User.getUser(Bukkit.getOfflinePlayer(u)).getRole().toString();
+			return User.getUser(Bukkit.getOfflinePlayer(u)).getRole().toString().toUpperCase();
 		} else {
 			return "VISITOR";
 		}
@@ -233,6 +220,11 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	@Override
 	public String getPluginName() {
 		return "IridiumSkyblock";
+	}
+
+	@Override
+	public boolean isIslandWorld(Location loc) {
+		return IridiumSkyblock.getIslandManager().isIslandWorld(loc);
 	}
 
 }
