@@ -158,29 +158,6 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		onChallengeComplete(e.getPlayer());
 	}
 	
-	/**
-	 * Fix askyblocks world loader breaking flight user island tracking on /reload.
-	 */
-	@Override
-	public void onUserInitialized(FlightUser user) {
-		try {
-			super.onUserInitialized(user); 
-		} catch (Exception e) {
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					if (isCurrentlyTracking(user.getPlayer())) {
-						return;
-					}
-					IslandWrapper island = getIslandAt(user.getPlayer().getLocation());
-					if (island != null) {
-						onIslandEnter(user.getPlayer(), island.getIsland(), user.getPlayer().getLocation());
-					}
-				}
-			}.runTaskLater(getTempFly(), 6);	
-		}
-	}
-	
 	
 	/**
 	 * 
@@ -192,6 +169,11 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@Override
 	public String getPluginName() {
 		return "ASkyBlock";
+	}
+	
+	@Override
+	public String getEmbeddedConfigName() {
+		return "skyblock_preset_askyblock";
 	}
 	
 	
@@ -237,7 +219,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		if (!island.getHook().equals(this)) {
 			return null;
 		}
-		Island rawIsland = (Island) island.getIsland();
+		Island rawIsland = (Island) island.getRawIsland();
 		return rawIsland.getOwner().equals(u) ? "OWNER" : rawIsland.getMembers().contains(u) ? "TEAM" : api.getCoopIslands(Bukkit.getPlayer(u)).contains(api.getIslandLocation(getIslandOwner(island))) ? "COOP" : "VISITOR";
 	}
 
@@ -246,13 +228,13 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		if (!island.getHook().equals(this)) {
 			return null;
 		}
-		return ((Island) island.getIsland()).getOwner();
+		return ((Island) island.getRawIsland()).getOwner();
 	}
 
 	@Override
 	public String getIslandIdentifier(Object rawIsland) {
 		return U.locationToString( (rawIsland instanceof IslandWrapper) ?
-				((Island) ((IslandWrapper) rawIsland).getIsland()).getCenter()
+				((Island) ((IslandWrapper) rawIsland).getRawIsland()).getCenter()
 				: ((Island) rawIsland).getCenter());
 	}
 	
@@ -266,7 +248,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		if (!island.getHook().equals(this)) {
 			return false;
 		}
-		return ((Island) island.getIsland()).getMembers().contains(u);
+		return ((Island) island.getRawIsland()).getMembers().contains(u);
 	}
 
 	@Override
@@ -289,7 +271,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@Override
 	public Player[] getOnlineMembers(IslandWrapper island) {
 		List<Player> online = new ArrayList<>();
-		for (UUID u: ((Island) island.getIsland()).getMembers()) {
+		for (UUID u: ((Island) island.getRawIsland()).getMembers()) {
 			Player p = Bukkit.getPlayer(u);
 			if (p != null) {
 				online.add(p);
@@ -302,12 +284,17 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 
 	@Override
 	public UUID[] getIslandMembers(IslandWrapper island) {
-		List<UUID> members = ((Island) island.getIsland()).getMembers();
+		List<UUID> members = ((Island) island.getRawIsland()).getMembers();
 		return members.toArray(new UUID[members.size()]);
 	}
 
 	@Override
 	public String[] getRoles() {
 		return ROLES;
+	}
+
+	@Override
+	public boolean isIslandWorld(Location loc) {
+		return loc.getWorld().equals(api.getIslandWorld()) || loc.getWorld().equals(api.getNetherWorld());
 	}
 }
