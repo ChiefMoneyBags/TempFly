@@ -30,6 +30,7 @@ import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
 import com.moneybags.tempfly.hook.skyblock.CmdIslandSettings;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
 public class TempFlyExecutor implements CommandExecutor, Listener {
@@ -46,7 +47,9 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 		TempFlyCommand command = manager.getCommand(args);
 		if (command != null) {
 			command.executeAs(s);
+			return true;
 		}
+		U.m(s, V.invalidCommand);
 		return true;
 	}
 	
