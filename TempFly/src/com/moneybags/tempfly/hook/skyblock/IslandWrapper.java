@@ -12,7 +12,7 @@ public class IslandWrapper {
 		this.settings = new IslandSettings(this, hook);
 	}
 	
-	public Object getIsland() {
+	public Object getRawIsland() {
 		return island;
 	}
 	
