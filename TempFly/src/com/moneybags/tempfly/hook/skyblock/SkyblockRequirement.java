@@ -13,33 +13,33 @@ public class SkyblockRequirement {
 
 	private SkyblockRequirementType type;
 	
-	private long islandLevel;
-	private long ownerLevel;
+	private double playerLevel;
+	private double islandLevel;
 	@Nullable
-	private SkyblockChallenge[] challenges;
-	private SkyblockChallenge[] ownerChallenges;
+	private SkyblockChallenge[] playerChallenges;
+	private SkyblockChallenge[] islandChallenges;
 	@Nullable
 	private String name;
 	
 	public SkyblockRequirement(
-			SkyblockChallenge[] challenges, SkyblockChallenge[] ownerChallenges,
-			long islandLevel, long ownerLevel,
+			SkyblockChallenge[] playerChallenges, SkyblockChallenge[] islandChallenges,
+			double playerLevel, double islandLevel,
 			String name, SkyblockRequirementType type) {
 		this.type = type;
 		this.name = name;
 		
-		this.challenges = challenges == null ? new SkyblockChallenge[0] : challenges;
-		this.ownerChallenges = ownerChallenges == null ? new SkyblockChallenge[0] : ownerChallenges;
+		this.playerChallenges = playerChallenges == null ? new SkyblockChallenge[0] : playerChallenges;
+		this.islandChallenges = islandChallenges == null ? new SkyblockChallenge[0] : islandChallenges;
 		
+		this.playerLevel = playerLevel;
 		this.islandLevel = islandLevel;
-		this.ownerLevel = ownerLevel;
 		
 		if (V.debug) {
-			Console.debug("----< name: " + name,
-			"----< challenges: " + U.arrayToString(this.challenges, ", "),
-			"----< owner_challenges: " + U.arrayToString(this.ownerChallenges, ", "),
-			"----< island_level: " + islandLevel,
-			"----< owner_level: " + ownerLevel,
+			Console.debug("---< Name: " + name,
+			"---< Player challenges: " + U.arrayToString(this.playerChallenges, " |--| "),
+			"---< Owner_challenges: " + U.arrayToString(this.islandChallenges, " |--| "),
+			"---< Player_level: " + playerLevel,
+			"---< Owner_level: " + islandLevel,
 			"");
 		}
 	}
@@ -49,21 +49,21 @@ public class SkyblockRequirement {
 		return name;
 	}
 	
-	public long getIslandLevel() {
+	public double getPlayerLevel() {
+		return playerLevel;
+	}
+	
+	public double getOwnerLevel() {
 		return islandLevel;
 	}
 	
-	public long getOwnerLevel() {
-		return ownerLevel;
-	}
-	
 	@Nullable
-	public SkyblockChallenge[] getChallenges() {
-		return challenges;
+	public SkyblockChallenge[] getPlayerChallenges() {
+		return playerChallenges;
 	}
 	
 	public SkyblockChallenge[] getOwnerChallenges() {
-		return ownerChallenges;
+		return islandChallenges;
 	}
 	
 	public SkyblockRequirementType getType() {
