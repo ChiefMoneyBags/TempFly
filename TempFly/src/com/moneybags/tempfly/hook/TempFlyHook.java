@@ -125,12 +125,13 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	@Override
 	public void onTempflyReload() {
-		enabled = false;
 		try { initializeFiles(); } catch (Exception e) {
-			Console.severe("An error occured while trying to initilize the (" + target + ") hook.");
+			Console.severe("An error occured while trying to initilize the (" + target + ") hook. Disabling hook");
+			enabled = false;
 			e.printStackTrace();
 			return;
 		}
+		enabled = true;
 	}
 	
 	public abstract Genre getGenre();
