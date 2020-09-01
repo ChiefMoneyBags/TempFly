@@ -118,6 +118,12 @@ public class BentoHook extends SkyblockHook {
 		return null;
 	}
 
+	@Override
+	public boolean isIslandWorld(Location loc) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 
 
 }
