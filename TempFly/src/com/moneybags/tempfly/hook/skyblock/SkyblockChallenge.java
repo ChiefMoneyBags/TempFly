@@ -23,5 +23,10 @@ public class SkyblockChallenge {
 	public int getRequiredCompletions() {
 		return completed;
 	}
+	
+	@Override
+	public String toString() {
+		return "[SkyblockChallenge] Name: (" + name + ") | RequiredProgress: (" + progress + ") | RequiredCompletions: (" + completed + ")";
+	}
 
 }
