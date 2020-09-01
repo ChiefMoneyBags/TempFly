@@ -46,6 +46,10 @@ public class U {
 		return ChatColor.translateAlternateColorCodes('&', m);
 	}
 	
+	public static String strip(String m) {
+		return ChatColor.stripColor(U.cc(m));
+	}
+	
 	public static void m(Player p, String s) {
 		if (s.equals(V.prefix) || s.equals("\\{PREFIX}") || s == null || s.length() == 0) {
 			return;
