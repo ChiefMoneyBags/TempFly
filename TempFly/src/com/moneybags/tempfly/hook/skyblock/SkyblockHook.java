@@ -114,15 +114,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 		settingsButton			= U.getConfigItem(config, "gui.hook_settings.button");
 		CompatMaterial.setType(settingsButton, CompatMaterial.FEATHER);
 		
-		String path;
-		if (config.contains(path = "unlockables.environment.wilderness")) {
+		if (config.contains("unlockables.environment.wilderness")) {
 			Console.debug("", "<< Loading wilderness requirements >>");
-			
 			requirements.put(SkyblockRequirementType.WILDERNESS, new SkyblockRequirement[] {
-					new SkyblockRequirement(
-							loadChallenges(config, path + ".challenges"), null,
-							config.getLong(path + ".island_level"), 0,
-							null, SkyblockRequirementType.WILDERNESS)
+					loadRequirement(config, null, "unlockables.environment.wilderness", SkyblockRequirementType.WILDERNESS)
 			});
 		}
 		
@@ -131,11 +126,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("", "<< Loading world requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String world: csRequireWorld.getKeys(false)) {
-				path = "unlockables.environment.worlds." + world;
-				list.add(new SkyblockRequirement(
-							loadChallenges(config, path + ".challenges"), null,
-							config.getLong(path + ".island_level"), 0,
-							world, SkyblockRequirementType.WORLD));
+				list.add(loadRequirement(config, world, "unlockables.environment.worlds." + world, SkyblockRequirementType.WORLD));
 			}
 			if (list.size() > 0) {
 				requirements.put(SkyblockRequirementType.WORLD, list.toArray(new SkyblockRequirement[list.size()]));
@@ -147,11 +138,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("", "<< Loading region requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String region: csRequireRegion.getKeys(false)) {
-				path = "unlockables.environment.regions." + region;
-				list.add(new SkyblockRequirement(
-							loadChallenges(config, path + ".challenges"), null,
-							config.getLong(path + ".island_level"), 0,
-							region, SkyblockRequirementType.REGION));
+				list.add(loadRequirement(config, region, "unlockables.environment.regions." + region, SkyblockRequirementType.REGION));
 			}
 			if (list.size() > 0) {
 				requirements.put(SkyblockRequirementType.REGION, list.toArray(new SkyblockRequirement[list.size()]));
@@ -163,15 +150,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("", "<< Loading island_role requirements >>");
 			List<SkyblockRequirement> list = new ArrayList<>();
 			for (String role: csRequireRole.getKeys(false)) {
-				if (!islandRoleExists(role)) {
-					Console.severe("An island role specified in the config does not exist (" + role + "). Skipping...");
-				}
-				
-				path = "unlockables.island_roles." + role;
-				list.add(new SkyblockRequirement(
-							loadChallenges(config, path + ".challenges"), loadChallenges(config, path + ".owner_challenges"),
-							config.getLong(path + ".island_level"), config.getLong(path + ".owner_level"),
-							role.toUpperCase(), SkyblockRequirementType.ISLAND_ROLE));
+				if (!islandRoleExists(role)) {Console.severe("An island role specified in the config does not exist (" + role + "). Skipping...");}
+				list.add(loadRequirement(config, role.toUpperCase(), "unlockables.island_roles." + role, SkyblockRequirementType.ISLAND_ROLE));
 			}
 			if (list.size() > 0) {
 				requirements.put(SkyblockRequirementType.ISLAND_ROLE, list.toArray(new SkyblockRequirement[list.size()]));
@@ -181,14 +161,41 @@ public abstract class SkyblockHook extends TempFlyHook {
 		PageIslandSettings.initialize(this);
 	}
 	
+	private SkyblockRequirement loadRequirement(FileConfiguration config, String name, String path, SkyblockRequirementType type) {
+		return new SkyblockRequirement(
+				loadChallenges(config, path + ".player_"), loadChallenges(config, path + ".island_"),
+				loadLevel(config, path + ".player_"), loadLevel(config, path + ".island_"),
+				name, type);
+	}
+	
+	private double loadLevel(FileConfiguration config, String path) {
+		double level;
+		return (level = config.getDouble(path + "level", 0)) > 0 ? level : (level = config.getDouble(path + "worth", 0)) > 0 ? level : config.getDouble(path + "value", 0);
+	}
+	
 	private SkyblockChallenge[] loadChallenges(FileConfiguration config, String path) {
-		ConfigurationSection csChallenges = config.getConfigurationSection(path);
+		ConfigurationSection csChallenges = config.getConfigurationSection(path + "challenges");
+		if (csChallenges == null) {
+			csChallenges = config.getConfigurationSection(path + "missions");
+			path = path + "missions";
+		} else {
+			path = path + "challenges";
+		}
 		List<SkyblockChallenge> challenges = new ArrayList<>();
 		if (csChallenges != null) {
 			for (String key: csChallenges.getKeys(false)) {
-				challenges.add(new SkyblockChallenge(key, 
-						config.getInt(path + "." + key + ".progress", 0),
-						config.getInt(path + "." + key + ".completed", 0)));
+				Console.debug("--| loading SkyblockChallenge: " + key);
+				if (config.isConfigurationSection(path + "." + key)) {
+					Console.debug("--|> Challenge is a ConfigurationSection, Adding progress and completions seperately...");
+					challenges.add(new SkyblockChallenge(key, 
+							config.getInt(path + "." + key + ".progress", 0),
+							config.getInt(path + "." + key + ".completed", 0)));	
+				} else {
+					Console.debug("--|> Challenge has only a single integer value.");
+					challenges.add(new SkyblockChallenge(key,
+							config.getInt(path + "." + key, 0),
+							config.getInt(path + "." + key, 0)));
+				}
 			}
 			
 		}
@@ -295,11 +302,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("", "------ On Island Enter ------", "--| Player: " + p.getName());
 		}
 		if (rawIsland instanceof IslandWrapper) {
-			rawIsland = ((IslandWrapper)rawIsland).getIsland();
+			rawIsland = ((IslandWrapper)rawIsland).getRawIsland();
 		}
 		if (locationCache.containsKey(p)) {
 			// Player already being tracked.
-			if (locationCache.get(p).getIsland() == rawIsland) {
+			if (locationCache.get(p).getRawIsland() == rawIsland) {
 				// Player is already on this island...
 				return;
 			}
@@ -334,9 +341,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 			IslandWrapper currentIsland = locationCache.get(p);
 			locationCache.remove(p);
 			if(!locationCache.containsValue(currentIsland)) {
-				wrapperCache.remove(getIslandIdentifier(currentIsland.getIsland()));
+				wrapperCache.remove(getIslandIdentifier(currentIsland.getRawIsland()));
 			}
-			if (V.debug) {Console.debug("--|> Island Identifier: " + getIslandIdentifier(currentIsland.getIsland()), "------ End Island Exit ------", "");}
+			if (V.debug) {Console.debug("--|> Island Identifier: " + getIslandIdentifier(currentIsland.getRawIsland()), "------ End Island Exit ------", "");}
 		}
 		// On island exit i will wait 1 tick then check if the player still has this requirement.
 		// If they are no longer on an island it will be removed.
@@ -364,7 +371,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public void updateLocation(Player p, Location loc) {
 		if (isCurrentlyTracking(p)) {
 			IslandWrapper island = getTrackedIsland(p);
-			if (!((Island)island.getIsland()).isInIsland(loc)) {
+			if (!((Island)island.getRawIsland()).isInIsland(loc)) {
 				onIslandExit(p);
 			}
 		}
@@ -454,11 +461,18 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	@Override
 	public void onUserInitialized(FlightUser user) {
-		Player p = user.getPlayer();
-		IslandWrapper island = getIslandAt(p.getLocation());
-		if (island != null) {
-			onIslandEnter(p, island.getIsland(), p.getLocation());
-		}
+		Console.debug("", "-- on user initialized --");
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (!isCurrentlyTracking(user.getPlayer())) {
+					IslandWrapper island = getIslandAt(user.getPlayer().getLocation());
+					if (island != null) {
+						onIslandEnter(user.getPlayer(), island.getRawIsland(), user.getPlayer().getLocation());
+					}
+				}
+			}
+		}.runTaskLater(getTempFly(), 5);
 	}
 	
 	@Override
@@ -510,6 +524,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public FlightResult checkFlightRequirements(UUID u, IslandWrapper island) {
 		Console.debug("", "--- SkyblockHook check flight requirements B ---");
 		if (!isEnabled()) {
+			Console.debug("--|!!!> Hook is not enabled. Returning allowed flight!");
 			return new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassDefault);
 		}
 		return checkRoleRequirements(u, island);
@@ -524,7 +539,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public FlightResult checkRoleRequirements(UUID u, IslandWrapper island) { 
 		Console.debug("", "--- SkyblockHook check role requirements ---");
 		String role = getIslandRole(u, island);
-		Console.debug("--| Role: " + role);
+		Console.debug("--| Players Role: " + role);
 		IslandSettings settings = island.getSettings();	
 		return !settings.canFly(role) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
 				V.requireFailDefault, true) :
@@ -542,36 +557,34 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @return The flight result.
 	 */
 	public FlightResult runRequirement(SkyblockRequirement ir, IslandWrapper island, UUID u) {
-		if (V.debug) {Console.debug("", "-----Running island flight requirement-----","--| name: " + ir.getName(),"--| level: " + ir.getIslandLevel(),"--| owner level: " + ir.getOwnerLevel());}
-		Console.debug("players level: " + getIslandLevel(u));
-		if (ir.getIslandLevel() > 0 && ir.getIslandLevel() > getIslandLevel(u)) {
+		if (V.debug) {Console.debug("", "----- Running island flight requirement -----","--| Name: " + ir.getName(),"--| player level: " + ir.getPlayerLevel(),"--| owner level: " + ir.getOwnerLevel());}
+		Console.debug("--| Players level: " + getIslandLevel(u));
+		if (ir.getPlayerLevel() > 0 && ir.getPlayerLevel() > getIslandLevel(u)) {
 			if (V.debug) {
-				Console.debug("fail island level: " + ir.getIslandLevel() + " / " + getIslandLevel(u), "-----End flight requirements-----", "");
+				Console.debug("--|> Fail island level: " + ir.getPlayerLevel() + " / " + getIslandLevel(u), "-----End flight requirements-----", "");
 			}
-			return new ResultDeny(DenyReason.REQUIREMENT, this, null,
-					requireLevelSelf
-					.replaceAll("\\{LEVEL}", String.valueOf(ir.getIslandLevel()))
+			return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireLevelSelf
+					.replaceAll("\\{LEVEL}", String.valueOf(ir.getPlayerLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()), true);
 		}
 		
 		if (ir.getOwnerLevel() > 0 && ir.getOwnerLevel() > getIslandLevel(getIslandOwner(island))) {
 			if (V.debug) {
-				Console.debug("fail island level: " + ir.getOwnerLevel() + " / " + getIslandLevel(getIslandOwner(island)), "-----End flight requirements-----", "");	
+				Console.debug("--|> Fail island level: " + ir.getOwnerLevel() + " / " + getIslandLevel(getIslandOwner(island)), "-----End flight requirements-----", "");	
 			}
-			return new ResultDeny(DenyReason.REQUIREMENT, this, null,
-					requireLevelOther
+			return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireLevelOther
 					.replaceAll("\\{LEVEL}", String.valueOf(ir.getOwnerLevel()))
 					.replaceAll("\\{ROLE}", ir.getName()), true);
 		}
 		
-		for (SkyblockChallenge challenge : ir.getChallenges()) {
+		for (SkyblockChallenge challenge : ir.getPlayerChallenges()) {
 			if (!isChallengeCompleted(u, challenge)) {
 				if (V.debug) {
-					Console.debug("fail island challenge: " + challenge, "-----End flight requirements-----", "");	
+					Console.debug("--|> Fail island challenge: " + challenge, "-----End flight requirements-----", "");	
 				}
-				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
-						requireChallengeSelf
+				return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireChallengeSelf
 						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{COMPLETIONS}", String.valueOf(challenge.getRequiredCompletions()))
 						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
 			}
@@ -579,11 +592,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 		for (SkyblockChallenge challenge : ir.getOwnerChallenges()) {
 			if (!isChallengeCompleted(getIslandOwner(island), challenge)) {
 				if (V.debug) {
-					Console.debug("fail island challenge | island owner: " + challenge, "-----End flight requirements-----", "");	
+					Console.debug("--|> Fail island challenge | island owner: " + challenge, "-----End flight requirements-----", "");	
 				}
-				return new ResultDeny(DenyReason.REQUIREMENT, this, null,
-						requireChallengeOther
+				return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireChallengeOther
 						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{COMPLETIONS}", String.valueOf(challenge.getRequiredCompletions()))
 						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
 			}
@@ -662,7 +675,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	@Override
 	public String getEmbeddedConfigName() {
-		return "skyblock_config";
+		return "skyblock_preset_generic";
 	}
 	
 	@Override
