@@ -42,15 +42,27 @@
 enable_hook: true
 
 # Unlockables allow you to set island requirements to allow users flight on islands and elsewhere on the server.
-
+##---------------------------------------------------------##
+#|               Valid requirements include                |#
+##-------------------+-------------------------------------##
+#| player_level      | the island level for the player     |#
+#|                   | trying to fly.                      |#
+##-------------------+-------------------------------------##
+#| player_challenges | the challenges for the player       |#
+#|                   | trying to fly.                      |#
+##-------------------+-------------------------------------##
+#| If the role specified is a member of the island,        |#
+#| for example, (team, moderator, owner) there is no need  |#
+#| to specify both island_level and owner_level.           |#
+##---------------------------------------------------------##
 unlockables:
 
   environment:
     # Requirements needed for island members to fly in specified regions
     regions:
       super_awesome_vip_region:
-        island_level: 950
-        challenges:
+        player_level: 950
+        player_challenges:
           alchemist:
             completed: 1
           dj:
@@ -61,44 +73,33 @@ unlockables:
     # Requirements needed for island members to fly in specified worlds
     worlds:
       example_world:
-        island_level: 1
+        player_level: 1
   
     # requirements to fly when not on an island.
     wilderness:
-      island_level: 0
+      player_level: 0
 
-  ##--------------------------------------------------------##
-  #|       Flight requirements based on island roles        |#
-  #|               Valid requirements include;              |#
-  ##------------------+-------------------------------------##
-  #| island_level     | the island level for the player     |#
-  #|                  | trying to fly.                      |#
-  ##------------------+-------------------------------------##
-  #| owner_level      | the island level for the island     |#
-  #|                  | they are trying to fly on.          |#
-  ##------------------+-------------------------------------##
-  #| challenges       | the challenges for the player       |#
-  #|                  | trying to fly.                      |#
-  ##------------------+-------------------------------------##
-  #| owner_challenges | the challenges for the owner of the |#
-  #|                  | island they are trying to fly on.   |#
-  ##------------------+-------------------------------------##
-  #| If the role specified is a member of the island,       |#
-  #| for example, (team, moderator, owner) there is no need |#
-  #| to specify both island_level and owner_level.          |#
-  ##--------------------------------------------------------##
+  ##---------------------------------------------------------##
+  #|        Additional requirements for island roles         |#
+  ##-------------------+-------------------------------------##
+  #| island_level      | the island level for the island     |#
+  #|                   | they are trying to fly on.          |#
+  ##-------------------+-------------------------------------##
+  #| island_challenges | the challenges for the owner of the |#
+  #|                   | island they are trying to fly on.   |#
+  ##-------------------+-------------------------------------##
   island_roles:
     owner:
-      island_level: 5
+      player_level: 5
 
     visitor:
-      island_level: 75
-      owner_level: 50
+      player_level: 75
+      island_level: 50
 
-      challenges:
+      player_challenges:
         stewmaker:
           completed: 1
-      owner_challenges:
+      island_challenges:
         papermaker:
           completed: 1
 
