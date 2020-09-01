@@ -25,7 +25,7 @@ public class IslandSettings {
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
 		this.hook = hook;
 		this.island = island;
-		String id = hook.getIslandIdentifier(island.getIsland());
+		String id = hook.getIslandIdentifier(island.getRawIsland());
 		DataBridge bridge = hook.getTempFly().getDataBridge();
 		
 		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, hook, "islands", id, "settings");
@@ -66,7 +66,7 @@ public class IslandSettings {
 		if (V.debug) {Console.debug("-- Set flight for: " + role, "--| currently: " + canFly(role), "--| mapped settings contains: " + settings.containsKey(role));}
 		boolean canFly = !canFly(role);
 		settings.put(role, canFly);
-		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly, hook);
+		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island.getRawIsland()), role), canFly, hook);
 	}
 	
 	public List<Entry<String, Boolean>> getCurrentState() {
