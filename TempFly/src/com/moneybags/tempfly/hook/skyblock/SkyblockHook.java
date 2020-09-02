@@ -20,6 +20,7 @@ import com.iridium.iridiumskyblock.IridiumSkyblock;
 import com.iridium.iridiumskyblock.Island;
 import com.iridium.iridiumskyblock.IslandManager;
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
@@ -688,6 +689,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 		return getPluginName();
 	}
 	
+	@SuppressWarnings("serial")
+	@Override
+	public Map<String, Class<? extends TempFlyCommand>> getCommands() {
+		return new HashMap<String, Class<? extends TempFlyCommand>>() {{put("island", CmdIslandSettings.class);}};
+	}
 	
 	/**
 	 * 

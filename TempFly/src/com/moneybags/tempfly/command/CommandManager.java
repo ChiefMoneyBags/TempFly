@@ -46,6 +46,8 @@ public class CommandManager {
 	private Map<TimeUnit, List<String>> timeArgs = new HashMap<>();
 	private Map<TimeUnit, String> timeComplete = new HashMap<>();
 	
+	private Map<String, Class<? extends TempFlyCommand>> hookRegistry = new HashMap<>();
+	
 	public CommandManager(TempFly tempfly) {
 		this.tempfly = tempfly;
 		executor = new TempFlyExecutor(this);
@@ -183,8 +185,30 @@ public class CommandManager {
 					}
 				}
 			}
+			for (Entry<String, Class<? extends TempFlyCommand>> entry: hookRegistry.entrySet()) {
+				if (entry.getKey().equals(args[0])) {
+					try {return entry.getValue().getConstructor(TempFly.class, String[].class).newInstance(tempfly, args);} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 		return null;
+	}
+	
+	public void registerHookCommand(String base, Class<? extends TempFlyCommand> command) throws IllegalArgumentException {
+		if (hookRegistry.containsKey(base)) {
+			throw new IllegalArgumentException("Sub command bases must be unique! This command is already taken: " + base);
+		}
+		
+		try {command.getConstructor(TempFly.class, String[].class).newInstance(tempfly, new String[0]);} catch (Exception e) {
+			throw new IllegalArgumentException("This sub command is not properly structured: " + base);
+		}
+		hookRegistry.put(base, command);
+	}
+	
+	public void unregisterHookCommand(String base) {
+		hookRegistry.remove(base);
 	}
 	
 	public List<String> getAllCommandBases() {
@@ -194,6 +218,7 @@ public class CommandManager {
 			for (String base: getCommandBases(type)) {
 				bases.add(base);
 			}
+			bases.addAll(hookRegistry.keySet());
 		}
 		return bases;
 	}
@@ -201,38 +226,40 @@ public class CommandManager {
 	public List<String> getPartialCommandBases(String partial) {
 		List<String> matches = new ArrayList<>();
 		for (CommandType type: CommandType.values()) {
-			bases:
 			for (String base: getCommandBases(type)) {
-				char[] baseChars = base.toCharArray();
-				if (partial.length() > baseChars.length) {
-					continue;
+				if (compare(base, partial)) {
+					matches.add(base);
 				}
-				for (int i = 0; i < partial.length(); i++) {
-					char partialChar = partial.charAt(i);
-					if (partialChar != baseChars[i]) {
-						continue bases;
-					}
-				}
-				matches.add(base);
-				continue bases;
 			}
 		}
 		toggle:
 		for (String base: getToggleCompletions(false)) {
-			char[] baseChars = base.toCharArray();
-			if (partial.length() > baseChars.length) {
-				continue;
+			if (compare(base, partial)) {
+				matches.add(base);
 			}
-			for (int i = 0; i < partial.length(); i++) {
-				char partialChar = partial.charAt(i);
-				if (partialChar != baseChars[i]) {
-					continue toggle;
-				}
+		}
+		
+		for (String base: hookRegistry.keySet()) {
+			if (compare(base, partial)) {
+				matches.add(base);
 			}
-			matches.add(base);
 		}
 		
 		return matches;
+	}
+	
+	private boolean compare(String base, String partial) {
+		char[] baseChars = base.toCharArray();
+		if (partial.length() > baseChars.length) {
+			return false;
+		}
+		for (int i = 0; i < partial.length(); i++) {
+			char partialChar = partial.charAt(i);
+			if (partialChar != baseChars[i]) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public List<String> getCommandBases(CommandType type) {

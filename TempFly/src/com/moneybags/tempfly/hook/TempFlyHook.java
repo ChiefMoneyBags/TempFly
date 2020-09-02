@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.command.CommandManager;
+import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.util.Console;
@@ -51,16 +55,28 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+		CommandManager commands = tempfly.getCommandManager();
 		if (enabled) {
 			try {tempfly.getHookManager().registerHook(this);} catch (IllegalArgumentException e) {
 				e.printStackTrace();
 				setEnabled(false);
 			}
+			for (Entry<String, Class<? extends TempFlyCommand>> entry: getCommands().entrySet()) {
+				try {commands.registerHookCommand(entry.getKey(), entry.getValue());} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+					setEnabled(false);
+					break;
+				}	
+			}
 			return;
 		}
 		tempfly.getHookManager().unregisterHook(this);
+		for (String base: getCommands().keySet()) {
+			commands.unregisterHookCommand(base);
+		}
 	}
 
+	
 	
 	protected boolean initializeFiles() throws Exception {
 		Console.debug("--<[ Initializing hook files...");
@@ -141,6 +157,8 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	public abstract String getConfigName();
 	
 	public abstract String getEmbeddedConfigName();
+	
+	public abstract Map<String, Class<? extends TempFlyCommand>> getCommands();
 	
 	/**
 	 * Called from within the TempFlyHook constructor as a means of constructing the class structure in
