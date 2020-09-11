@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -355,6 +357,11 @@ public class FlightManager implements Listener, Reloadable {
 		if (user == null) {return;}
 		user.resetIdleTimer();
 		user.applyFlightCorrect();
+		if (e.getNewGameMode() == GameMode.CREATIVE && V.creativeTimer) {
+			if (!user.hasFlightEnabled() && !user.enableFlight()) {
+				user.enforce(1);
+			}
+		}
 	}
 	
 	/**

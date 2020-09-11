@@ -278,8 +278,12 @@ public class FlightUser {
 				// If the users flight is enabled again when the task runs we will return.
 				if (enabled) return;
 				GameMode m = p.getGameMode();
-				if (!(m.equals(GameMode.CREATIVE)) && !(m.equals(GameMode.SPECTATOR))) {
-					Console.debug("--- Enforcing disabled flight ----");
+				if (m == GameMode.CREATIVE && V.creativeTimer) {
+					Console.debug("--- Enforcing disabled flight A ----");
+					p.setFlying(false);
+					p.setAllowFlight(false);
+				} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
+					Console.debug("--- Enforcing disabled flight B ----");
 					p.setFlying(false);
 					p.setAllowFlight(false);
 				}
@@ -303,7 +307,10 @@ public class FlightUser {
 		updateName(true);
 		// Fixes a weird bug where fall damage accumulates through flight and damages even when 1 block off the ground.
 		if (p.isFlying()) {p.setFallDistance(0);}
-		if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
+		if (m == GameMode.CREATIVE && V.creativeTimer) {
+			p.setFlying(false);
+			p.setAllowFlight(false);
+		} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
 			p.setFlying(false);
 			p.setAllowFlight(false);
 			if (fallSafely) {addDamageProtection();}
@@ -474,13 +481,13 @@ public class FlightUser {
 	
 	public boolean evaluateFlightRequirement(RequirementProvider requirement, Location loc) {
 		List<FlightResult> results = new ArrayList<>();
-		if (!requirement.handles(InquiryType.WORLD) && hasFlightRequirement(requirement, InquiryType.WORLD)) {
+		if (!requirement.handles(InquiryType.WORLD)) {
 			results.add(requirement.handleFlightInquiry(this, loc.getWorld()));
 		}
-		if (!requirement.handles(InquiryType.LOCATION) && hasFlightRequirement(requirement, InquiryType.LOCATION)) {
+		if (!requirement.handles(InquiryType.LOCATION)) {
 			results.add(requirement.handleFlightInquiry(this, loc));
 		}
-		if (!requirement.handles(InquiryType.REGION) && hasFlightRequirement(requirement, InquiryType.REGION)
+		if (!requirement.handles(InquiryType.REGION)
 				&& manager.getTempFly().getHookManager().hasRegionProvider()) {
 			results.add(requirement.handleFlightInquiry(this, environment.getCurrentRegionSet()));
 		}
@@ -752,6 +759,9 @@ public class FlightUser {
 				if (!V.idleTimer && isIdle()) {
 					return;
 				}
+				if (p.getGameMode() == GameMode.CREATIVE && !V.creativeTimer) {
+					return;
+				}
 				this.cancel();
 				timer = new FlightTimer();
 			}
@@ -765,6 +775,7 @@ public class FlightUser {
 	 * @author Kevin
 	 *
 	 */
+	// It looks like were having spaghetti for dinner
 	public class FlightTimer extends TempFlyTimer {
 		
 		private static final int DELAY = 3;
@@ -843,16 +854,16 @@ public class FlightUser {
 			if (V.permaTimer) {
 				return doIdleCheck();
 			}
+			if (p.getGameMode() == GameMode.CREATIVE && !V.creativeTimer) {
+				return false;
+			}
 			if (!p.isFlying()) {
 				if (V.groundTimer && !doIdleCheck()) {
 					return false;
 				}
 				return V.groundTimer;
 			}
-			if (doIdleCheck()) {
-				return true;
-			}
-			return false;
+			return doIdleCheck();
 		}
 		
 		private void doIdentifier() {
