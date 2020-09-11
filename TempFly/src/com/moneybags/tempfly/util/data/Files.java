@@ -77,6 +77,7 @@ public class Files {
 	    }
 	}
 	
+	
 	public static void createConfig(InputStream stream, File file) throws IOException {
 		byte[] buffer = new byte[stream.available()];
 		stream.read(buffer);

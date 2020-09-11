@@ -81,7 +81,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 		    	dataf.getParentFile().mkdirs();
 		    	tempfly.saveResource("data.yml", false);
 		    }
-		    data = new YamlConfiguration();    
+		    data = new YamlConfiguration();  
 		    try { data.load(dataf); } catch (Exception e1) {
 		    	Console.severe("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
 		        e1.printStackTrace();
