@@ -36,7 +36,7 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class IridiumHook extends SkyblockHook implements Listener {
+public class IridiumHook extends SkyblockHook {
 
 	public static final String[] ROLES = new String[] {"OWNER", "COOWNER", "MODERATOR", "MEMBER", "COOP", "VISITOR"};
 	
@@ -50,7 +50,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		
 		//
 		if (super.initializeHook()) {
-			tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
+			startManualTracking();
 			setEnabled(true);
 			return true;
 		}
@@ -61,37 +61,6 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	public String getEmbeddedConfigName() {
 		return "skyblock_preset_iridium";
 	}
-	
-	/**
-	 * Iridium skyblock has no internal tracking or events for player location and islands
-	 * >:(
-	 * @param e
-	 */
-	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerMoveEvent e) {
-		Location to = e.getTo();
-		if (e.getFrom().getBlock().equals(to.getBlock())) {
-			return;
-		}
-		super.updateLocation(e.getPlayer(), e.getTo());
-	}
-	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerRespawnEvent e) {
-		super.updateLocation(e.getPlayer(), e.getRespawnLocation());
-	}
-	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerTeleportEvent e) {
-		super.updateLocation(e.getPlayer(), e.getTo());
-	}
-	
-	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerChangedWorldEvent e) {
-		super.updateLocation(e.getPlayer(), e.getPlayer().getLocation());
-	}
-	
 	
 	
 	@EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -283,6 +252,11 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	@Override
 	public boolean isIslandWorld(Location loc) {
 		return IridiumSkyblock.getIslandManager().isIslandWorld(loc);
+	}
+	
+	@Override
+	public boolean isInIsland(IslandWrapper island, Location loc) {
+		return ((Island)island.getRawIsland()).isInIsland(loc);
 	}
 
 }
