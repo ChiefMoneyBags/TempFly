@@ -75,6 +75,8 @@ general:
     # If false the player will not lose flight time if they go idle with flight enabled.
     # This will override the constant and ground timers.
     idle: false
+    # If false the timer will not count down while a player uses creative flight.
+    creative: true
   
   idle:
     # The threshold in seconds to consider a player idle. -1 for no idle timer
