@@ -40,9 +40,9 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 			return;
 		}
 		
-		Console.info("Attempting to initialize (" + target + ") hook...");
+		Console.info("Attempting to initialize (" + getHookName() + ") hook...");
 		try { initializeFiles(); } catch (Exception e) {
-			Console.severe("An error occured while trying to initilize the (" + target + ") hook.");
+			Console.severe("An error occured while trying to initilize the (" + getHookName() + ") hook.");
 			e.printStackTrace();
 			return;
 		}
@@ -82,7 +82,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		Console.debug("--<[ Initializing hook files...");
 		File hookConfigf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory(), getConfigName() + ".yml");
 	    if (!hookConfigf.exists()) {
-	    	Console.info("Config for ( "+ target + ") hook does not exist, creating...");
+	    	Console.info("Config for ("+ getHookName() + ") hook does not exist, creating...");
 	    	hookConfigf.getParentFile().mkdirs();
 	    	Files.createConfig(tempfly.getResource(getEmbeddedConfigName() + ".yml"), hookConfigf);
 	    }
@@ -90,7 +90,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	    hookConfig = new YamlConfiguration();
     	hookConfig.load(hookConfigf);
 		if (!hookConfig.getBoolean("enable_hook")) {
-			Console.info("(" + target + ") hook is disabled, skipping...");
+			Console.info("(" + getHookName() + ") hook is disabled, skipping...");
 			return false;
 		}
 		initializeData();
@@ -101,7 +101,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		Console.debug("--<[ Initializing hook data...");
 		Connection connection;
 		if ((connection = tempfly.getDataBridge().getConnection()) == null) {
-			File hookDataf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory() + File.separator + getHookedPlugin() + "_data.yml");
+			File hookDataf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory() + File.separator + getDataName() + "_data.yml");
 			Console.debug("--<[ Sql connection null, using YAML: " + hookDataf.getName());
 			Console.debug("--<[ Path: " + hookDataf.getAbsolutePath());
 			Console.debug("--<[ Exists?: " + hookDataf.exists());
@@ -154,7 +154,15 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	public abstract String getPluginName();
 	
+	public String getHookName() {
+		return getPluginName();
+	}
+	
 	public abstract String getConfigName();
+	
+	public String getDataName() {
+		return getConfigName();
+	}
 	
 	public abstract String getEmbeddedConfigName();
 	
