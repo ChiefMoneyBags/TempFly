@@ -338,6 +338,8 @@ public class TimeManager implements Listener {
 		case TIME_SECONDS:
 			long seconds = formatTime(TimeUnit.SECONDS, supply);
 			return String.valueOf(seconds);
+		case TIME_SECONDS_TOTAL:
+			return String.valueOf((int)Math.floor(supply));
 		default:
 			break;
 		}
@@ -350,6 +352,7 @@ public class TimeManager implements Listener {
 		TIME_DAYS,
 		TIME_HOURS,
 		TIME_MINUTES,
-		TIME_SECONDS;
+		TIME_SECONDS,
+		TIME_SECONDS_TOTAL;
 	}
 }

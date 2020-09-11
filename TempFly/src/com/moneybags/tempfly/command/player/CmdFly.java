@@ -10,8 +10,6 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
-import com.moneybags.tempfly.command.CommandManager;
-import com.moneybags.tempfly.command.CommandManager.CommandType;
 import com.moneybags.tempfly.event.FlightEnabledEvent;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
@@ -25,7 +23,6 @@ public class CmdFly extends TempFlyCommand {
 	
 	@Override
 	public void executeAs(CommandSender s) {
-		CommandManager manager = tempfly.getCommandManager();
 		Player p = null;
 		boolean
 			manual = false,

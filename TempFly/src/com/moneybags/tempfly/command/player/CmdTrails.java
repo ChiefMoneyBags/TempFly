@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
-import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.pages.PageTrails;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;

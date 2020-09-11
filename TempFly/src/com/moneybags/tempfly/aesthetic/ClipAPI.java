@@ -63,12 +63,14 @@ public class ClipAPI {
 				return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_MINUTES);
 			case "time-seconds":
 				return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_SECONDS);
+			case "time-seconds-total":
+				return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_SECONDS_TOTAL);
 			case "list-name":
 				return p.isOnline() ? tempfly.getFlightManager().getUser(p).getListPlaceholder() : "";
 			case "name-tag":
 				return p.isOnline() ? tempfly.getFlightManager().getUser(p).getTagPlaceholder() : "";
 			default:
-				return null;
+				return "Invalid placeholder.. :( ";
 			}
 		}
 	}

@@ -1,7 +1,5 @@
 package com.moneybags.tempfly.hook.skyblock;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook.SkyblockRequirementType;

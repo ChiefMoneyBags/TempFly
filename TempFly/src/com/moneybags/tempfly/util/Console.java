@@ -2,8 +2,6 @@ package com.moneybags.tempfly.util;
 
 import java.util.logging.Logger;
 
-import com.moneybags.tempfly.TempFly;
-
 public final class Console {
 	
 	private static Logger logger;

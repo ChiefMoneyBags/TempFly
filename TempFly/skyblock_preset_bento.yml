@@ -87,8 +87,8 @@ language:
     island: "{PREFIX} &cYou must have an island to fly here!"
 
   requirements:
-    # Challenges support the placeholders; {CHALLENGE} | {PROGRESS} | {COMPLETIONS} | {ROLE}
-    challenge_self: "{PREFIX} &cYou must complete the challenge &f{CHALLENGE} &cto fly here!"
+    # Challenges support the placeholders; {CHALLENGE} | {COMPLETIONS} | {ROLE}
+    challenge_self: "{PREFIX} &f{CHALLENGE} &cmust be completed &f{COMPLETIONS} &ctimes to fly here!"
     challenge_other: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
     # Levels support the placeholders; {LEVEL} | {ROLE}
     level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"

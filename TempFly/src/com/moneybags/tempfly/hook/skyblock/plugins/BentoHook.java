@@ -1,10 +1,8 @@
 package com.moneybags.tempfly.hook.skyblock.plugins;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -27,12 +25,22 @@ import world.bentobox.bentobox.api.events.IslandBaseEvent;
 import world.bentobox.bentobox.api.user.User;
 import world.bentobox.bentobox.database.objects.Island;
 
+/**
+ * - Dev Notes -
+ * BentoBox uses its own ClassLoader for its addons and does not register the classes it loads into 
+ * the Bukkit ClassLoader. This causes ClassNotFound exceptions whenever i try to use addon objects
+ * from BentoBox in a normal fashion. Therefore i have taken to using reflection to access them in this hook.
+ * 
+ * In addition BentoBox does not include built in island tracking or events for player location and islands
+ * so BentoBoxHook will initiate the super tracker in SkyblockHook.
+ * @author Kevin
+ *
+ */
 public abstract class BentoHook extends SkyblockHook implements Listener {
 	
 	
 	public BentoHook(TempFly plugin) {
 		super(plugin);
-		plugin.getServer().getPluginManager().registerEvents(this, plugin);
 	}
 
 	@Override
@@ -41,6 +49,7 @@ public abstract class BentoHook extends SkyblockHook implements Listener {
 		
 		//
 		if (super.initializeHook()) {
+			getTempFly().getServer().getPluginManager().registerEvents(this, getTempFly());
 			startManualTracking();
 			setEnabled(true);
 			return true;
@@ -61,6 +70,25 @@ public abstract class BentoHook extends SkyblockHook implements Listener {
 			e.printStackTrace();
 		}
 		return super.getFormattedIslandLevel(level);
+	}
+	
+	@Override
+	public String getChallengeName(SkyblockChallenge challenge) {
+		try {
+			Object challenges = getChallengeAddon();
+			if (challenges == null) {
+				return super.getChallengeName(challenge);
+			}
+			Object manager = challenges.getClass().getMethod("getChallengesManager").invoke(challenges); 
+			Object bentoChallenge = manager.getClass().getMethod("getChallenge", String.class).invoke(manager, challenge.getName());
+			if (bentoChallenge == null) {
+				return super.getChallengeName(challenge);
+			}
+			return (String) bentoChallenge.getClass().getMethod("getFriendlyName").invoke(bentoChallenge);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return super.getChallengeName(challenge);
+		}
 	}
 	
 	@EventHandler

@@ -1,7 +1,6 @@
 package com.moneybags.tempfly.command.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -11,9 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
-import com.moneybags.tempfly.command.CommandManager.CommandType;
 import com.moneybags.tempfly.time.TimeManager;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -34,6 +31,7 @@ public class CmdGive extends TimeCommand {
 			return;
 		}
 		
+		@SuppressWarnings("deprecation")
 		OfflinePlayer p = Bukkit.getOfflinePlayer(args[1]);
 		if (p == null || (p != null && !p.isOnline() && !p.hasPlayedBefore())) {
 			U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));

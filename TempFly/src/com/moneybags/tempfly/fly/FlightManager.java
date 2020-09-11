@@ -27,6 +27,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;

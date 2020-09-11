@@ -1,16 +1,6 @@
 package com.moneybags.tempfly.gui;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 
 import com.moneybags.tempfly.gui.abstraction.Page;

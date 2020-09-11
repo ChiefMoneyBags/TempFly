@@ -1,7 +1,6 @@
 package com.moneybags.tempfly.command.player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.command.CommandSender;
@@ -12,7 +11,6 @@ import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-import com.mysql.fabric.xmlrpc.base.Array;
 
 public class CmdBypass extends TempFlyCommand {
 

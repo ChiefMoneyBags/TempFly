@@ -70,7 +70,19 @@ public class MvdWAPI {
 					return null;
 				} 
 			  });
-			  PlaceholderAPI.registerPlaceholder(tempfly, "tempfly_list-name", new PlaceholderReplacer() {
+			  
+			  PlaceholderAPI.registerPlaceholder(tempfly, "tempfly_time_seconds_total", new PlaceholderReplacer() {
+				@Override
+				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
+					Player p = e.getPlayer();
+					if (p != null){
+						return tempfly.getTimeManager().getPlaceHolder(p, Placeholder.TIME_SECONDS_TOTAL);
+					}
+					return null;
+				} 
+			  });
+			  
+			  PlaceholderAPI.registerPlaceholder(tempfly, "tempfly_list_name", new PlaceholderReplacer() {
 				@Override
 				public String onPlaceholderReplace(PlaceholderReplaceEvent e) {
 					Player p = e.getPlayer();

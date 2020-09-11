@@ -24,15 +24,11 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.iridium.iridiumskyblock.IridiumSkyblock;
-import com.iridium.iridiumskyblock.Island;
-import com.iridium.iridiumskyblock.IslandManager;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
-import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.TempFlyHook;
@@ -393,7 +389,6 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @param loc The new location of the player.
 	 */
 	public void updateLocation(Player p, Location loc) {
-		Console.debug("--- update island location ---");
 		if (isCurrentlyTracking(p)) {
 			Console.debug("--| Player is being tracked");
 			IslandWrapper island = getTrackedIsland(p);
@@ -626,7 +621,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 					Console.debug("--|> Fail island challenge: " + challenge, "-----End flight requirements-----", "");	
 				}
 				return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireChallengeSelf
-						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{CHALLENGE}", getChallengeName(challenge))
 						.replaceAll("\\{COMPLETIONS}", String.valueOf(challenge.getRequiredCompletions()))
 						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
@@ -638,7 +633,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 					Console.debug("--|> Fail island challenge | island owner: " + challenge, "-----End flight requirements-----", "");	
 				}
 				return new ResultDeny(DenyReason.REQUIREMENT, this, null, requireChallengeOther
-						.replaceAll("\\{CHALLENGE}", challenge.getName())
+						.replaceAll("\\{CHALLENGE}", getChallengeName(challenge))
 						.replaceAll("\\{COMPLETIONS}", String.valueOf(challenge.getRequiredCompletions()))
 						.replaceAll("\\{PROGRESS}", String.valueOf(challenge.getRequiredProgress()))
 						.replaceAll("\\{ROLE}", ir.getName()), true);
@@ -784,7 +779,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	
 	public String getFormattedIslandLevel(double level) {
-		return String.valueOf(level);
+		return new DecimalFormat("##.##").format(level);
+	}
+	
+	public String getChallengeName(SkyblockChallenge challenge) {
+		return challenge.getName();
 	}
 	
 	

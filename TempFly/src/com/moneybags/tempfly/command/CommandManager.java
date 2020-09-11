@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -27,11 +26,8 @@ import com.moneybags.tempfly.command.player.CmdShop;
 import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
-
-import net.minecraft.server.v1_15_R1.EnchantmentSlotType;
 
 public class CommandManager {
 
@@ -232,7 +228,6 @@ public class CommandManager {
 				}
 			}
 		}
-		toggle:
 		for (String base: getToggleCompletions(false)) {
 			if (compare(base, partial)) {
 				matches.add(base);

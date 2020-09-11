@@ -13,7 +13,6 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
-import com.moneybags.tempfly.hook.skyblock.plugins.BentoHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.BskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.IridiumHook;
 import com.moneybags.tempfly.util.Console;

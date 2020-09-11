@@ -15,12 +15,10 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
-import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.wasteofplastic.askyblock.ASkyBlock;
@@ -31,6 +29,15 @@ import com.wasteofplastic.askyblock.events.IslandEnterEvent;
 import com.wasteofplastic.askyblock.events.IslandExitEvent;
 import com.wasteofplastic.askyblock.events.IslandPostLevelEvent;
 
+/**
+ * - Dev Notes -
+ * Askyblock contains events for island enter and island exit. Therefore it will not need to initiate the
+ * super island tracker in SkyblockHook.
+ * 
+ * This plugin was very easy to work with compared to newer / better plugins.
+ * @author Kevin
+ *
+ */
 public class AskyblockHook extends SkyblockHook implements Listener {
 	
 	public static final String[] ROLES = new String[] {"OWNER", "TEAM", "COOP", "VISITOR"};

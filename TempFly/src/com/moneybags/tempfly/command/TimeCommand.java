@@ -1,16 +1,12 @@
 package com.moneybags.tempfly.command;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.bukkit.command.CommandSender;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 

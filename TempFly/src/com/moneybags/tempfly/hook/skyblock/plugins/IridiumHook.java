@@ -7,17 +7,12 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -26,17 +21,26 @@ import com.iridium.iridiumskyblock.Island;
 import com.iridium.iridiumskyblock.IslandManager;
 import com.iridium.iridiumskyblock.User;
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.fly.result.FlightResult;
-import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
 import com.moneybags.tempfly.hook.skyblock.SkyblockChallenge;
 import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
-import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class IridiumHook extends SkyblockHook {
+/**
+ * - Dev Notes -
+ * IridiumSkyblock contains no events or api for island levels and challenges, therefore unless they are implemented
+ * it is unreasonably difficult for me to performantly update flight requirements in real time when challenges or island
+ * levels update. The player will need to leave and re-enter the island to update them.
+ * 
+ * IridiumSkyblock also does not include built in island tracking or events for player location and islands
+ * IridiumHook will initiate the super tracker in SkyblockHook.
+ * 
+ * @author Kevin
+ *
+ */
+public class IridiumHook extends SkyblockHook implements Listener {
 
 	public static final String[] ROLES = new String[] {"OWNER", "COOWNER", "MODERATOR", "MEMBER", "COOP", "VISITOR"};
 	
@@ -50,12 +54,14 @@ public class IridiumHook extends SkyblockHook {
 		
 		//
 		if (super.initializeHook()) {
+			getTempFly().getServer().getPluginManager().registerEvents(this, getTempFly());
 			startManualTracking();
 			setEnabled(true);
 			return true;
 		}
 		return false;
 	}
+	
 	
 	@Override
 	public String getEmbeddedConfigName() {
@@ -251,12 +257,16 @@ public class IridiumHook extends SkyblockHook {
 
 	@Override
 	public boolean isIslandWorld(Location loc) {
-		return IridiumSkyblock.getIslandManager().isIslandWorld(loc);
+		// Try catches a benign error when using /reload because iridium isnt ready yet.
+		try {return IridiumSkyblock.getIslandManager().isIslandWorld(loc);} catch (Exception e) {
+			return false;
+		}
 	}
 	
 	@Override
 	public boolean isInIsland(IslandWrapper island, Location loc) {
-		return ((Island)island.getRawIsland()).isInIsland(loc);
+		
+		return ((Island)island.getRawIsland()).isInIsland(loc) && isIslandWorld(loc);
 	}
 
 }

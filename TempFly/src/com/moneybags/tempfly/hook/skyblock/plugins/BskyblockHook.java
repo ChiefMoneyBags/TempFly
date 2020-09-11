@@ -1,20 +1,12 @@
 package com.moneybags.tempfly.hook.skyblock.plugins;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
-import java.util.UUID;
-
-import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.util.Console;
 
 import world.bentobox.bentobox.BentoBox;
 import world.bentobox.bentobox.api.addons.Addon;
-import world.bentobox.bentobox.api.events.IslandBaseEvent;
 
 public class BskyblockHook extends BentoHook {
 
