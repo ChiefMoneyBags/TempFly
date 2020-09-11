@@ -297,4 +297,9 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	public boolean isIslandWorld(Location loc) {
 		return loc.getWorld().equals(api.getIslandWorld()) || loc.getWorld().equals(api.getNetherWorld());
 	}
+
+	@Override
+	public boolean isInIsland(IslandWrapper island, Location loc) {
+		return ((Island)island.getRawIsland()).inIslandSpace(loc);
+	}
 }

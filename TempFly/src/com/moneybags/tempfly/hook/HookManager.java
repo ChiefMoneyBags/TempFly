@@ -14,6 +14,7 @@ import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.BentoHook;
+import com.moneybags.tempfly.hook.skyblock.plugins.BskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.IridiumHook;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Reloadable;
@@ -199,7 +200,7 @@ public class HookManager implements Reloadable {
 	 * Represents the GameMode type of a hook  
 	 */
 	public static enum Genre {
-		SKYBLOCK("SkyBlock", AskyblockHook.class, IridiumHook.class),
+		SKYBLOCK("SkyBlock", AskyblockHook.class, IridiumHook.class, BskyblockHook.class),
 		LANDS("Lands"),
 		FACTIONS("Factions"),
 		OTHER("Other");
