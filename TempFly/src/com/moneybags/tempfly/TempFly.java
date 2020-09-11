@@ -3,7 +3,9 @@ package com.moneybags.tempfly;
 import java.util.HashMap;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -71,11 +73,10 @@ public class TempFly extends JavaPlugin {
 		return gui;
 	}
 	
-	
 	@Override
 	public void onEnable() {
 		tfApi = new TempFlyAPI(this);
-		new Console(this);
+		Console.setLogger(this.getLogger());
 		
 		Files.createFiles(this);
 		V.loadValues();
