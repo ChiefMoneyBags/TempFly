@@ -4,12 +4,14 @@ import java.util.logging.Logger;
 
 import com.moneybags.tempfly.TempFly;
 
-public class Console {
+public final class Console {
 	
-	protected static TempFly tempfly;
+	private static Logger logger;
 	
-	public Console(TempFly plugin) {
-		tempfly = plugin;
+	private Console() {}
+	
+	public static void setLogger(Logger logger) {
+		Console.logger = logger;
 	}
 	
 	public static void generateException(String message) {
@@ -18,16 +20,12 @@ public class Console {
 		}
 	}
 	
-	public static Logger getLogger() {
-		return tempfly.getLogger();
-	}
-	
 	public static void info(String... m){
 		for (String s: m) {info(s);}
  	}
 	
 	public static void info(String m){
-		getLogger().info(m);
+		logger.info(m);
 	}
 	
 	public static void warn(String... m){
@@ -35,7 +33,7 @@ public class Console {
 	}
 	
 	public static void warn(String m){
-		getLogger().warning(m);
+		logger.warning(m);
 	}
 	
 	public static void severe(String... m){
@@ -43,7 +41,7 @@ public class Console {
 	}
 	
 	public static void severe(String m){
-		getLogger().severe(m);
+		logger.severe(m);
 	}
 	
 	/**
@@ -54,12 +52,12 @@ public class Console {
 	}
 
 	public static void debug(Object obj) {
-		if (V.debug) {getLogger().info("[DEBUG] " + String.valueOf(obj));}
+		if (V.debug) {logger.info("[DEBUG] " + String.valueOf(obj));}
 	}
 	
 	public static void debug(Object... objects) {
 		if (V.debug) {
-			for (Object obj: objects) {getLogger().info("[DEBUG] " + String.valueOf(obj));}
+			for (Object obj: objects) {logger.info("[DEBUG] " + String.valueOf(obj));}
 		}
 	}
 }
