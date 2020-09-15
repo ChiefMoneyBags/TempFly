@@ -6,13 +6,6 @@
 #|                   |  |  \   --.|  |  |  || '-' '|  |`   |  |  \   '                  |# 
 #|                   `--'   `----'`--`--`--'|  |-' `--'    `--'.-'  /                   |# 
 #|                                          `--'               `---'                    |#
-#|               ,----.      ,--.      ,-----.  ,------.,--------. ,---.                |#
-#|               '.-.  |    /    \     |  |) /_ |  .---''--.  .--'/  O  \               |#
-#|                 .' <    |  ()  |    |  .-.  \|  `--,    |  |  |  .-.  |              |#
-#|               /'-'  |.--.\    /     |  '--' /|  `---.   |  |  |  | |  |              |#
-#|               `----' '--' `--'      `------' `------'   `--'  `--' `--'              |#
-#|                                                                                      |#
-#|                                      Beta  #4                                        |#
 #|                                                                                      |#
 ##--------------------------------------------------------------------------------------##
 #|                                                                                      |#
@@ -33,15 +26,15 @@
 #|                                    Single Units                                      |#
 #|                        {SECONDS} {MINUTES} {HOURS} {DAYS}                            |#
 #|                        ----------------------------------                            |#
-#| Single unit placeholders will show the amount of time for only the unit specified.   |#
-#| If a player has 65 secs of time {SECONDS} will be 5s and {MINUTES} will be 1m        |#
+#|  Single unit placeholders will show the amount of time for only the unit specified   |#
+#|    If a player has 65 secs of time {SECONDS} will be 5s and {MINUTES} will be 1m     |#
 #|                                                                                      |#
 #|                                  Formatted Time                                      |#
 #|                                 {TIME_FORMATTED}                                     |#
 #|                        ----------------------------------                            |#
-#| Formatted time only includes time units currently applicable to the player.          |#
-#| It does not display zeroes in between units like this [1d 0h 0m 1s]                  |#
-#| If a player has 86401 seconds of time it will display [1d 1s]                        |#
+#|      Formatted time only includes time units currently applicable to the player      |#
+#|         It does not display zeroes in between units like this [1d 0h 0m 1s]          |#
+#|            If a player has 86401 seconds of time it will display [1d 1s]             |#
 #|                                                                                      |#
 ##======================================================================================##
 
@@ -76,7 +69,8 @@ general:
     # This will override the constant and ground timers.
     idle: false
     # If false the timer will not count down while a player uses creative flight.
-    creative: true
+    # If true the player will be subject to all normal tempfly flight restrictions and time usage while in creative flight.
+    creative: false
   
   idle:
     # The threshold in seconds to consider a player idle. -1 for no idle timer
@@ -103,7 +97,7 @@ general:
     max:
       # The base maximum time in seconds applied to everyone.
       base: -1
-      # Optionally you can include permission groups for a higher max time.
+      # Optionally you can include permission groups for a different max time.
       # The groups listed below will override the global base defined above.
       # If a player inherits more than 1 group the highest value will always be used.
       # The permission is "tempfly.max.[group]"
