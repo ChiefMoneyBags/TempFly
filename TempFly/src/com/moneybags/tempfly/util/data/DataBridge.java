@@ -235,6 +235,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 */
 	@Override
 	public void run() {
+		this.setName("tempfly batch manager");
 		while(true) {
 			synchronized (this) {
 				if (manualCommit.size() == 0) {
