@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -37,14 +38,27 @@ public class CmdRemove extends TimeCommand {
 			return;
 		}
 		double amount = quantifyArguments(s, 2);
-		if (amount == 0) {
+		if (amount <= 0) {
 			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
+		new AsyncTimeParameters(tempfly, this, s, p, amount);
+	}
+	
+	@Override
+	public void execute(AsyncTimeParameters parameters) {
 		TimeManager manager = tempfly.getTimeManager();
-		double time = manager.getTime(p.getUniqueId());
+		CommandSender s = parameters.getSender();
+		double amount = parameters.getAmount();
+		double time = parameters.getCurrentTime();
+		OfflinePlayer p = parameters.getTarget();
+		if (time == 0) {
+			U.m(s, V.invalidTimeOther
+					.replaceAll("\\{PLAYER}", p.getName()));
+			return;
+		}
 		double remove = time-amount < 0 ? time : amount;
-		manager.removeTime(p.getUniqueId(), remove);
+		manager.removeTime(parameters.getTarget().getUniqueId(), parameters);
 		if (p != s) {
 			U.m(s, manager.regexString(V.timeRemovedOther, remove)
 					.replaceAll("\\{PLAYER}", p.getName()));	

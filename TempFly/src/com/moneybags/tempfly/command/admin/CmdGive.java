@@ -10,7 +10,9 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -27,7 +29,7 @@ public class CmdGive extends TimeCommand {
 			return;
 		}
 		if (args.length < 3) {
-			U.m(s, U.cc("&c/tf give [player] [amount-> {args=[-s][-m][-h][-d]}]"));
+			U.m(s, U.cc("&c/tf give [player] [amount]"));
 			return;
 		}
 		
@@ -37,19 +39,27 @@ public class CmdGive extends TimeCommand {
 			U.m(s, V.invalidPlayer.replaceAll("\\{PLAYER}", args[1]));
 			return;
 		}
-		
 		double amount = quantifyArguments(s, 2);
 		if (amount <= 0) {
 			return;
 		}
-		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		new AsyncTimeParameters(tempfly, this, s, p, amount);
+	}
+
+	@Override
+	public void execute(AsyncTimeParameters parameters) {
+		CommandSender s = parameters.getSender();
+		double maxTime = parameters.getMaxTime();
 		if (maxTime == -999) {
 			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
 			return;
 		}
-		amount = Math.floor(amount);
+		Console.debug(maxTime);
+		
 		TimeManager manager = tempfly.getTimeManager();
-		double currentTime = manager.getTime(p.getUniqueId());
+		OfflinePlayer p = parameters.getTarget();
+		double currentTime = parameters.getCurrentTime();
+		double amount = parameters.getAmount();
 		if (maxTime > -1 && (currentTime + amount > maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
@@ -58,7 +68,7 @@ public class CmdGive extends TimeCommand {
 				return;
 			}
 		}
-		manager.addTime(p.getUniqueId(), amount);
+		manager.addTime(parameters.getTarget().getUniqueId(), parameters);
 		if (p != s) {
 			U.m(s, manager.regexString(V.timeGivenOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
@@ -67,7 +77,7 @@ public class CmdGive extends TimeCommand {
 			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount));	
 		}
 	}
-
+	
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.give")) {

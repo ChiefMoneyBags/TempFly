@@ -12,11 +12,13 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
+import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public class CmdTime extends TempFlyCommand {
+public class CmdTime extends TimeCommand {
 
 	public CmdTime(TempFly tempfly, String[] args) {
 		super(tempfly, args);
@@ -34,7 +36,7 @@ public class CmdTime extends TempFlyCommand {
 				U.m(s, V.invalidPlayer);
 				return;
 			}
-			a(tempfly, s, p);
+			new AsyncTimeParameters(tempfly, this, s, p, 0);
 		} else {
 			if (!U.hasPermission(s, "tempfly.time.self")) {
 				U.m(s, V.invalidPermission);
@@ -44,13 +46,16 @@ public class CmdTime extends TempFlyCommand {
 				U.m(s, V.invalidSender);
 				return;
 			}
-			a(tempfly, s, (Player)s);
+			new AsyncTimeParameters(tempfly, this, s, (Player)s, 0);
 		}
 	}
 	
-	private void a(TempFly tempfly, CommandSender s, OfflinePlayer p) {
+	public void execute(AsyncTimeParameters parameters) {
+		CommandSender s = parameters.getSender();
+		OfflinePlayer p = parameters.getTarget();
+		
 		TimeManager manager = tempfly.getTimeManager();
-		double time = manager.getTime(p.getUniqueId());
+		double time = parameters.getCurrentTime();
 		U.m(s, manager.regexString(V.infoHeader, time));
 		U.m(s, manager.regexString(V.infoPlayer, time).replaceAll("\\{PLAYER}", p.getName()));
 		final boolean infinite = p.isOnline() && tempfly.getFlightManager().getUser((Player)p).hasInfiniteFlight(); 

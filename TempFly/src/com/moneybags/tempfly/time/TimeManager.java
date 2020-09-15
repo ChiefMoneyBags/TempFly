@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.event.FlightUserInitializedEvent;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.DailyDate;
@@ -35,6 +36,8 @@ public class TimeManager implements Listener {
 	}
 	
 	/**
+	 * Async
+	 * 
 	 * Get a players time.
 	 * If offline The databridge will return the most recent staged change
 	 * held in memory for the players time if one exists. Otherwise it will need to pull it from the
@@ -42,8 +45,15 @@ public class TimeManager implements Listener {
 	 * @param u
 	 * @return
 	 */
+	private boolean alreadyThrown;
 	public double getTime(UUID u) {
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
+		if (user == null && tempfly.getDataBridge().getConnection() != null && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
+			alreadyThrown = true;
+			try {throw new IllegalStateException("Invocation of getTime() for an offline player should be performed from an asychronous thread! It is not safe to access a database on the main server thread! This error will only be thrown once just to inform you of the issue and provide a stacktrace.");} catch (IllegalStateException e) {
+				e.printStackTrace();
+			}
+		}
 		DataBridge bridge = tempfly.getDataBridge();
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
 		return user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
@@ -56,20 +66,19 @@ public class TimeManager implements Listener {
 	 * @param u the uuid of the player
 	 * @param seconds The new seconds
 	 */
-	public void removeTime(UUID u, double seconds) {
+	public void removeTime(UUID u, AsyncTimeParameters parameters) {
+		double seconds = parameters.getAmount();
 		if (seconds <= 0) {
 			return;
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
-		DataBridge bridge = tempfly.getDataBridge();
-		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
-		double bal = user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
+		double bal = user == null ? parameters.getCurrentTime() : user.getTime();
 		double remaining = (((bal-seconds) >= 0) ? (bal-seconds) : 0);
 		
 		if (user != null) {
 			user.setTime(remaining);
 		} else {
-			bridge.stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), remaining);
+			tempfly.getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), remaining);
 		}
 	}
 	
@@ -80,18 +89,18 @@ public class TimeManager implements Listener {
 	 * @param u the uuid of the player
 	 * @param seconds The seconds to add
 	 */
-	public void addTime(UUID u, double seconds) {
+	public void addTime(UUID u, AsyncTimeParameters parameters) {
+		double seconds = parameters.getAmount();
 		if (seconds <= 0) {
 			return;
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
-		DataBridge bridge = tempfly.getDataBridge();
-		double maxTime = getMaxTime(u);
+		double maxTime = parameters.getMaxTime();
 		if (maxTime == -999) {
 			return;
 		}
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
-		double bal = user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
+		double bal = user == null ? parameters.getCurrentTime() : user.getTime();
 		// This line prevents an overflow to -Double.MAX_VALUE.
 		double remaining = (((bal+seconds) >= bal) ? (bal+seconds) : Double.MAX_VALUE);
 		if (maxTime > -1 && remaining > maxTime) {
@@ -101,7 +110,7 @@ public class TimeManager implements Listener {
 		if (user != null) {
 			user.setTime(remaining);
 		} else {
-			bridge.stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), remaining);
+			tempfly.getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), remaining);
 		}
 	}
 	
@@ -112,13 +121,13 @@ public class TimeManager implements Listener {
 	 * @param u the uuid of the player
 	 * @param seconds The new seconds
 	 */
-	public void setTime(UUID u, double seconds) {
+	public void setTime(UUID u, AsyncTimeParameters parameters) {
+		double seconds = parameters.getAmount();
 		if (seconds < 0) {
 			seconds = 0;
 		}
 		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
-		DataBridge bridge = tempfly.getDataBridge();
-		double maxTime = getMaxTime(u);
+		double maxTime = parameters.getMaxTime();
 		if (maxTime == -999) {
 			return;
 		}
@@ -129,16 +138,18 @@ public class TimeManager implements Listener {
 		if (user != null) {
 			user.setTime(seconds);
 		} else {
-			bridge.stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), seconds);
+			tempfly.getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), seconds);
 		}
 	}
 	
 	
 	public double getMaxTime(UUID u) {
+		Console.debug("-- Get max time --");
 		Player p = Bukkit.getPlayer(u);
 		double highest = 0;
 		boolean hasGroup = false;
 		if (p != null && p.isOnline()) {
+			Console.debug("--| Player is online...");
 			for (Entry<String, Double> group: V.maxTimeGroups.entrySet()) {
 				double current = group.getValue();
 				// If the group is less than the highest found so far continue.
@@ -146,6 +157,7 @@ public class TimeManager implements Listener {
 					continue;
 				}
 				if (p.hasPermission("tempfly.max." + group.getKey())) {
+					Console.debug("--| Player has group: " + group.getKey() + " | " + group.getValue());
 					hasGroup = true;
 					if (current == -1) {
 						return current;
@@ -155,7 +167,9 @@ public class TimeManager implements Listener {
 				}
 			}
 		} else {
+			Console.debug("--| Player is offline...");
 			if (!tempfly.getHookManager().hasPermissions()) {
+				Console.debug("--|> No vault permissions, We cannot check max time!");
 				// We are returning -999 to indicate something is wrong and we cannot check the players max balance.
 				// In this case it is because the server does not have Vault and i can't check the offline players permissions.
 				return -999;
@@ -167,7 +181,8 @@ public class TimeManager implements Listener {
 				if (current < highest && current > -1) {
 					continue;
 				}
-				if (perms.playerHas(Bukkit.getWorlds().get(0).getName(), op, "tempfly.max." + group.getKey())) {
+				if (op.isOp() || perms.playerHas(Bukkit.getWorlds().get(0).getName(), op, "tempfly.max." + group.getKey())) {
+					Console.debug("--| Player has group: " + group.getKey() + " | " + group.getValue());
 					hasGroup = true;
 					if (current == -1) {
 						return current;
@@ -177,20 +192,26 @@ public class TimeManager implements Listener {
 				}
 			}
 		}
+		Console.debug("--|> Final value: " + (hasGroup ? highest : V.maxTimeBase));
 		return hasGroup ? highest : V.maxTimeBase;
 	}
 	
 	
-	@EventHandler (priority = EventPriority.MONITOR)
-	public void on(PlayerJoinEvent e) {
-		Player p = e.getPlayer();
+	@EventHandler
+	public void onUserInitialized(FlightUserInitializedEvent e) {
+		Console.debug("", "--- Time manager will now process user initialization ---");
+		Player p = e.getUser().getPlayer();
 		if (V.timeDecay && p.hasPlayedBefore()) {
+			Console.debug("--| Time decay is enabled...");
 			long offline = (System.currentTimeMillis() - p.getLastPlayed()) / 1000;
 			double lost = (offline / V.decayThresh) * V.decayAmount;
 			double time = getTime(p.getUniqueId());
 			lost = lost > time ? time : lost;
+			if (V.debug) Console.debug("--| Seconds offline: " + offline, "Threshold in seconds: " + V.decayThresh, "--| Seconds lost per threshold: " + V.decayAmount, "--| Seconds lost: " + lost, "");
 			if (lost > 0) {
-				removeTime(p.getUniqueId(), lost);
+				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+					removeTime(p.getUniqueId(), parameters);
+				}, p, p, lost);
 				U.m(p, regexString(V.timeDecayLost, lost));	
 			}
 		}
@@ -200,14 +221,17 @@ public class TimeManager implements Listener {
 			return;
 		}
 		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
+			Console.debug("--| User has not played before, do first join bonus...");
 			double currentTime = getTime(p.getUniqueId());
 			double bonus = maxTime > -1 && ((currentTime + V.firstJoinTime) > maxTime) ? maxTime - currentTime : V.firstJoinTime;
 			if (bonus > 0) {
-				addTime(p.getUniqueId(), bonus);
+				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+					addTime(p.getUniqueId(), parameters);
+				}, p, p, bonus);
 				U.m(p, regexString(V.firstJoin, bonus));
 			}
 		}
-		loginBonus(p, maxTime);
+		Bukkit.getScheduler().runTaskAsynchronously(tempfly, () -> loginBonus(p, maxTime));
 	}
 	
 	/**
@@ -215,24 +239,29 @@ public class TimeManager implements Listener {
 	 * @param p
 	 */
 	public void loginBonus(Player p, double maxTime) {
+		Console.debug("--| Checking daily login bonus...");
 		DataBridge bridge = tempfly.getDataBridge();
 		long lastBonus = (long) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), 0L);
 		long sys = System.currentTimeMillis();
 		
 		if (new DailyDate(lastBonus).equals(new DailyDate(sys))) {
-			Console.debug("same day no daily bonus :(");
+			Console.debug("--|> Same day no daily bonus :(");
 			return;
 		}
 		double currentTime = getTime(p.getUniqueId());
 		double bonus = 0;
 		if (V.legacyBonus > 0) {
+			Console.debug("--| Using legacy bonus...");
 			bonus = maxTime > -1 && ((currentTime + V.legacyBonus) > maxTime) ? maxTime - currentTime : V.legacyBonus;
 			if (bonus > 0) {
-				addTime(p.getUniqueId(), bonus);
+				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+					addTime(p.getUniqueId(), parameters);
+				}, p, p, bonus);
 				U.m(p, regexString(V.dailyLogin, bonus));
 			}
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
 		} else if (V.dailyBonus.size() > 0) {
+			Console.debug("--| Using permission based bonus...");
 			for (Entry<String, Double> entry: V.dailyBonus.entrySet()) {
 				if (p.hasPermission("tempfly.bonus." + entry.getKey())) {
 					bonus += entry.getValue();
@@ -240,7 +269,9 @@ public class TimeManager implements Listener {
 			}
 			bonus = maxTime > -1 && ((currentTime + bonus) > maxTime) ? maxTime - currentTime : bonus;
 			if (bonus > 0) {
-				addTime(p.getUniqueId(), bonus);
+				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+					addTime(p.getUniqueId(), parameters);
+				}, p, p, bonus);
 				U.m(p, regexString(V.dailyLogin, bonus));
 			}
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);

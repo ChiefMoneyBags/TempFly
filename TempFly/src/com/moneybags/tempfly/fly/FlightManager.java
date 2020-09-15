@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -31,10 +32,13 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
+import com.moneybags.tempfly.event.FlightUserInitializedEvent;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.user.UserLoader;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Reloadable;
 
@@ -43,8 +47,7 @@ public class FlightManager implements Listener, Reloadable {
 	private final TempFly tempfly;
 	private final FlightEnvironment environment;
 	private final CombatHandler combat;
-	
-	private final Map<Player, FlightUser> users = new HashMap<>();
+
 	private final List<RequirementProvider> providers = new LinkedList<>();
 	
 	public FlightManager(final TempFly tempfly) {
@@ -89,27 +92,49 @@ public class FlightManager implements Listener, Reloadable {
 	 * 
 	 */
 	
-	public FlightUser getUser(Player p) {
+	private final Map<Player, FlightUser> users = new HashMap<>();
+	private final Map<Player, UserLoader> loaders = new HashMap<>();
+	
+	public synchronized FlightUser getUser(Player p) {
 		return users.containsKey(p) ? users.get(p) : null;
 	}
 	
-	public FlightUser[] getUsers() {
+	public synchronized FlightUser[] getUsers() {
 		return users.values().toArray(new FlightUser[users.size()]);
 	}
 	
-	public FlightUser addUser(Player p) {
-		if (!users.containsKey(p)) {
-			FlightUser user = new FlightUser(p, this);
-			users.put(p, user);
-			for (RequirementProvider provider: providers) {
-				provider.onUserInitialized(user);
-			}
-			return user;
+	public synchronized void addUser(Player p) {
+		if (!users.containsKey(p) && !loaders.containsKey(p)) {
+			UserLoader loader = new UserLoader(p, this);
+			loaders.put(p, loader);
+			Bukkit.getScheduler().runTaskAsynchronously(getTempFly(), loader);
 		}
-		return users.get(p);
 	}
 	
-	public void removeUser(Player p, boolean reload) {
+	public synchronized void addUser(UserLoader loader) {
+		FlightUser user = loader.getResult();
+		Player p = user.getPlayer();
+		if (loaders.containsKey(p) && !loaders.get(p).equals(loader)) {
+			return;
+		}
+		loaders.remove(p);
+		if (!p.isOnline()) {
+			return;
+		}
+		if (!users.containsKey(p)) {
+			users.put(p, user);
+			Bukkit.getScheduler().runTask(tempfly, () -> {
+				// TODO change the order in which this occurs to prevent any indiscrepencies in the requirementproviders if the time gets changed by time manager on user join.
+				for (RequirementProvider provider: providers) {
+					provider.onUserInitialized(user);
+				}
+				Bukkit.getServer().getPluginManager().callEvent(new FlightUserInitializedEvent(user));
+			}
+			);
+		}
+	}
+	
+	public synchronized void removeUser(Player p, boolean reload) {
 		if (users.containsKey(p)) {
 			users.get(p).onQuit(reload);
 			users.remove(p);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -11,12 +12,13 @@ import org.bukkit.entity.Player;
 import com.moneybags.tempfly.fly.Flyer;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.region.RegionProvider;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.user.FlightUser;
 
 @SuppressWarnings("deprecation")
 public class TempFlyAPI {
 	
-	private TempFly tempfly;
+	private final TempFly tempfly;
 	
 	public TempFlyAPI(TempFly tempfly) {
 		this.tempfly = tempfly;
@@ -36,7 +38,9 @@ public class TempFlyAPI {
 	 * @param player Player uuid
 	 */
 	public void setFlightTime(UUID player, double seconds) {
-		tempfly.getTimeManager().setTime(player, seconds);
+		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+			parameters.getTempfly().getTimeManager().setTime(player, parameters);
+		}, null, Bukkit.getOfflinePlayer(player), seconds);
 	}
 	
 	/**
@@ -46,7 +50,9 @@ public class TempFlyAPI {
 	 * @param seconds Seconds to give the player
 	 */
 	public void addFlightTime(UUID player, double seconds) {
-		tempfly.getTimeManager().addTime(player, seconds);
+		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+			parameters.getTempfly().getTimeManager().addTime(player, parameters);
+		}, null, Bukkit.getOfflinePlayer(player), seconds);
 	}
 	
 	/**
@@ -55,7 +61,9 @@ public class TempFlyAPI {
 	 * @param seconds Seconds to remove from the player
 	 */
 	public void removeFlightTime(UUID player, double seconds) {
-		tempfly.getTimeManager().removeTime(player, seconds);
+		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+			parameters.getTempfly().getTimeManager().removeTime(player, parameters);
+		}, null, Bukkit.getOfflinePlayer(player), seconds);
 	}
 	
 	/**

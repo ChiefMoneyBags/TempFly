@@ -7,10 +7,11 @@ import java.util.concurrent.TimeUnit;
 import org.bukkit.command.CommandSender;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.time.AsyncTimeExecutor;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
-public abstract class TimeCommand extends TempFlyCommand {
+public abstract class TimeCommand extends TempFlyCommand implements AsyncTimeExecutor {
 	
 	public TimeCommand(TempFly tempfly, String[] args) {
 		super(tempfly, args);
@@ -135,6 +136,5 @@ public abstract class TimeCommand extends TempFlyCommand {
 		// /tf give 1 {unit}
 		return ((lastArg.isEmpty() || !isNumeric(lastArg)) && args.length > 1 && isNumeric(args[args.length-2]))
 			? getPartialUnits(lastArg, exclusion) : getRange(1, 9);
-		
 	}
 }

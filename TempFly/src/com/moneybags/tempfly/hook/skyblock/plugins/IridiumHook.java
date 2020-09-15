@@ -90,12 +90,10 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		}
 		Player p = (Player) e.getWhoClicked();
 		if (!U.strip(e.getView().getTitle()).equals(U.strip(IridiumSkyblock.getInventories().islandMenuGUITitle))) {
-			Console.debug("not inv");
 			return;
 		}
 		ItemStack clicked = e.getCurrentItem();
 		if (getSettingsButton().isSimilar(clicked)) {
-			Console.debug("open inv");
 			e.setCancelled(true);
 			openIslandSettings(p);
 		}
@@ -265,7 +263,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	
 	@Override
 	public boolean isInIsland(IslandWrapper island, Location loc) {
-		
+		// Need to check isIslandWorld since isInIsland only checks min and max x/y but not world.
 		return ((Island)island.getRawIsland()).isInIsland(loc) && isIslandWorld(loc);
 	}
 

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -38,25 +39,32 @@ public class CmdSet extends TimeCommand {
 		}
 		
 		double amount = quantifyArguments(s, 2);
-		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		new AsyncTimeParameters(tempfly, this, s, p, amount);
+	}
+
+	@Override
+	public void execute(AsyncTimeParameters parameters) {
+		CommandSender s = parameters.getSender();
+		double maxTime = parameters.getMaxTime();
 		if (maxTime == -999) {
 			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
 			return;
 		}
 		
+		TimeManager manager = tempfly.getTimeManager();
+		OfflinePlayer p = parameters.getTarget();
+		double amount = parameters.getAmount();
 		if ((maxTime > -1) && (amount > maxTime)) {
 			amount = maxTime;
 		}
-		amount = Math.floor(amount);
-		TimeManager manager = tempfly.getTimeManager();
-		manager.setTime(p.getUniqueId(), amount);
+		manager.setTime(parameters.getTarget().getUniqueId(), parameters);
 		U.m(s, manager.regexString(V.timeSetOther, amount)
 				.replaceAll("\\{PLAYER}", p.getName()));
 		if (p.isOnline()) {
 			U.m((Player)p, manager.regexString(V.timeSetSelf, amount));	
 		}
 	}
-
+	
 	@Override
 	public List<String> getPotentialArguments(CommandSender s) {
 		if (!U.hasPermission(s, "tempfly.set")) {

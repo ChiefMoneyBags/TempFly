@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
@@ -57,26 +58,35 @@ public class CmdPay extends TimeCommand {
 		amount = Math.floor(amount);
 		TimeManager manager = tempfly.getTimeManager();
 		Player sender = (Player)s;
+		//This doens't need to be async as the player needs to be online to pay, so their data is already loaded.
 		double bal = manager.getTime(sender.getUniqueId());
 		if (bal < amount) {
 			U.m(s, V.invalidTimeSelf);
 			return;
 		}
-		
-		double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
+		new AsyncTimeParameters(tempfly, this, s, p, amount);
+	}
+	
+	@Override
+	public void execute(AsyncTimeParameters parameters) {
+		CommandSender s = parameters.getSender();
+		double maxTime = parameters.getMaxTime();
 		if (maxTime == -999) {
 			U.m(s, s.isOp() ? V.vaultPermsRequired : V.invalidPlayer);
 			return;
 		}
 		
+		TimeManager manager = tempfly.getTimeManager();
+		OfflinePlayer p = parameters.getTarget();
+		double amount = parameters.getAmount();
 		if ((maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
 			return;
 		}
 		
-		manager.removeTime(sender.getUniqueId(), amount);
-		manager.addTime(p.getUniqueId(), amount);
+		manager.removeTime(((Player)s).getUniqueId(), parameters);
+		manager.addTime(p.getUniqueId(), parameters);
 		U.m(s, manager.regexString(V.timeSentOther, amount)
 				.replaceAll("\\{PLAYER}", p.getName()));
 		if (p.isOnline()) {

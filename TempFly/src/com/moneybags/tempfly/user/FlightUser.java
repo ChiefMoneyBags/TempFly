@@ -7,13 +7,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.command.defaults.TimingsCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.spigotmc.CustomTimingsHandler;
 
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
@@ -66,57 +69,66 @@ public class FlightUser {
 	accumulativeCycle;
 	
 	
-	public FlightUser(Player p, FlightManager manager) {
+	public FlightUser(Player p, FlightManager manager,
+			double time, String particle, boolean infinite, boolean bypass, boolean logged) {
 		this.manager = manager;
 		this.timeManager = manager.getTempFly().getTimeManager();
-		this.p = p;
-		this.environment = new UserEnvironment(this);
-		manager.updateLocation(this, p.getLocation(), p.getLocation(), true);
-
-		final DataBridge bridge = manager.getTempFly().getDataBridge();
 		
-		this.time = timeManager.getTime(p.getUniqueId());
+		this.p = p;
+		this.time = time;
+		this.particle = particle;
+		this.infinite = infinite;
+		this.bypass = bypass;
+		
+		this.environment = new UserEnvironment(this);
 		this.listName = p.getPlayerListName();
 		this.tagName = p.getDisplayName();
-		this.particle = Particles.loadTrail(p.getUniqueId());
-		this.infinite = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, p.getUniqueId().toString()), true); 
-		this.bypass = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, p.getUniqueId().toString()), true); 
 		
-		boolean logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
-		initialTask = new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (logged && (hasInfiniteFlight() || timeManager.getTime(p.getUniqueId()) > 0)) {
-					if (!enableFlight()) {
-						sendRequirementMessage();
-						enforce(1);
-					}
-				} else {
+		manager.updateLocation(this, p.getLocation(), p.getLocation(), true);
+		
+		initialTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new InitialTask(logged), 1);
+	}
+	
+	private class InitialTask implements Runnable {
+		
+		boolean logged;
+		public InitialTask(boolean logged) {
+			this.logged = logged;
+		}
+		
+		@Override
+		public void run() {
+			if (logged && (hasInfiniteFlight() || timeManager.getTime(p.getUniqueId()) > 0)) {
+				if (!enableFlight()) {
+					sendRequirementMessage();
 					enforce(1);
-					if (V.permaTimer && time > 0) {
-						if (timer != null) {
-							timer.cancel();
-						}
-						timer = new FlightTimer();
-					}
 				}
-				bridge.stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
+			} else {
+				enforce(1);
+				if (V.permaTimer && time > 0) {
+					if (timer != null) {
+						timer.cancel();
+					}
+					timer = new FlightTimer();
+				}
 			}
-		}.runTaskLater(manager.getTempFly(), 1);
+			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
+		}
+		
 	}
 	
 	public void save() {
 		Console.debug("", "-----< Save FlightUser: (" + p.getUniqueId().toString() + ") >-----");
 		DataBridge bridge = manager.getTempFly().getDataBridge();
-		UUID u = p.getUniqueId();
+		String u = p.getUniqueId().toString();
 		bridge.manualCommit(
-				DataPointer.of(DataValue.PLAYER_TIME, u.toString()),
-				DataPointer.of(DataValue.PLAYER_DAILY_BONUS, u.toString()),
-				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u.toString()),
-				DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()),
-				DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()),
-				DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()),
-				DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()));
+				DataPointer.of(DataValue.PLAYER_TIME, u),
+				DataPointer.of(DataValue.PLAYER_DAILY_BONUS, u),
+				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u),
+				DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u),
+				DataPointer.of(DataValue.PLAYER_TRAIL, u),
+				DataPointer.of(DataValue.PLAYER_INFINITE, u),
+				DataPointer.of(DataValue.PLAYER_BYPASS, u));
 	}
 	
 	
@@ -273,22 +285,28 @@ public class FlightUser {
 		if (enforceTask != null) {
 			enforceTask.cancel();
 		}
-		enforceTask = new BukkitRunnable() {
-			@Override public void run() {
-				// If the users flight is enabled again when the task runs we will return.
-				if (enabled) return;
-				GameMode m = p.getGameMode();
-				if (m == GameMode.CREATIVE && V.creativeTimer) {
-					Console.debug("--- Enforcing disabled flight A ----");
-					p.setFlying(false);
-					p.setAllowFlight(false);
-				} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
-					Console.debug("--- Enforcing disabled flight B ----");
-					p.setFlying(false);
-					p.setAllowFlight(false);
-				}
+		enforceTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new EnforceTask(), delay);
+	}
+	
+	public class EnforceTask implements Runnable {
+
+		@Override
+		public void run() {
+			// If the users flight is enabled again when the task runs we will return.
+			if (enabled) return;
+			GameMode m = p.getGameMode();
+			if (m == GameMode.CREATIVE && V.creativeTimer) {
+				Console.debug("--- Enforcing disabled flight A ----");
+				p.setFlying(false);
+				p.setAllowFlight(false);
+			} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
+				Console.debug("--- Enforcing disabled flight B ----");
+				p.setFlying(false);
+				p.setAllowFlight(false);
 			}
-		}.runTaskLater(manager.getTempFly(), delay);
+			
+		}
+		
 	}
 	
 	/**
@@ -345,15 +363,12 @@ public class FlightUser {
 	 * Methid to make sure a player can fly when they are supposed to.
 	 */
 	public void applyFlightCorrect() {
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (p.isOnline() && hasFlightEnabled()) {
-					p.setAllowFlight(true);
-					p.setFlying(true);
-				}
+		Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
+			if (p.isOnline() && hasFlightEnabled()) {
+				p.setAllowFlight(true);
+				p.setFlying(true);
 			}
-		}.runTaskLater(manager.getTempFly(), 1);
+		}, 1);
 	}
 	
 	/**
@@ -594,7 +609,9 @@ public class FlightUser {
 	
 	public void addDamageProtection() {
 		removeDamageProtection();
-		damageProtection = new BukkitRunnable() {@Override public void run() {removeDamageProtection();}}.runTaskLater(manager.getTempFly(), 120);
+		damageProtection = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
+			removeDamageProtection();
+		}, 120);
 	}
 	
 	public void removeDamageProtection() {
@@ -696,12 +713,9 @@ public class FlightUser {
 	public void applySpeedCorrect() {
 		float maxSpeed = getMaxSpeed();
 		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					if (p.isOnline()) {p.setFlySpeed(maxSpeed * 0.1f);}
-				}
-			}.runTaskLater(manager.getTempFly(), 10);
+			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
+				if (p.isOnline()) {p.setFlySpeed(maxSpeed * 0.1f);}
+			}, 10);
 		}
 	}
 	
@@ -775,6 +789,13 @@ public class FlightUser {
 	 * @author Kevin
 	 *
 	 */
+	// I am trying to figure out why the timer takes on average 0.11 milliseconds to run.
+	private static CustomTimingsHandler
+	flightTimerBase = new CustomTimingsHandler("TempFly - flightTimerBase"),
+	flightTimerConditionals = new CustomTimingsHandler("TempFly - flightTimerConditionals"),
+	flightTimerConsumeTime = new CustomTimingsHandler("TempFly - flightTimerConsumeTime"),
+	flightTimerDoIdentifier = new CustomTimingsHandler("TempFly - flightTimerDoIdentifier");
+
 	// It looks like were having spaghetti for dinner
 	public class FlightTimer extends TempFlyTimer {
 		
@@ -792,6 +813,8 @@ public class FlightUser {
 		
 		@Override
 		public void run() {
+			flightTimerBase.startTiming();
+			
 			idle += DELAY;
 			// Update the players identifiers each tick as it isn't resource heavy it looks good.
 			doIdentifier();
@@ -800,20 +823,27 @@ public class FlightUser {
 			
 			//Console.debug("flight timer run");
 			if (hasInfiniteFlight()) {
+				flightTimerBase.stopTiming();
 				return;
 			}
+			
+			flightTimerBase.stopTiming();
+			
 			if (!doFlightTimer()) {
 				this.cancel();
 				timer = time > 0 ? new GroundTimer() : null;
+				flightTimerConditionals.stopTiming();
 				return;
 			}
+			flightTimerConditionals.stopTiming();
+			
 			accumulativeCycle += DELAY * 50;
-
 			if (accumulativeCycle >= 1000) {
 				accumulativeCycle = 0;
 				executeTimer();
 				return;
 			}
+			
 		}
 		
 		@Override
@@ -822,12 +852,16 @@ public class FlightUser {
 		}
 		
 		private void executeTimer() {
+			flightTimerConsumeTime.startTiming();
 			if (time > 0) {
+				
 				double cost = 1;
 				for (RelativeTimeRegion rtr : environment.getRelativeTimeRegions()) {
 					cost *= rtr.getFactor();
 				}
-				time = time-cost <= 0 ? 0 : time-cost;
+				time = time-cost;
+				if (time < 0) time = 0;
+				
 				manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);	
 				
 				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
@@ -839,6 +873,7 @@ public class FlightUser {
 			} else if (enabled) {
 				timeExpired();
 			}
+			flightTimerConsumeTime.stopTiming();
 		}
 		
 		private void timeExpired() {
@@ -848,6 +883,7 @@ public class FlightUser {
 		}
 		
 		private boolean doFlightTimer() {
+			flightTimerConditionals.startTiming();
 			if (time <= 0) {
 				return false;
 			}
@@ -870,11 +906,13 @@ public class FlightUser {
 			if (!enabled) {
 				return;
 			}
+			flightTimerDoIdentifier.startTiming();
 			if (previouslyFlying && !p.isFlying() || !previouslyFlying && p.isFlying()) {
 				updateList(!p.isFlying());
 				updateName(!p.isFlying());	
 			}
 			previouslyFlying = p.isFlying();
+			flightTimerDoIdentifier.stopTiming();
 		}
 		
 		/**

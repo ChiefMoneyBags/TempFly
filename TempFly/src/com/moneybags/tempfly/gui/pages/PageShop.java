@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
+import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.CompatMaterial;
 import com.moneybags.tempfly.util.U;
@@ -123,9 +124,11 @@ public class PageShop extends DynamicPage {
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));
 			} else {
 				eco.withdrawPlayer(p, option.getCost());
-				manager.addTime(p.getUniqueId(), option.getTime());
 				U.m(p, manager.regexString(V.timePurchased, option.getTime())
-						.replaceAll("\\{COST}", String.valueOf(option.getCost())));	
+						.replaceAll("\\{COST}", String.valueOf(option.getCost())));
+				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+					parameters.getTempfly().getTimeManager().addTime(p.getUniqueId(), parameters);
+				}, p, p, option.getTime());
 			}
 		} else if (slot == 53 && allOptions.size() > (getPageNumber()+1)*21) {
 			new PageShop(session, getPageNumber()+1);
