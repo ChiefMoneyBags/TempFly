@@ -64,9 +64,15 @@ public class CombatHandler implements RequirementProvider, Listener {
 			return;
 		}
 		
+		if (!(act instanceof Player) && !(vic instanceof Player)) {
+			return;
+		}
+		
 		Player p = (type == CombatType.FLYER_ATTACKS_MOB || type == CombatType.FLYER_ATTACKS_PLAYER) ? (Player)act : (Player)vic;
 		FlightUser user = manager.getUser(p);
-		
+		if (user == null) {
+			return;
+		}
 		addTag(p.getUniqueId(), type.isPvp() ? V.combatTagPvp : V.combatTagPve);
 		user.submitFlightResult(new ResultDeny(DenyReason.COMBAT, this, InquiryType.OUT_OF_SCOPE, V.requireFailCombat, !V.damageCombat));
 	}
