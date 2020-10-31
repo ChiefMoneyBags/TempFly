@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.command;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -11,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
 
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 
 public class TempFlyTabCompleter implements TabCompleter, Listener {
@@ -30,16 +33,22 @@ public class TempFlyTabCompleter implements TabCompleter, Listener {
 			return manager.getPartialCommandBases(args[0]);
 		} else {
 			TempFlyCommand command = manager.getCommand(args);
-			return command == null ? null : command.getPotentialArguments(s);
+			return command == null ? new ArrayList<>() : command.getPotentialArguments(s);
 		}
 	}
 	
 	@EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void on(TabCompleteEvent e) {
 		String[] args = e.getBuffer().split(" ");
-		if (!e.getBuffer().split(" ")[0].equalsIgnoreCase("/fly")) {
+		if (!args[0].equalsIgnoreCase("/fly")) {
 			return;
 		}
-		e.setCompletions(onTabComplete(e.getSender(), null, "", U.skipArray(args, 1)));
+		
+		List<String> completions = new ArrayList<>();
+		Arrays.asList(U.skipArray(args, 1)).forEach(string -> completions.add(string));
+		if (e.getBuffer().endsWith(" ")) {
+			completions.add("");
+		}
+		e.setCompletions(onTabComplete(e.getSender(), null, "", completions.toArray(new String[completions.size()])));
 	}
 }

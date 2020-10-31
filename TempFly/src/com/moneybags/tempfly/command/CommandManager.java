@@ -17,6 +17,7 @@ import com.moneybags.tempfly.command.admin.CmdReload;
 import com.moneybags.tempfly.command.admin.CmdRemove;
 import com.moneybags.tempfly.command.admin.CmdSet;
 import com.moneybags.tempfly.command.admin.CmdTrailRemove;
+import com.moneybags.tempfly.command.admin.CmdTrailSet;
 import com.moneybags.tempfly.command.player.CmdBypass;
 import com.moneybags.tempfly.command.player.CmdFly;
 import com.moneybags.tempfly.command.player.CmdHelp;
@@ -297,6 +298,7 @@ public class CommandManager {
 		REMOVE(CmdRemove.class, "remove"),
 		SET(CmdSet.class, "set"),
 		TRAIL_REMOVE(CmdTrailRemove.class, "remove_trail"),
+		TRAIL_SET(CmdTrailSet.class, "set_trail"),
 		BYPASS(CmdBypass.class, "bypass"),
 		FLY(CmdFly.class, "toggle"),
 		HELP(CmdHelp.class, "help"),

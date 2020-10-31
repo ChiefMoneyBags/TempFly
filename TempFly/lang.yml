@@ -106,11 +106,13 @@ aesthetic:
   trail:
     removed_self: "{PREFIX} &aYour trail was removed!"
     removed_other: "{PREFIX} &e{PLAYER} &ahad their trail removed!"
+    set_self: "{PREFIX} &aYour trail was set to &f{PARTICLE}&a!"
+    set_other: "{PREFIX} &f{PLAYER} &ahad their trail set to &f{PARTICLE}&a!"
 
 command:
   # Here you can configure the command arguments. This will help players on foriegn servers that dont understand english.
   # Everything here must be unique so be careful, you could break the commands if you put duplicate entries.
-  # Note: I do not reccomend putting hundreds of translations in here. just the main ones your server would need.
+  # Note: It is  not reccomended to put hundreds of translations in here. just the main ones your server would need.
   unit:
     seconds:
       # The unit that will be shown on tab completion of the command
@@ -179,6 +181,8 @@ command:
     trails:
       - "trails"
       - "particles"
+    trail_set:
+      - "trail"
 
   enable:
     - "on"

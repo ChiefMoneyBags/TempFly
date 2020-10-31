@@ -104,6 +104,8 @@ public class V {
 	
 	trailRemovedSelf,
 	trailRemovedOther,
+	trailSetSelf,
+	trailSetOther,
 	
 	vaultPermsRequired;
 
@@ -263,6 +265,8 @@ public class V {
 		
 		trailRemovedSelf	= st(C.LANG, "aesthetic.trail.removed_self");
 		trailRemovedOther	= st(C.LANG, "aesthetic.trail.removed_other");
+		trailSetSelf		= st(C.LANG, "aesthetic.trail.set_self");
+		trailSetOther		= st(C.LANG, "aesthetic.trail.set_other");
 		
 		List<String> h 		= Files.lang.getStringList("system.help");
 		if (h != null) {
