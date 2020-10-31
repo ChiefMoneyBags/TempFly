@@ -26,6 +26,9 @@ public class GuiManager implements Listener {
 	
 	private Map<Player, GuiSession> sessions = new HashMap<>();
 	
+	public TempFly getTempFly() {
+		return tempfly;
+	}
 	
 	public Collection<GuiSession> getSessions() {
 		return sessions.values();
