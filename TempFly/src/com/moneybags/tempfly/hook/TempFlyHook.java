@@ -41,7 +41,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		}
 		
 		Console.info("Attempting to initialize (" + getHookName() + ") hook...");
-		try { initializeFiles(); } catch (Exception e) {
+		try { if (!initializeFiles()) { return; } } catch (Exception e) {
 			Console.severe("An error occured while trying to initilize the (" + getHookName() + ") hook.");
 			e.printStackTrace();
 			return;
@@ -116,6 +116,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		    setDataFile(hookDataf);
 		    setDataConfiguration(hookData);
 		} else {
+			@SuppressWarnings("unused")
 			DatabaseMetaData meta = connection.getMetaData();
 			/**
 			ResultSet results = meta.getTables(null, null, table.getSqlTable(), null);
@@ -141,7 +142,15 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	@Override
 	public void onTempflyReload() {
-		try { initializeFiles(); } catch (Exception e) {
+		try { 
+			if (!initializeFiles()) { 
+				if (enabled) {
+					setEnabled(false);
+				}
+				return;
+			}
+		} catch (Exception e) {
+		
 			Console.severe("An error occured while trying to initilize the (" + target + ") hook. Disabling hook");
 			enabled = false;
 			e.printStackTrace();

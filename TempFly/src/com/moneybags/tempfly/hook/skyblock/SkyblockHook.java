@@ -729,7 +729,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 	@SuppressWarnings("serial")
 	@Override
 	public Map<String, Class<? extends TempFlyCommand>> getCommands() {
-		return new HashMap<String, Class<? extends TempFlyCommand>>() {{put("island", CmdIslandSettings.class);}};
+		return new HashMap<String, Class<? extends TempFlyCommand>>() {{
+			put("island", CmdIslandSettings.class);
+	}};
 	}
 	
 	private class SkyblockTracker implements Listener {
