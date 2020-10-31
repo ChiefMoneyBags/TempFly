@@ -17,6 +17,7 @@ public class V {
 	reload,
 	infinity,
 	
+	invalidParticle,
 	invalidPermission,
 	invalidPlayer,
 	invalidNumber,
@@ -181,6 +182,7 @@ public class V {
 		prefix 				= st(C.LANG, "system.prefix");
 		reload 				= st(C.LANG, "system.reload");
 		
+		invalidParticle		= st(C.LANG, "general.invalid.particle");
 		invalidPermission	= st(C.LANG, "general.invalid.permission");
 		invalidPlayer		= st(C.LANG, "general.invalid.player");
 		invalidNumber		= st(C.LANG, "general.invalid.number");
