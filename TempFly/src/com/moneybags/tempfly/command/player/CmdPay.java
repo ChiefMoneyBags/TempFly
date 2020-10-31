@@ -64,7 +64,7 @@ public class CmdPay extends TimeCommand {
 			U.m(s, V.invalidTimeSelf);
 			return;
 		}
-		new AsyncTimeParameters(tempfly, this, s, p, amount);
+		new AsyncTimeParameters(tempfly, this, s, p, amount).runAsync();
 	}
 	
 	@Override
@@ -82,6 +82,7 @@ public class CmdPay extends TimeCommand {
 		if ((maxTime > -1) && (manager.getTime(p.getUniqueId()) + amount >= maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
+			U.m(p, V.timeMaxSelf);
 			return;
 		}
 		

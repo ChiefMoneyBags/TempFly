@@ -104,6 +104,10 @@ public class CommandManager {
 				Arrays.asList("off", "disable") : temp);
 	}
 	
+	public TempFlyTabCompleter getTabCompleter() {
+		return tab;
+	}
+	
 	public TempFly getTempFly() {
 		return tempfly;
 	}

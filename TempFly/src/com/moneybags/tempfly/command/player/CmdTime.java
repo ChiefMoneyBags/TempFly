@@ -11,7 +11,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.command.TimeCommand;
 import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
@@ -46,7 +45,7 @@ public class CmdTime extends TimeCommand {
 				U.m(s, V.invalidSender);
 				return;
 			}
-			new AsyncTimeParameters(tempfly, this, s, (Player)s, 0);
+			new AsyncTimeParameters(tempfly, this, s, (Player)s, 0).runAsync();
 		}
 	}
 	

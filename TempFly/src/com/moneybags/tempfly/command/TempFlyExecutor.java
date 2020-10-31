@@ -50,12 +50,14 @@ public class TempFlyExecutor implements CommandExecutor, Listener {
 		String[] ls = e.getMessage().split(" ");
 		Player p = e.getPlayer();
 		if (ls[0].equals("/fly")) {
-			for (String perm : V.overrideFlightPermissions) {
-				if (p.hasPermission(perm)) {
-					FlightUser user = manager.getTempFly().getFlightManager().getUser(p);
-					user.disableFlight(-1, false);
-					return;
-				}
+			if (ls.length == 1) {
+				for (String perm : V.overrideFlightPermissions) {
+					if (p.hasPermission(perm)) {
+						FlightUser user = manager.getTempFly().getFlightManager().getUser(p);
+						user.disableFlight(-1, false);
+						return;
+					}
+				}	
 			}
 			String[] args = Arrays.copyOfRange(ls, 1, ls.length);
 			e.setCancelled(true);

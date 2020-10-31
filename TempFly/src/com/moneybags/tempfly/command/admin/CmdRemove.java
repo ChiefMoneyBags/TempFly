@@ -42,7 +42,7 @@ public class CmdRemove extends TimeCommand {
 			U.m(s, V.invalidNumber.replaceAll("\\{NUMBER}", String.valueOf(amount)));
 			return;
 		}
-		new AsyncTimeParameters(tempfly, this, s, p, amount);
+		new AsyncTimeParameters(tempfly, this, s, p, amount).runAsync();
 	}
 	
 	@Override

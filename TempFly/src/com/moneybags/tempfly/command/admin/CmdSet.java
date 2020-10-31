@@ -39,7 +39,7 @@ public class CmdSet extends TimeCommand {
 		}
 		
 		double amount = quantifyArguments(s, 2);
-		new AsyncTimeParameters(tempfly, this, s, p, amount);
+		new AsyncTimeParameters(tempfly, this, s, p, amount).runAsync();
 	}
 
 	@Override
@@ -56,6 +56,9 @@ public class CmdSet extends TimeCommand {
 		double amount = parameters.getAmount();
 		if ((maxTime > -1) && (amount > maxTime)) {
 			amount = maxTime;
+			U.m(s, manager.regexString(V.timeMaxOther, amount)
+					.replaceAll("\\{PLAYER}", p.getName()));
+			U.m(p, V.timeMaxSelf);
 		}
 		manager.setTime(parameters.getTarget().getUniqueId(), parameters);
 		U.m(s, manager.regexString(V.timeSetOther, amount)

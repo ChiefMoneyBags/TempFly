@@ -43,7 +43,7 @@ public class CmdGive extends TimeCommand {
 		if (amount <= 0) {
 			return;
 		}
-		new AsyncTimeParameters(tempfly, this, s, p, amount);
+		new AsyncTimeParameters(tempfly, this, s, p, amount).runAsync();
 	}
 
 	@Override
@@ -63,6 +63,8 @@ public class CmdGive extends TimeCommand {
 		if (maxTime > -1 && (currentTime + amount > maxTime)) {
 			U.m(s, manager.regexString(V.timeMaxOther, amount)
 					.replaceAll("\\{PLAYER}", p.getName()));
+			U.m(p, V.timeMaxSelf);
+			
 			amount = maxTime - currentTime;
 			if (amount <= 0) {
 				return;

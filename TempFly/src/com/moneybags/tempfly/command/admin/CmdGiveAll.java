@@ -37,9 +37,18 @@ public class CmdGiveAll extends TimeCommand {
 			//If we were going to check offline player permissions it would need to be an AsyncTimeCommand
 			double maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
 			double time = manager.getTime(p.getUniqueId());
-			double amount2 = ((maxTime > -1) && (time + amount > maxTime))
-					? maxTime - time : amount;
-			new AsyncTimeParameters(tempfly, this, s, p, amount2);
+			double amount2 = amount;
+			if (maxTime > -1 && (time + amount > maxTime)) {
+				U.m(s, manager.regexString(V.timeMaxOther, amount)
+						.replaceAll("\\{PLAYER}", p.getName()));
+				U.m(p, V.timeMaxSelf);
+				
+				amount2 = maxTime - time;
+				if (amount <= 0) {
+					continue;
+				}
+			}
+			new AsyncTimeParameters(tempfly, this, s, p, amount2).runAsync();
 			U.m((Player)p, manager.regexString(V.timeGivenSelf, amount2));
 		}
 		U.m(s, manager.regexString(V.timeGivenSelf, amount));

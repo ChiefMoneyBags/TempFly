@@ -5,8 +5,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.util.U;
-import com.moneybags.tempfly.util.V;
 
 public class AsyncTimeParameters implements Runnable {
 
@@ -22,17 +20,32 @@ public class AsyncTimeParameters implements Runnable {
 		this.s = s;
 		this.p = p;
 		this.amount = amount;
-		Bukkit.getScheduler().runTaskAsynchronously(tempfly, this);
+	}
+	
+	public AsyncTimeParameters(TempFly tempfly, AsyncTimeExecutor executor, OfflinePlayer p, double amount) {
+		this.tempfly = tempfly;
+		this.executor = executor;
+		this.p = p;
+		this.amount = amount;
 	}
 	
 	private double maxTime;
 	private double currentTime;
 	
+	
+	public void runAsync() {
+		Bukkit.getScheduler().runTaskAsynchronously(tempfly, this);
+	}
+	
 	@Override
 	public void run() {
+		if (Bukkit.isPrimaryThread()) {
+			this.runAsync();
+			return;
+		}
 		maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
 		currentTime = tempfly.getTimeManager().getTime(p.getUniqueId());
-		Bukkit.getScheduler().runTask(tempfly, () -> executor.execute(this));
+		executor.execute(this);
 	}
 	
 	public TempFly getTempfly() {
