@@ -5,6 +5,13 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+/**
+ * This event will not be fired as of tempfly 2.0.3 due to a complication with async threads and the EventApi
+ * If you wish to cancel the action bar you can disable it in the tempfly config. Alteratively you can set V.actionBar false 
+ * @author Kevin
+ *
+ */
+@Deprecated
 public class ActionBarSendEvent extends Event implements Cancellable {
 	
 	private final HandlerList handlers = new HandlerList();

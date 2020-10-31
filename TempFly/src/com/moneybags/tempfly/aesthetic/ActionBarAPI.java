@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.event.ActionBarSendEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.UUID;
@@ -79,10 +78,6 @@ public class ActionBarAPI {
         if (!player.isOnline()) {
         	return;
         }
-
-        ActionBarSendEvent actionBarMessageEvent = new ActionBarSendEvent(player, message);
-        Bukkit.getPluginManager().callEvent(actionBarMessageEvent);
-        if (actionBarMessageEvent.isCancelled()) {return;}
         
         try {
             Object craftPlayer = craftPlayerClass.cast(player);
