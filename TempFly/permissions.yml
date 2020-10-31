@@ -104,6 +104,14 @@ tempfly.trails.remove.self:
 tempfly.trails.remove.other:
   desc: Allow user to remove another players trail.
 
+tempfly.trails.set.self:
+  desc: Allow user to set their trail with command.
+  command: /tf trail {player} {trail}
+
+tempfly.trails.set.other:
+  desc: Allow user to set another players trail with command.
+  command: /tf trail {player} {trail}
+
 tempfly.trail.[particle]: 
   desc: Gives user access to use individual trails
 
