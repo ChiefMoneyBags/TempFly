@@ -13,7 +13,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
 
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 
 public class TempFlyTabCompleter implements TabCompleter, Listener {
