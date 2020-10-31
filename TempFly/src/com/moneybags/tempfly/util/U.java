@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -50,15 +51,22 @@ public class U {
 		return ChatColor.stripColor(U.cc(m));
 	}
 	
-	public static void m(Player p, String s) {
-		if (s.equals(V.prefix) || s.equals("\\{PREFIX}") || s == null || s.length() == 0) {
+	public static void m(CommandSender p, String s) {
+		if (s == null || s.equals("\\{PREFIX}") || s.length() == 0) {
 			return;
 		}
 		p.sendMessage(s.replaceAll("\\{PREFIX}", V.prefix));
 	}
 	
-	public static void m(CommandSender p, String s) {
-		if (s == null || s.equals("\\{PREFIX}") || s.length() == 0) {
+	public static void m(OfflinePlayer p, String s) {
+		if (!p.isOnline()) {
+			return;
+		}
+		m((Player) p, s);
+	}
+	
+	public static void m(Player p, String s) {
+		if (s.equals(V.prefix) || s.equals("\\{PREFIX}") || s == null || s.length() == 0) {
 			return;
 		}
 		p.sendMessage(s.replaceAll("\\{PREFIX}", V.prefix));
@@ -123,6 +131,17 @@ public class U {
 			index++;
 		}
 		return sb.toString();
+	}
+	
+	public static String[] skipArray(String[] array, int skip) {
+		List<String> strings = new ArrayList<>();
+		for (int i = 0; i < array.length; i++) {
+			if (i < skip) {
+				continue;
+			}
+			strings.add(array[i]);
+		}
+		return strings.toArray(new String[strings.size()]);
 	}
 	
 	
