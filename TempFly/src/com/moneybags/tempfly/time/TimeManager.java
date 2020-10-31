@@ -8,10 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.event.FlightUserInitializedEvent;
 import com.moneybags.tempfly.user.FlightUser;
@@ -47,7 +44,7 @@ public class TimeManager implements Listener {
 	 */
 	private boolean alreadyThrown;
 	public double getTime(UUID u) {
-		FlightUser user = tempfly.getFlightManager().getUser(Bukkit.getPlayer(u));
+		FlightUser user = tempfly.getFlightManager().getUser(u);
 		if (user == null && tempfly.getDataBridge().getConnection() != null && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
 			alreadyThrown = true;
 			try {throw new IllegalStateException("Invocation of getTime() for an offline player should be performed from an asychronous thread! It is not safe to access a database on the main server thread! This error will only be thrown once just to inform you of the issue and provide a stacktrace.");} catch (IllegalStateException e) {
@@ -211,7 +208,7 @@ public class TimeManager implements Listener {
 			if (lost > 0) {
 				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 					removeTime(p.getUniqueId(), parameters);
-				}, p, p, lost);
+				}, p, lost).runAsync();
 				U.m(p, regexString(V.timeDecayLost, lost));	
 			}
 		}
@@ -227,7 +224,7 @@ public class TimeManager implements Listener {
 			if (bonus > 0) {
 				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 					addTime(p.getUniqueId(), parameters);
-				}, p, p, bonus);
+				}, p, bonus).runAsync();
 				U.m(p, regexString(V.firstJoin, bonus));
 			}
 		}
@@ -256,7 +253,7 @@ public class TimeManager implements Listener {
 			if (bonus > 0) {
 				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 					addTime(p.getUniqueId(), parameters);
-				}, p, p, bonus);
+				}, p, bonus).run();
 				U.m(p, regexString(V.dailyLogin, bonus));
 			}
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
@@ -271,7 +268,7 @@ public class TimeManager implements Listener {
 			if (bonus > 0) {
 				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 					addTime(p.getUniqueId(), parameters);
-				}, p, p, bonus);
+				}, p, bonus).run();
 				U.m(p, regexString(V.dailyLogin, bonus));
 			}
 			bridge.stageChange(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), sys);
