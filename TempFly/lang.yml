@@ -29,6 +29,7 @@ general:
     time_other: "{PREFIX} &f{PLAYER} &chas no more flight time!"
     time_self: "{PREFIX} &cYou have no more flight time!"
     number: "{PREFIX} &f{NUMBER} &cis not a valid number!"
+    particle: "{PREFIX} &f{PARTICLE} &cis not a valid particle type!"
     player: "{PREFIX} &cThe player &f{PLAYER} &cwas not found..."
     permission: "{PREFIX} &cYou have insufficient permissions..."
     command: "&fUnknown command. Type /help for more information."
