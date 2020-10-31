@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.command.defaults.TimingsCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -35,7 +33,6 @@ import com.moneybags.tempfly.util.data.DataPointer;
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class FlightUser {
-
 	
 	
 	private final FlightManager manager;
@@ -67,7 +64,6 @@ public class FlightUser {
 	
 	private long
 	accumulativeCycle;
-	
 	
 	public FlightUser(Player p, FlightManager manager,
 			double time, String particle, boolean infinite, boolean bypass, boolean logged) {

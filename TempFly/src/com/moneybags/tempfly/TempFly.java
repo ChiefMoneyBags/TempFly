@@ -1,8 +1,12 @@
 package com.moneybags.tempfly;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -164,6 +168,15 @@ public class TempFly extends JavaPlugin {
 		if (autosave != null) {
 			autosave.cancel();
 			autosave = new AutoSave(bridge).runTaskTimerAsynchronously(this, 0, V.save * 20 * 60);
+		}
+	}
+	
+	@Override
+	public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
+		if (cmd.getName().equalsIgnoreCase("fly")) {
+			return commands.getTabCompleter().onTabComplete(s, cmd, label, args);
+		} else {
+			return Arrays.asList(args);
 		}
 	}
 	

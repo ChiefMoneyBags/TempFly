@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -20,6 +21,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -92,37 +95,73 @@ public class FlightManager implements Listener, Reloadable {
 	 * 
 	 */
 	
-	private final Map<Player, FlightUser> users = new HashMap<>();
-	private final Map<Player, UserLoader> loaders = new HashMap<>();
+	private final Map<UUID, FlightUser> users = new HashMap<>();
+	private final Map<UUID, UserLoader> loaders = new HashMap<>();
+
+	public synchronized FlightUser getUser(UUID u) {
+		if (!users.containsKey(u) && loaders.containsKey(u) && loaders.get(u).isReady()) {
+			UserLoader loader = loaders.get(u);
+			loaders.remove(u);
+			users.put(u, loader.buildUser());
+		}
+		return users.containsKey(u) ? users.get(u) : null;
+	}
 	
 	public synchronized FlightUser getUser(Player p) {
-		return users.containsKey(p) ? users.get(p) : null;
+		if (p == null) {
+			return null;
+		}
+		return getUser(p.getUniqueId());
 	}
 	
 	public synchronized FlightUser[] getUsers() {
 		return users.values().toArray(new FlightUser[users.size()]);
 	}
 	
-	public synchronized void addUser(Player p) {
-		if (!users.containsKey(p) && !loaders.containsKey(p)) {
-			UserLoader loader = new UserLoader(p, this);
-			loaders.put(p, loader);
-			Bukkit.getScheduler().runTaskAsynchronously(getTempFly(), loader);
+	/**
+	 * Should be called asyncrounously
+	 * @param u
+	 */
+	public synchronized void addUser(UUID u, boolean async) {
+		Console.debug("------Add User UUID------");
+		if (!users.containsKey(u) && !loaders.containsKey(u)) {
+			Console.debug("--| Starting to load player data...");
+			UserLoader loader = new UserLoader(u, this, async);
+			loaders.put(u, loader);
+			if (async) {
+				Bukkit.getScheduler().runTaskAsynchronously(tempfly, loader);
+			} else {
+				loader.run();
+			}
 		}
 	}
 	
-	public synchronized void addUser(UserLoader loader) {
-		FlightUser user = loader.getResult();
-		Player p = user.getPlayer();
-		if (loaders.containsKey(p) && !loaders.get(p).equals(loader)) {
+	public synchronized void addUser(Player p) {
+		Console.debug("------Add User Player------");
+		UUID u = p.getUniqueId();
+		if (p != null && users.containsKey(p.getUniqueId())) {
+			Console.debug("--|> User is already registered!");
 			return;
 		}
-		loaders.remove(p);
+		UserLoader loader = loaders.get(u);
+		if (loader == null) {
+			Console.debug("--|> User has not been loaded! Starting loader async, This may cause NullPointers on player join event...");
+			addUser(u, true);
+			return;
+		}
+		loaders.remove(u);
 		if (!p.isOnline()) {
+			Console.debug("--| Player is no longer online...");
+			if (users.containsKey(u)) {
+				users.get(u).onQuit(false);
+				users.remove(u);
+			}
 			return;
 		}
-		if (!users.containsKey(p)) {
-			users.put(p, user);
+		if (!users.containsKey(u)) {
+			Console.debug("--| Building and registering the FlightUser...");
+			FlightUser user = loader.buildUser();
+			users.put(u, user);
 			Bukkit.getScheduler().runTask(tempfly, () -> {
 				// TODO change the order in which this occurs to prevent any indiscrepencies in the requirementproviders if the time gets changed by time manager on user join.
 				for (RequirementProvider provider: providers) {
@@ -135,9 +174,10 @@ public class FlightManager implements Listener, Reloadable {
 	}
 	
 	public synchronized void removeUser(Player p, boolean reload) {
-		if (users.containsKey(p)) {
-			users.get(p).onQuit(reload);
-			users.remove(p);
+		UUID u = p.getUniqueId();
+		if (users.containsKey(u)) {
+			users.get(u).onQuit(reload);
+			users.remove(u);
 		}
 	}
 	
@@ -370,8 +410,14 @@ public class FlightManager implements Listener, Reloadable {
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
 			user.applySpeedCorrect();
+			
 		}
-		user.enforce(1);
+		//TODO flight cannot just be enforced on every world change as it will break essentials fly compatibility. Must be enforced
+		// when something happens to actually disable the flight, impossible to check if it should be disabled here...
+		
+		//else if (!user.hasFlightEnabled() && user.getPlayer().getAllowFlight()){
+			//user.enforce(1);
+		//}
 	}
 	
 	/**
@@ -414,8 +460,19 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.LOWEST, ignoreCancelled = false)
 	public void on(PlayerJoinEvent e) {
+		Console.debug("------------ On PlayerjOIN event ------------");
 		addUser(e.getPlayer());
 	}
+	
+	@EventHandler (priority = EventPriority.MONITOR)
+	public void on(AsyncPlayerPreLoginEvent e) {
+		Console.debug("------------ On AsyncPlayerPreLogin event ------------");
+		if (e.getLoginResult() != Result.ALLOWED) {
+			return;
+		}
+		addUser(e.getUniqueId(), false);
+	}
+	
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(PlayerQuitEvent e) {
