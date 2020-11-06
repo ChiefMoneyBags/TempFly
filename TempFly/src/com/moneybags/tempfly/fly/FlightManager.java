@@ -370,7 +370,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * Evaluate flight requirements on teleport
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
-	public void on(PlayerTeleportEvent e) {
+	public void onTeleport(PlayerTeleportEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
@@ -383,7 +383,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * Evaluate flight requirements on respawn
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
-	public void on(PlayerRespawnEvent e) {
+	public void onRespawn(PlayerRespawnEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
@@ -400,7 +400,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * Evaluate flight requirements on changing worlds.
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerChangedWorldEvent e) {
+	public void onChangedWorld(PlayerChangedWorldEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
@@ -424,7 +424,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * Fix the players flight when they change gamemodes.
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerGameModeChangeEvent e) {
+	public void onChangedGamemode(PlayerGameModeChangeEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
@@ -441,7 +441,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * @param e
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(EntityDamageEvent e) {
+	public void onEntityDamage(EntityDamageEvent e) {
 		Entity vic = e.getEntity();
 		if (!e.getCause().equals(DamageCause.FALL) || !(vic instanceof Player)) {
 			return;
@@ -459,13 +459,13 @@ public class FlightManager implements Listener, Reloadable {
 	 *  other plugins try to access it on higher priorities.
 	 */
 	@EventHandler (priority = EventPriority.LOWEST, ignoreCancelled = false)
-	public void on(PlayerJoinEvent e) {
+	public void onJoin(PlayerJoinEvent e) {
 		Console.debug("------------ On PlayerjOIN event ------------");
 		addUser(e.getPlayer());
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR)
-	public void on(AsyncPlayerPreLoginEvent e) {
+	public void onAsyncPreLogin(AsyncPlayerPreLoginEvent e) {
 		Console.debug("------------ On AsyncPlayerPreLogin event ------------");
 		if (e.getLoginResult() != Result.ALLOWED) {
 			return;
@@ -475,13 +475,13 @@ public class FlightManager implements Listener, Reloadable {
 	
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
-	public void on(PlayerQuitEvent e) {
+	public void onQuit(PlayerQuitEvent e) {
 		Player p = e.getPlayer();
 		removeUser(p, false);
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void on(PlayerMoveEvent e) {
+	public void onMove(PlayerMoveEvent e) {
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
 			FlightUser user = getUser(e.getPlayer());
 			if (user == null) {return;}
@@ -491,21 +491,21 @@ public class FlightManager implements Listener, Reloadable {
 	}
 
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
-	public void on(PlayerInteractEvent e) {
+	public void onInteract(PlayerInteractEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
-	public void on(AsyncPlayerChatEvent e) {
+	public void onAsyncChat(AsyncPlayerChatEvent e) {
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
-	public void on(InventoryClickEvent e) {
+	public void onInventoryClick(InventoryClickEvent e) {
 		if (e.getWhoClicked() instanceof Player) {
 			FlightUser user = getUser((Player)e.getWhoClicked());
 			if (user == null) {return;}
