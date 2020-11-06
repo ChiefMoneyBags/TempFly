@@ -14,6 +14,7 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TimeCommand;
 import com.moneybags.tempfly.time.AsyncTimeParameters;
 import com.moneybags.tempfly.time.TimeManager;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 
@@ -35,7 +36,7 @@ public class CmdTime extends TimeCommand {
 				U.m(s, V.invalidPlayer);
 				return;
 			}
-			new AsyncTimeParameters(tempfly, this, s, p, 0);
+			new AsyncTimeParameters(tempfly, this, s, p, 0).runAsync();
 		} else {
 			if (!U.hasPermission(s, "tempfly.time.self")) {
 				U.m(s, V.invalidPermission);
