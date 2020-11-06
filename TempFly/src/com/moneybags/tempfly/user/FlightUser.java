@@ -785,12 +785,12 @@ public class FlightUser {
 	 * @author Kevin
 	 *
 	 */
-	// I am trying to figure out why the timer takes on average 0.11 milliseconds to run.
-	private static CustomTimingsHandler
-	flightTimerBase = new CustomTimingsHandler("TempFly - flightTimerBase"),
-	flightTimerConditionals = new CustomTimingsHandler("TempFly - flightTimerConditionals"),
-	flightTimerConsumeTime = new CustomTimingsHandler("TempFly - flightTimerConsumeTime"),
-	flightTimerDoIdentifier = new CustomTimingsHandler("TempFly - flightTimerDoIdentifier");
+	
+	//private static CustomTimingsHandler
+	//flightTimerBase = new CustomTimingsHandler("TempFly - flightTimerBase"),
+	//flightTimerConditionals = new CustomTimingsHandler("TempFly - flightTimerConditionals"),
+	//flightTimerConsumeTime = new CustomTimingsHandler("TempFly - flightTimerConsumeTime"),
+	//flightTimerDoIdentifier = new CustomTimingsHandler("TempFly - flightTimerDoIdentifier");
 
 	// It looks like were having spaghetti for dinner
 	public class FlightTimer extends TempFlyTimer {
@@ -809,7 +809,7 @@ public class FlightUser {
 		
 		@Override
 		public void run() {
-			flightTimerBase.startTiming();
+			//flightTimerBase.startTiming();
 			
 			idle += DELAY;
 			// Update the players identifiers each tick as it isn't resource heavy it looks good.
@@ -819,19 +819,19 @@ public class FlightUser {
 			
 			//Console.debug("flight timer run");
 			if (hasInfiniteFlight()) {
-				flightTimerBase.stopTiming();
+				//flightTimerBase.stopTiming();
 				return;
 			}
 			
-			flightTimerBase.stopTiming();
+			//flightTimerBase.stopTiming();
 			
 			if (!doFlightTimer()) {
 				this.cancel();
 				timer = time > 0 ? new GroundTimer() : null;
-				flightTimerConditionals.stopTiming();
+				//flightTimerConditionals.stopTiming();
 				return;
 			}
-			flightTimerConditionals.stopTiming();
+			//flightTimerConditionals.stopTiming();
 			
 			accumulativeCycle += DELAY * 50;
 			if (accumulativeCycle >= 1000) {
@@ -848,7 +848,7 @@ public class FlightUser {
 		}
 		
 		private void executeTimer() {
-			flightTimerConsumeTime.startTiming();
+			//flightTimerConsumeTime.startTiming();
 			if (time > 0) {
 				
 				double cost = 1;
@@ -869,7 +869,7 @@ public class FlightUser {
 			} else if (enabled) {
 				timeExpired();
 			}
-			flightTimerConsumeTime.stopTiming();
+			//flightTimerConsumeTime.stopTiming();
 		}
 		
 		private void timeExpired() {
@@ -879,7 +879,7 @@ public class FlightUser {
 		}
 		
 		private boolean doFlightTimer() {
-			flightTimerConditionals.startTiming();
+			//flightTimerConditionals.startTiming();
 			if (time <= 0) {
 				return false;
 			}
@@ -902,13 +902,13 @@ public class FlightUser {
 			if (!enabled) {
 				return;
 			}
-			flightTimerDoIdentifier.startTiming();
+			//flightTimerDoIdentifier.startTiming();
 			if (previouslyFlying && !p.isFlying() || !previouslyFlying && p.isFlying()) {
 				updateList(!p.isFlying());
 				updateName(!p.isFlying());	
 			}
 			previouslyFlying = p.isFlying();
-			flightTimerDoIdentifier.stopTiming();
+			//flightTimerDoIdentifier.stopTiming();
 		}
 		
 		/**
