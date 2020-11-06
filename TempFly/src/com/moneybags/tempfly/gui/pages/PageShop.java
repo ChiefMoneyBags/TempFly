@@ -128,7 +128,7 @@ public class PageShop extends DynamicPage {
 						.replaceAll("\\{COST}", String.valueOf(option.getCost())));
 				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 					parameters.getTempfly().getTimeManager().addTime(p.getUniqueId(), parameters);
-				}, p, p, option.getTime());
+				}, p, p, option.getTime()).run();
 			}
 		} else if (slot == 53 && allOptions.size() > (getPageNumber()+1)*21) {
 			new PageShop(session, getPageNumber()+1);
