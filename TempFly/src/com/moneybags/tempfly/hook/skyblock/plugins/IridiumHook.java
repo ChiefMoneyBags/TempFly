@@ -109,7 +109,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		Island rawIsland = (Island) island.getRawIsland();
 		for (String s: rawIsland.getMembers()) {
 			Player p = Bukkit.getPlayer(UUID.fromString(s));
-			if (p != null & p.isOnline()) {
+			if (p != null && p.isOnline()) {
 				online.add(p);
 			}
 		}
