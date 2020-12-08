@@ -40,7 +40,7 @@ public class TempFlyAPI {
 	public void setFlightTime(UUID player, double seconds) {
 		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 			parameters.getTempfly().getTimeManager().setTime(player, parameters);
-		}, null, Bukkit.getOfflinePlayer(player), seconds);
+		}, null, Bukkit.getOfflinePlayer(player), seconds).run();
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public class TempFlyAPI {
 	public void addFlightTime(UUID player, double seconds) {
 		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 			parameters.getTempfly().getTimeManager().addTime(player, parameters);
-		}, null, Bukkit.getOfflinePlayer(player), seconds);
+		}, null, Bukkit.getOfflinePlayer(player), seconds).run();
 	}
 	
 	/**
@@ -63,7 +63,7 @@ public class TempFlyAPI {
 	public void removeFlightTime(UUID player, double seconds) {
 		new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
 			parameters.getTempfly().getTimeManager().removeTime(player, parameters);
-		}, null, Bukkit.getOfflinePlayer(player), seconds);
+		}, null, Bukkit.getOfflinePlayer(player), seconds).run();
 	}
 	
 	/**
