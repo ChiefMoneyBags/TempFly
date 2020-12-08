@@ -5,9 +5,12 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.bukkit.entity.Player;
+
 import com.moneybags.tempfly.environment.FlightEnvironment;
 import com.moneybags.tempfly.environment.RelativeTimeRegion;
 import com.moneybags.tempfly.hook.region.CompatRegion;
+import com.moneybags.tempfly.util.Console;
 
 public class UserEnvironment {
 
@@ -19,7 +22,8 @@ public class UserEnvironment {
 	private final List<RelativeTimeRegion> rtRegions = new ArrayList<>();
 	private RelativeTimeRegion rtWorld;
 	
-	public UserEnvironment(FlightUser user) {
+	public UserEnvironment(FlightUser user, Player p) {
+		Console.debug("--| Loading user environment...");
 		this.user = user;
 		this.environment = user.getFlightManager().getFlightEnvironment();
 		
@@ -28,6 +32,9 @@ public class UserEnvironment {
 				? user.getFlightManager().getTempFly().getHookManager().getRegionProvider().getApplicableRegions(user.getPlayer().getLocation())
 				: new CompatRegion[0]));
 		
+		StringBuilder builder = new StringBuilder();
+		encompassing.stream().forEach(rg -> builder.append(rg.getId() + ", "));
+		Console.debug("--| Current regions: " + builder);
 		asessRtRegions();
 		asessRtWorld();
 	}
