@@ -3,6 +3,8 @@ package com.moneybags.tempfly.user;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
 import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.time.TimeManager;
@@ -54,6 +56,10 @@ public class UserLoader implements Runnable {
 	
 	public FlightUser buildUser() {
 		return new FlightUser(Bukkit.getPlayer(u), manager, time, particle, infinite, bypass, logged);
+	}
+	
+	public FlightUser buildUser(Player p) {
+		return new FlightUser(p, manager, time, particle, infinite, bypass, logged);
 	}
 	
 
