@@ -76,11 +76,11 @@ public class FlightUser {
 		this.infinite = infinite;
 		this.bypass = bypass;
 		
-		this.environment = new UserEnvironment(this);
+		this.environment = new UserEnvironment(this, p);
 		this.listName = p.getPlayerListName();
 		this.tagName = p.getDisplayName();
 		
-		manager.updateLocation(this, p.getLocation(), p.getLocation(), true);
+		manager.updateLocation(this, p.getLocation(), p.getLocation(), true, true);
 		
 		initialTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new InitialTask(logged), 1);
 	}
