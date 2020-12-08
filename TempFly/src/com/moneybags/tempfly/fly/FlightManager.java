@@ -28,9 +28,11 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
@@ -98,6 +100,10 @@ public class FlightManager implements Listener, Reloadable {
 	private final Map<UUID, FlightUser> users = new HashMap<>();
 	private final Map<UUID, UserLoader> loaders = new HashMap<>();
 
+	public synchronized boolean hasUser(Player p) {
+		return ((p != null) && users.containsKey(p.getUniqueId())) || ((p != null) && loaders.containsKey(p.getUniqueId()) && loaders.get(p.getUniqueId()).isReady());
+	}
+	
 	public synchronized FlightUser getUser(UUID u) {
 		if (!users.containsKey(u) && loaders.containsKey(u) && loaders.get(u).isReady()) {
 			UserLoader loader = loaders.get(u);
@@ -111,7 +117,14 @@ public class FlightManager implements Listener, Reloadable {
 		if (p == null) {
 			return null;
 		}
-		return getUser(p.getUniqueId());
+		
+		UUID u = p.getUniqueId();
+		if (!users.containsKey(u) && loaders.containsKey(u) && loaders.get(u).isReady()) {
+			UserLoader loader = loaders.get(u);
+			loaders.remove(u);
+			users.put(u, loader.buildUser(p));
+		}
+		return users.containsKey(u) ? users.get(u) : null;
 	}
 	
 	public synchronized FlightUser[] getUsers() {
@@ -174,10 +187,16 @@ public class FlightManager implements Listener, Reloadable {
 	}
 	
 	public synchronized void removeUser(Player p, boolean reload) {
-		UUID u = p.getUniqueId();
+		removeUser(p.getUniqueId(), reload);
+	}
+	
+	public synchronized void removeUser(UUID u, boolean reload) {
 		if (users.containsKey(u)) {
 			users.get(u).onQuit(reload);
 			users.remove(u);
+		}
+		if (loaders.containsKey(u)) {
+			loaders.remove(u);
 		}
 	}
 	
@@ -337,12 +356,12 @@ public class FlightManager implements Listener, Reloadable {
 	 * @param p The player to process
 	 * @param to The new location
 	 */
-	public void updateLocation(FlightUser user, Location from, Location to, boolean forceWorld) {
+	public void updateLocation(FlightUser user, Location from, Location to, boolean forceWorld, boolean forceRegion) {
 		final List<FlightResult> results = new ArrayList<>();
 		
 		if (getTempFly().getHookManager().hasRegionProvider()) {
 			List<CompatRegion> regions = Arrays.asList(getTempFly().getHookManager().getRegionProvider().getApplicableRegions(to));
-			if (!user.getEnvironment().checkIdenticalRegions(regions)) {
+			if (forceRegion || !user.getEnvironment().checkIdenticalRegions(regions)) {
 				// Process regions
 				results.addAll(inquireFlight(user, regions.toArray(new CompatRegion[regions.size()])));
 				// Update the users current regions.
@@ -371,11 +390,15 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void onTeleport(PlayerTeleportEvent e) {
+		Console.debug("on teleport-0------------------");
+		if (!hasUser(e.getPlayer())) {
+			return;
+		}
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
-			updateLocation(user, e.getFrom(), e.getTo(), false);
+			updateLocation(user, e.getFrom(), e.getTo(), false, false);
 		}
 	}
 	
@@ -384,10 +407,13 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void onRespawn(PlayerRespawnEvent e) {
+		if (!hasUser(e.getPlayer())) {
+			return;
+		}
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
-		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation(), false);
+		updateLocation(user, e.getPlayer().getLocation(), e.getRespawnLocation(), false, false);
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
@@ -401,11 +427,14 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onChangedWorld(PlayerChangedWorldEvent e) {
+		if (!hasUser(e.getPlayer())) {
+			return;
+		}
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
 		// The from coordinate really doesn't matter here, just the world.
-		updateLocation(user, new Location(e.getFrom(), 0, 0, 0), user.getPlayer().getLocation(), true);
+		updateLocation(user, new Location(e.getFrom(), 0, 0, 0), user.getPlayer().getLocation(), true, false);
 		// If the user has flight enabled, we need to correct their speed so it doesnt reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
@@ -425,6 +454,9 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onChangedGamemode(PlayerGameModeChangeEvent e) {
+		if (!hasUser(e.getPlayer())) {
+			return;
+		}
 		FlightUser user = getUser(e.getPlayer());
 		if (user == null) {return;}
 		user.resetIdleTimer();
@@ -462,15 +494,34 @@ public class FlightManager implements Listener, Reloadable {
 	public void onJoin(PlayerJoinEvent e) {
 		Console.debug("------------ On PlayerjOIN event ------------");
 		addUser(e.getPlayer());
+		
+	}
+	
+	/**
+	@EventHandler (priority = EventPriority.LOWEST, ignoreCancelled = false)
+	public void onSpawn(PlayerSpawnLocationEvent e) {
+		e.setSpawnLocation(new Location(e.getPlayer().getWorld(), 100, 200, 100));
+		Console.debug("------------ On PlayerSpawn event ------------");
+		Console.debug("--------------->>>>>>>>> " + String.valueOf(Bukkit.getPlayer(e.getPlayer().getUniqueId())));
+		//e.getPlayer().teleport(new Location(e.getPlayer().getWorld(), 100, 200, 100));
+		e.getPlayer().setGameMode(GameMode.SPECTATOR);
+		
+	}
+	*/
+	
+	@EventHandler (priority = EventPriority.LOWEST)
+	public void onAsyncPreLogin(AsyncPlayerPreLoginEvent e) {
+		Console.debug("------------ On AsyncPlayerPreLogin event ------------");
+		addUser(e.getUniqueId(), false);
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR)
-	public void onAsyncPreLogin(AsyncPlayerPreLoginEvent e) {
-		Console.debug("------------ On AsyncPlayerPreLogin event ------------");
+	public void onAsyncPreLoginMonitor(AsyncPlayerPreLoginEvent e) {
+		UUID u = e.getUniqueId();
 		if (e.getLoginResult() != Result.ALLOWED) {
-			return;
+			users.get(u);
+			removeUser(u, false);
 		}
-		addUser(e.getUniqueId(), false);
 	}
 	
 	
@@ -486,7 +537,7 @@ public class FlightManager implements Listener, Reloadable {
 			FlightUser user = getUser(e.getPlayer());
 			if (user == null) {return;}
 			user.resetIdleTimer();
-			updateLocation(user, e.getFrom(), e.getTo(), false);
+			updateLocation(user, e.getFrom(), e.getTo(), false, false);
 		}
 	}
 
