@@ -770,7 +770,6 @@ public class FlightUser {
 		@Override
 		public void run() {
 			idle += DELAY;
-			//Console.debug("ground timer run");
 			if (p.isFlying() || V.permaTimer || (V.groundTimer && p.isOnGround())) {
 				if (!V.idleTimer && isIdle()) {
 					return;
@@ -791,12 +790,6 @@ public class FlightUser {
 	 * @author Kevin
 	 *
 	 */
-	
-	//private static CustomTimingsHandler
-	//flightTimerBase = new CustomTimingsHandler("TempFly - flightTimerBase"),
-	//flightTimerConditionals = new CustomTimingsHandler("TempFly - flightTimerConditionals"),
-	//flightTimerConsumeTime = new CustomTimingsHandler("TempFly - flightTimerConsumeTime"),
-	//flightTimerDoIdentifier = new CustomTimingsHandler("TempFly - flightTimerDoIdentifier");
 
 	// It looks like were having spaghetti for dinner
 	public class FlightTimer extends TempFlyTimer {
@@ -815,29 +808,21 @@ public class FlightUser {
 		
 		@Override
 		public void run() {
-			//flightTimerBase.startTiming();
-			
 			idle += DELAY;
 			// Update the players identifiers each tick as it isn't resource heavy it looks good.
 			doIdentifier();
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
 			if (enabled) {p.setAllowFlight(true);}
 			
-			//Console.debug("flight timer run");
 			if (hasInfiniteFlight()) {
-				//flightTimerBase.stopTiming();
 				return;
 			}
-			
-			//flightTimerBase.stopTiming();
 			
 			if (!doFlightTimer()) {
 				this.cancel();
 				timer = time > 0 ? new GroundTimer() : null;
-				//flightTimerConditionals.stopTiming();
 				return;
 			}
-			//flightTimerConditionals.stopTiming();
 			
 			accumulativeCycle += DELAY * 50;
 			if (accumulativeCycle >= 1000) {
@@ -854,7 +839,6 @@ public class FlightUser {
 		}
 		
 		private void executeTimer() {
-			//flightTimerConsumeTime.startTiming();
 			if (time > 0) {
 				
 				double cost = 1;
@@ -875,7 +859,6 @@ public class FlightUser {
 			} else if (enabled) {
 				timeExpired();
 			}
-			//flightTimerConsumeTime.stopTiming();
 		}
 		
 		private void timeExpired() {
@@ -885,7 +868,6 @@ public class FlightUser {
 		}
 		
 		private boolean doFlightTimer() {
-			//flightTimerConditionals.startTiming();
 			if (time <= 0) {
 				return false;
 			}
@@ -893,6 +875,9 @@ public class FlightUser {
 				return doIdleCheck();
 			}
 			if (p.getGameMode() == GameMode.CREATIVE && !V.creativeTimer) {
+				return false;
+			}
+			if (p.getGameMode() == GameMode.SPECTATOR && !V.spectatorTimer) {
 				return false;
 			}
 			if (!p.isFlying()) {
@@ -908,13 +893,11 @@ public class FlightUser {
 			if (!enabled) {
 				return;
 			}
-			//flightTimerDoIdentifier.startTiming();
 			if (previouslyFlying && !p.isFlying() || !previouslyFlying && p.isFlying()) {
 				updateList(!p.isFlying());
 				updateName(!p.isFlying());	
 			}
 			previouslyFlying = p.isFlying();
-			//flightTimerDoIdentifier.stopTiming();
 		}
 		
 		/**

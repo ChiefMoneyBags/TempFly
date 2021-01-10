@@ -114,6 +114,7 @@ public class V {
 	permaTimer,
 	groundTimer,
 	creativeTimer,
+	spectatorTimer,
 	idleTimer,
 	idleDrop,
 	payable,
@@ -310,6 +311,7 @@ public class V {
 		permaTimer			= config.getBoolean("general.timer.constant");
 		groundTimer			= config.getBoolean("general.timer.ground");
 		creativeTimer		= config.getBoolean("general.timer.creative");
+		spectatorTimer		= config.getBoolean("general.timer.spectator");
 		idleTimer 			= config.getBoolean("general.timer.idle");
 		idleDrop			= config.getBoolean("general.idle.drop_player");
 		idleThreshold 		= config.getInt("general.idle.threshold");
