@@ -458,6 +458,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 				Console.debug(p.getName());
 				Console.debug(p == onIsland);
 				FlightUser user = getTempFly().getFlightManager().getUser(onIsland);
+				if (user == null) {
+					//TODO why is this returning null users here.
+					return;
+				}
 				user.submitFlightResult(checkRoleRequirements(onIsland.getUniqueId(), island));
 				user.evaluateFlightRequirement(this, onIsland.getLocation());
 			}
