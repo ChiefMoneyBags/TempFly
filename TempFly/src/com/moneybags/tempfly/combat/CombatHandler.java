@@ -9,6 +9,7 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -39,11 +40,11 @@ public class CombatHandler implements RequirementProvider, Listener {
 	}
 	
 	public void processCombat(Entity vic, Entity act) {
-		if (act instanceof Arrow) {
-			if (!(((Arrow)act).getShooter() instanceof Entity)) {
+		if (act instanceof Projectile) {
+			if (!(((Projectile)act).getShooter() instanceof Entity)) {
 				return;
 			}
-			act = (Entity) ((Arrow)act).getShooter();
+			act = (Entity) ((Projectile)act).getShooter();
 		}
 		if (vic instanceof Player) {
 			if (act instanceof Player) {
