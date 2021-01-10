@@ -216,7 +216,7 @@ public abstract class BentoHook extends SkyblockHook implements Listener {
 		List<Player> online = new ArrayList<>();
 		for (UUID u: rawIsland.getMembers().keySet()) {
 			Player p = Bukkit.getPlayer(u);
-			if (p != null & p.isOnline()) {
+			if (p != null && p.isOnline()) {
 				online.add(p);
 			}
 		}
