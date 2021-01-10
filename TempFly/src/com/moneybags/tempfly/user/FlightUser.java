@@ -66,7 +66,7 @@ public class FlightUser {
 	accumulativeCycle;
 	
 	public FlightUser(Player p, FlightManager manager,
-			double time, String particle, boolean infinite, boolean bypass, boolean logged) {
+			double time, String particle, boolean infinite, boolean bypass, boolean logged, boolean compatLogged) {
 		this.manager = manager;
 		this.timeManager = manager.getTempFly().getTimeManager();
 		
@@ -82,13 +82,16 @@ public class FlightUser {
 		
 		manager.updateLocation(this, p.getLocation(), p.getLocation(), true, true);
 		
-		initialTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new InitialTask(logged), 1);
+		initialTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new InitialTask(logged, compatLogged), 1);
 	}
 	
 	private class InitialTask implements Runnable {
 		
-		boolean logged;
-		public InitialTask(boolean logged) {
+		boolean
+		logged,
+		compatLogged;
+		
+		public InitialTask(boolean logged, boolean compatLogged) {
 			this.logged = logged;
 		}
 		
@@ -99,7 +102,7 @@ public class FlightUser {
 					sendRequirementMessage();
 					enforce(1);
 				}
-			} else {
+			} else if (!compatLogged) {
 				enforce(1);
 				if (V.permaTimer && time > 0) {
 					if (timer != null) {
@@ -261,6 +264,8 @@ public class FlightUser {
 		if (enabled || hasAutoFlyQueued()) {
 			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), true);
 			if (!reload) {disableFlight(-1, false);}
+		} else if (p.isFlying()) {
+			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, p.getUniqueId().toString()), true);
 		}
 		updateList(true);
 		updateName(true);

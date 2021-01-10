@@ -32,6 +32,7 @@ public class UserLoader implements Runnable {
 	infinite,
 	bypass,
 	logged,
+	compatLogged,
 	ready;
 	
 	@Override
@@ -44,6 +45,7 @@ public class UserLoader implements Runnable {
 		infinite = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()), true); 
 		bypass = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()), true);
 		logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()), false);
+		compatLogged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u.toString()), false);
 		ready = true;
 		if (async) {
 			manager.addUser(Bukkit.getPlayer(u));
@@ -55,11 +57,11 @@ public class UserLoader implements Runnable {
 	}
 	
 	public FlightUser buildUser() {
-		return new FlightUser(Bukkit.getPlayer(u), manager, time, particle, infinite, bypass, logged);
+		return new FlightUser(Bukkit.getPlayer(u), manager, time, particle, infinite, bypass, logged, compatLogged);
 	}
 	
 	public FlightUser buildUser(Player p) {
-		return new FlightUser(p, manager, time, particle, infinite, bypass, logged);
+		return new FlightUser(p, manager, time, particle, infinite, bypass, logged, compatLogged);
 	}
 	
 

@@ -488,6 +488,12 @@ public class DataBridge extends Thread implements DataFileHolder {
 				"logged_in_flight",
 				new String[] {"players", "logged_in_flight"},
 				false),
+		PLAYER_COMPAT_FLIGHT_LOG(
+				DataTable.TEMPFLY_DATA,
+				Boolean.TYPE,
+				"compat_logged_in_flight",
+				new String[] {"players", "compat_logged_in_flight"},
+				false),
 		PLAYER_DAMAGE_PROTECTION(
 				DataTable.TEMPFLY_DATA,
 				Boolean.TYPE,
