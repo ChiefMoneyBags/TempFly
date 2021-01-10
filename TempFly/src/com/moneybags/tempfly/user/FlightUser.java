@@ -654,6 +654,10 @@ public class FlightUser {
 	public void playTrail() {
 		if (particle == null || particle.length() == 0) {return;}
 		
+		if (p.getGameMode() == GameMode.SPECTATOR) {
+			return;
+		}
+		
 		if (V.hideVanish) {
 			for (MetadataValue meta : p.getMetadata("vanished")) {
 				if (meta.asBoolean()) {
@@ -661,6 +665,8 @@ public class FlightUser {
 				}
 			}
 		}
+		
+		
 		Particles.play(p.getLocation(), particle);
 	}
 	
