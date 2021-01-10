@@ -28,12 +28,14 @@ public class CmdTrailSet extends TempFlyCommand {
 	// /tf trail {trail}
 	@Override
 	public void executeAs(CommandSender s) {
-		String particle = args.length == 3 ? args[2].toUpperCase() : args.length > 1 ? args[1].toUpperCase() : null;
+		String particle = args.length > 2 ? args[2].toUpperCase() :
+			args.length > 1 ? args[1].toUpperCase() : null;
 		if (particle == null) {
-			U.m(s, ""); //TODO
+			U.m(s, "/tf trail {player} {trail}");
+			return;
 		}
 		
-		CommandSender target = args.length == 3 ? Bukkit.getPlayerExact(args[1]) : s;
+		CommandSender target = args.length > 2 ? Bukkit.getPlayerExact(args[1]) : s;
 		if (s.equals(target) && !(s instanceof Player)) {
 			U.m(s, V.invalidSender);
 			return;
@@ -52,17 +54,17 @@ public class CmdTrailSet extends TempFlyCommand {
 		}
 		
 		if (Particles.oldParticles()) {
-			try {Effect.valueOf(args[2]);} catch (Exception e) {
+			try {Effect.valueOf(particle);} catch (Exception e) {
 				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", args[2]));
 				return;
 			}
 		} else {
-			try {Particle.valueOf(args[2]);} catch (Exception e) {
+			try {Particle.valueOf(particle);} catch (Exception e) {
 				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", args[2]));
 				return;
 			}
 		}
-		Particles.setTrail(((Player)target).getUniqueId(), args[2].toUpperCase());
+		Particles.setTrail(((Player)target).getUniqueId(), particle.toUpperCase());
 		U.m(target, V.trailSetSelf
 				.replaceAll("\\{PARTICLE}", particle));
 		if (s != target) {
