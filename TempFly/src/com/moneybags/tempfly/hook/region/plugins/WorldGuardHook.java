@@ -1,6 +1,7 @@
 package com.moneybags.tempfly.hook.region.plugins;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,13 @@ public class WorldGuardHook implements RegionProvider {
                 return;
             }
         } else {
-            regionContainer = ((WorldGuardPlugin) worldGuardPlugin).getRegionContainer();
+            try {
+				regionContainer = ((WorldGuardPlugin) worldGuardPlugin).getClass().getMethod("getRegionContainer", WorldGuardPlugin.class).invoke(((WorldGuardPlugin) worldGuardPlugin));
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+					| NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+				return;
+			}
             try {
                 regionContainerGetMethod = regionContainer.getClass().getMethod("get", World.class);
             } catch (Exception ex) {

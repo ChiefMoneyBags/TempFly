@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
 import org.bukkit.Particle;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,8 +16,6 @@ import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-
-import net.minecraft.server.v1_15_R1.Explosion.Effect;
 
 public class CmdTrailSet extends TempFlyCommand {
 
