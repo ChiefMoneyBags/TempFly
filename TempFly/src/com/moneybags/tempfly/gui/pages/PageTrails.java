@@ -130,7 +130,7 @@ public class PageTrails extends DynamicPage {
 		if (getPageNumber() > 0) {
 			inv.setItem(45, prev);
 		}
-		if (p.hasPermission("tempfly.trails.remove")) {
+		if (p.hasPermission("tempfly.trails.remove.self")) {
 			inv.setItem(49, remove);
 		}
 		
