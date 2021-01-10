@@ -93,16 +93,19 @@ public class FlightUser {
 		
 		public InitialTask(boolean logged, boolean compatLogged) {
 			this.logged = logged;
+			this.compatLogged = compatLogged;
 		}
 		
 		@Override
 		public void run() {
 			if (logged && (hasInfiniteFlight() || timeManager.getTime(p.getUniqueId()) > 0)) {
+				Console.debug("--| Player is flight logged");
 				if (!enableFlight()) {
 					sendRequirementMessage();
 					enforce(1);
 				}
 			} else if (!compatLogged) {
+				Console.debug("--| Player is not compat flight logged");
 				enforce(1);
 				if (V.permaTimer && time > 0) {
 					if (timer != null) {
@@ -112,6 +115,7 @@ public class FlightUser {
 				}
 			}
 			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, p.getUniqueId().toString()), false);
+			manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, p.getUniqueId().toString()), false);
 		}
 		
 	}
@@ -125,6 +129,7 @@ public class FlightUser {
 				DataPointer.of(DataValue.PLAYER_DAILY_BONUS, u),
 				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u),
 				DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u),
+				DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u),
 				DataPointer.of(DataValue.PLAYER_TRAIL, u),
 				DataPointer.of(DataValue.PLAYER_INFINITE, u),
 				DataPointer.of(DataValue.PLAYER_BYPASS, u));
@@ -780,6 +785,9 @@ public class FlightUser {
 					return;
 				}
 				if (p.getGameMode() == GameMode.CREATIVE && !V.creativeTimer) {
+					return;
+				}
+				if (p.getGameMode() == GameMode.SPECTATOR && !V.spectatorTimer) {
 					return;
 				}
 				this.cancel();
