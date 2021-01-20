@@ -71,6 +71,10 @@ general:
     # If false the timer will not count down while a player uses creative flight.
     # If true the player will be subject to all normal tempfly flight restrictions and time usage while in creative flight.
     creative: false
+    # If false the timer will not count down while a player is in spectator.
+    # Due to the nature of spectator mode when the player runs out of flight time their flight cannot be disabled until
+    # they return to another gamemode.
+    spectator: false
   
   idle:
     # The threshold in seconds to consider a player idle. -1 for no idle timer

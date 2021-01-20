@@ -202,7 +202,7 @@ public class TimeManager implements Listener {
 			Console.debug("--| Time decay is enabled...");
 			long offline = (System.currentTimeMillis() - p.getLastPlayed()) / 1000;
 			double lost = (offline / V.decayThresh) * V.decayAmount;
-			double time = getTime(p.getUniqueId());
+			double time = e.getUser().getTime();
 			lost = lost > time ? time : lost;
 			if (V.debug) Console.debug("--| Seconds offline: " + offline, "Threshold in seconds: " + V.decayThresh, "--| Seconds lost per threshold: " + V.decayAmount, "--| Seconds lost: " + lost, "");
 			if (lost > 0) {
@@ -213,22 +213,25 @@ public class TimeManager implements Listener {
 			}
 		}
 		
-		double maxTime = getMaxTime(p.getUniqueId());
-		if (maxTime == -999) {
-			return;
-		}
-		if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
-			Console.debug("--| User has not played before, do first join bonus...");
-			double currentTime = getTime(p.getUniqueId());
-			double bonus = maxTime > -1 && ((currentTime + V.firstJoinTime) > maxTime) ? maxTime - currentTime : V.firstJoinTime;
-			if (bonus > 0) {
-				new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
-					addTime(p.getUniqueId(), parameters);
-				}, p, bonus).runAsync();
-				U.m(p, regexString(V.firstJoin, bonus));
+		Bukkit.getScheduler().runTaskAsynchronously(tempfly, () -> {
+			double maxTime = getMaxTime(p.getUniqueId());
+			if (maxTime == -999) {
+				return;
 			}
-		}
-		Bukkit.getScheduler().runTaskAsynchronously(tempfly, () -> loginBonus(p, maxTime));
+			if (!p.hasPlayedBefore() && V.firstJoinTime > 0) {
+				Console.debug("--| User has not played before, do first join bonus...");
+				double currentTime = getTime(p.getUniqueId());
+				double bonus = maxTime > -1 && ((currentTime + V.firstJoinTime) > maxTime) ? maxTime - currentTime : V.firstJoinTime;
+				if (bonus > 0) {
+					new AsyncTimeParameters(tempfly, (AsyncTimeParameters parameters) -> {
+						addTime(p.getUniqueId(), parameters);
+					}, p, bonus).run();
+					U.m(p, regexString(V.firstJoin, bonus));
+				}
+			}
+			loginBonus(p, maxTime);
+		});
+
 	}
 	
 	/**

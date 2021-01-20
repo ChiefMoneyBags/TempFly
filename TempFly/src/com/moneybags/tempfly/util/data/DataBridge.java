@@ -6,12 +6,11 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.DataFormatException;
 
 import org.bukkit.Bukkit;
@@ -39,12 +38,12 @@ public class DataBridge extends Thread implements DataFileHolder {
 	// Staged changes are held in local memory until either the autosave runs, or they are forcefully committed.
 	// The databridge will act like these changes are part of the database even though they are local. 
 	// It will look to see if there is data here first before it queries the database or YAML file.
-	// Should always be accessed in a synchronized block.
-	private List<StagedChange> changes = new CopyOnWriteArrayList<>();
+
+	private Map<DataPointer, StagedChange> changes = new ConcurrentHashMap<>();
 	// A list of pointers that tell the asynchronous batch manager to save the data they point to
 	// if it exists in the list of changes.
-	// Should always be accessed in a synchronized block.
-	private List<DataPointer> manualCommit = new CopyOnWriteArrayList<>();
+
+	private List<DataPointer> manualCommit = new ArrayList<>();
 	
 	public Connection getConnection() {
 		return connection;
@@ -137,6 +136,13 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			data.set("version", 3.0);
 			saveData();
+		} else if (version < 4.0) {
+			if (!backupLegacyData("update_4_backup_")) {
+				Bukkit.getPluginManager().disablePlugin(plugin);
+				return;
+			}
+			data.set("version", 4.0);
+			saveData();
 		}
 	}
 	
@@ -158,21 +164,28 @@ public class DataBridge extends Thread implements DataFileHolder {
 	}
 	
 	
-	public synchronized void stageChange(DataPointer pointer, Object data) {
+	public void stageChange(DataPointer pointer, Object data) {
 		stageChange(pointer, data, null);
 	}
- 	
 	/**
 	 * Stage a change to be sent to the database later.
 	 * @param pointer The type and path of the data
 	 * @param data the data.
 	 */
-	public synchronized void stageChange(DataPointer pointer, Object data, DataFileHolder fileHolder) {
+	public void stageChange(DataPointer pointer, Object data, DataFileHolder fileHolder) {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
 		if (V.debug) {
 			Console.debug(""); Console.debug("-----------Staging new change-----------"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | ")); Console.debug("--| Data: " + String.valueOf(data));
 		}
+		
+		changes.put(pointer, new StagedChange(value, data, path, fileHolder));
+		
+		/**
+		if (changes.containsKey(pointer)) {
+			changes.put(pointer)
+		}
+		
 		for (StagedChange change: changes) {
 			if (change.isDuplicate(value, path)) {
 				Console.debug("--|> Data already exists for this type, overwriting it...");
@@ -180,20 +193,43 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 		}
 		changes.add(new StagedChange(value, data, path, fileHolder));
+		*/
 		Console.debug("-----------End of stage-----------");
 	}
 
-	public synchronized boolean isStaged(DataPointer pointer) {
+	/**
+	public static String getMonitorOwner(Object obj) {
+	    if (Thread.holdsLock(obj)) return Thread.currentThread().getName();
+	    for (java.lang.management.ThreadInfo ti :
+	            java.lang.management.ManagementFactory.getThreadMXBean()
+	            .dumpAllThreads(true, false)) {
+	        for (java.lang.management.MonitorInfo mi : ti.getLockedMonitors()) {
+	            if (mi.getIdentityHashCode() == System.identityHashCode(obj)) {
+	            	return ti.getThreadName();
+	                
+	            }
+	        }
+	    }
+	    return "null";
+	}
+	*/
+	
+	public boolean isStaged(DataPointer pointer) {
+		return changes.containsKey(pointer);
+		
+		/**
 		for (StagedChange change: changes) {
 			if (change.isDuplicate(pointer)) {
 				return true;	
 			}
 		}
 		return false;
+		*/
 	}
 	
+	/**
 	public synchronized boolean isStagedPath(String... path) {
-		for (StagedChange change: changes) {
+		for (StagedChange change: changes.values()) {
 			if (change.comparePath(path)) {
 				return true;	
 			}
@@ -203,13 +239,14 @@ public class DataBridge extends Thread implements DataFileHolder {
 	
 	public synchronized StagedChange getStageFromPath(String... path) {
 		Console.debug(U.arrayToString(path, "-"));
-		for (StagedChange change: changes) {
+		for (StagedChange change: changes.values()) {
 			if (change.comparePath(path)) {
 				return change;
 			}
 		}
 		return null;
 	}
+	*/
 	
 	/**
 	 * Commit all changes to the database or yaml if applicable.
@@ -217,11 +254,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 */
 	public void commitAll() {
 		Console.debug("", "--------> DataBridge Commit <--------", "--|>> Adding (ALL) changes to the commit queue");
+		manualCommit.clear();
+		manualCommit.addAll(changes.keySet());
 		synchronized (this) {
-			manualCommit.clear();
-			for (StagedChange change: changes) {
-				manualCommit.add(change.getPointer());
-			}
 			this.notifyAll();
 		}
 	}
@@ -237,12 +272,21 @@ public class DataBridge extends Thread implements DataFileHolder {
 	public void run() {
 		this.setName("tempfly batch manager");
 		while(true) {
+			Console.debug(manualCommit.toString());
+			if (manualCommit.size() > 0) {
+				executeCommit();
+			}
+			synchronized (this) {
+				try {wait();} catch (InterruptedException e) {e.printStackTrace();}
+			}
+			/**
 			synchronized (this) {
 				if (manualCommit.size() == 0) {
 					try {wait();} catch (InterruptedException e) {e.printStackTrace();}
 				}
 				executeCommit();
 			}
+			*/
 		}
 	}
 	
@@ -251,26 +295,39 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 */
 	private void executeCommit() {
 		List<StagedChange> commit = new ArrayList<>();
-		synchronized (this) {
-			if (V.debug) {Console.debug("", "-|>>>>> Preparing to execute the commit queue");}
-			Iterator<DataPointer> itPointer = manualCommit.iterator();
-			
-			pointers:
-			while (itPointer.hasNext()) {
-				DataPointer pointer = itPointer.next();
- 				if (V.debug) {Console.debug("", "--| Looking for data type:" + pointer.getValue().toString(), "--| Path:" + U.arrayToString(pointer.getPath(), " | "));}
-	 			for (StagedChange change: changes) {
-	 				if (change.isDuplicate(pointer)) {
-						Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
-						commit.add(change);
-						changes.remove(change);
-						continue pointers;
-					}
-				}
-	 			Console.debug("--|> No changes to save for this type...");
+		
+		if (V.debug) {Console.debug("", "-|>>>>> Preparing to execute the commit queue");}
+		
+		List<DataPointer> pl = new ArrayList<>();
+		pl.addAll(manualCommit);
+		manualCommit.clear();
+		
+		pointers:
+		for (DataPointer pointer: pl) {
+			if (V.debug) {Console.debug("", "--| Looking for data type:" + pointer.getValue().toString(), "--| Path:" + U.arrayToString(pointer.getPath(), " | "));}
+			Console.debug("looking for: " + pointer.hashCode());
+			StagedChange change = changes.get(pointer);
+			if (change != null) {
+				Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
+				commit.add(change);
+				changes.remove(pointer);
+				continue pointers;
 			}
-			manualCommit.clear();
-		}
+					
+					
+				/**
+ 			for (StagedChange change: changes) {
+ 				if (change.isDuplicate(pointer)) {
+					Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
+					commit.add(change);
+					changes.remove(change);
+					continue pointers;
+				}
+			}
+			*/
+ 			Console.debug("--|> No changes to save for this type...");
+		}	
+		
 		
 		if (commit.size() == 0 && V.debug) { Console.debug(">>>>> No changes to save...", "-----------End commit---------", "");
 			return;
@@ -298,8 +355,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 * @param pointers
 	 */
 	public void manualCommit(DataPointer... pointers) {
+		manualCommit.addAll(Arrays.asList(pointers));
+		Console.debug(manualCommit.toString());
 		synchronized (this) {
-			manualCommit.addAll(Arrays.asList(pointers));
 			this.notifyAll();
 		}
 	}
@@ -307,9 +365,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 	/**
 	 * Drop ALL changes, resets data back to the original state unless it has been commited. 
 	 */
-	public synchronized void dropChanges() {
-		changes.clear();
+	public void dropChanges() {
 		manualCommit.clear();
+		changes.clear();
 	}
 	
 	/**
@@ -323,16 +381,24 @@ public class DataBridge extends Thread implements DataFileHolder {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
 		if (V.debug) {Console.debug("", "-----Data Bridge Get Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(pointer.getPath(), " | "));	}
-		synchronized (this) {
-			Console.debug("--| Iterating local staged changes");
-			for (StagedChange change: changes) {
-				if (change.isDuplicate(value, path)) {
-					Console.debug("--|> found duplicate... Returning local data!");
-					return change.getData();
-				}
-			}
-			Console.debug("--|> No local data found, prepare for data retrieval!");
+		
+		Console.debug("--| Checking local staged changes");
+		
+		StagedChange change = changes.get(pointer);
+		if (change != null) {
+			Console.debug("--|> found cached value... Returning local data!");
+			return change.getData();
 		}
+		
+		/**
+		for (StagedChange change: changes) {
+			if (change.isDuplicate(value, path)) {
+				Console.debug("--|> found duplicate... Returning local data!");
+				return change.getData();
+			}
+		}
+		*/
+		Console.debug("--|> No local data found, prepare for data retrieval!");
 		
 		if (connection == null) {
 			Console.debug("--| Using YAML");
@@ -370,6 +436,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 * @param row
 	 * @return
 	 */
+	
 	public Map<String, Object> getValues(DataTable table, DataFileHolder fileHolder, String yamlPathTo, String row, String... extra) {
 		Map<String, Object> values = new HashMap<>();
 		if (connection == null) {
@@ -406,11 +473,11 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			*/
 		}
-		for (StagedChange local: changes) {
+		for (StagedChange local: changes.values()) {
 			if (local.comparePathPartial(row)) {
 				values.put(local.getPath()[local.getPath().length-1], local.getData());
 			}
-		}
+		}	
 		return values;
 	}
 	
@@ -605,12 +672,14 @@ public class DataBridge extends Thread implements DataFileHolder {
 			return data;
 		}
 		
+		/**
 		public boolean isDuplicate(DataPointer pointer) {
 			return isDuplicate(pointer.getValue(), pointer.getPath());
 		}
 		
+		/**
 		public boolean isDuplicate(DataValue value, String[] path) {
-			if (!value.equals(this.value) || path.length != this.path.length) {
+			if (value != this.value || path.length != this.path.length) {
 				return false;
 			}
 			for (int index = 0; path.length > index && this.path.length > index; index++) {
@@ -620,7 +689,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			return true;
 		}
+		*/
 		
+		/**
 		public boolean comparePath(String[] path) {
 			for (int index = 0; path.length > index && this.path.length > index; index++) {
 				if (!path[index].equals(this.path[index])) {
@@ -629,7 +700,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			return true;
 		}
-		
+		*/
 		public boolean comparePathPartial(String... path) {
 			for (int index = 0; path.length > index; index++) {
 				if (this.path.length <= index || !path[index].equals(this.path[index])) {
@@ -638,6 +709,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			return true;
 		}
+		
 	}
 
 	@Override

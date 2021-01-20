@@ -28,12 +28,9 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
