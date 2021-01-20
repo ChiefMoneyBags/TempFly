@@ -14,8 +14,6 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.spigotmc.CustomTimingsHandler;
-
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
@@ -98,7 +96,7 @@ public class FlightUser {
 		
 		@Override
 		public void run() {
-			if (logged && (hasInfiniteFlight() || timeManager.getTime(p.getUniqueId()) > 0)) {
+			if (logged && (hasInfiniteFlight() || time > 0)) {
 				Console.debug("--| Player is flight logged");
 				if (!enableFlight()) {
 					sendRequirementMessage();
@@ -346,6 +344,7 @@ public class FlightUser {
 	 * Enable the users flight
 	 * @return false if the users flight can not be enabled due to flight requirements.
 	 */
+	@SuppressWarnings("deprecation")
 	public boolean enableFlight() {
 		if (hasFlightRequirements() && !hasRequirementBypass()) {
 			setAutoFly(true);
@@ -777,6 +776,7 @@ public class FlightUser {
 			this.runTaskTimer(manager.getTempFly(), 1, DELAY);
 		}
 		
+		@SuppressWarnings("deprecation")
 		@Override
 		public void run() {
 			idle += DELAY;
