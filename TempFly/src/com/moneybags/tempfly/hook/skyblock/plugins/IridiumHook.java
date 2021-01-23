@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.iridium.iridiumskyblock.managers.IslandManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 
 import com.iridium.iridiumskyblock.IridiumSkyblock;
 import com.iridium.iridiumskyblock.Island;
-import com.iridium.iridiumskyblock.IslandManager;
 import com.iridium.iridiumskyblock.User;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
@@ -107,7 +107,8 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	public Player[] getOnlineMembers(IslandWrapper island) {
 		List<Player> online = new ArrayList<>();
 		Island rawIsland = (Island) island.getRawIsland();
-		for (String s: rawIsland.getMembers()) {
+
+		for (String s: rawIsland.members) {
 			Player p = Bukkit.getPlayer(UUID.fromString(s));
 			if (p != null && p.isOnline()) {
 				online.add(p);
@@ -119,8 +120,9 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	@Override
 	public UUID[] getIslandMembers(IslandWrapper island) {
 		List<UUID> ids = new ArrayList<>();
-		Island rawIsland = (Island) island.getRawIsland();
-		for (String s: rawIsland.getMembers()) {
+		Island raw = (Island) island.getRawIsland();
+		Island rawIsland = IslandManager.getIslandViaLocation(raw.center);
+		for (String s: rawIsland.members) {
 			ids.add(UUID.fromString(s));
 		}
 		return ids.toArray(new UUID[ids.size()]);
@@ -131,7 +133,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		OfflinePlayer p = Bukkit.getOfflinePlayer(u);
 		User user = User.getUser(p);
 		Island rawIsland = user.getIsland();
-		if (rawIsland == null || !rawIsland.getOwner().equals(u.toString())) {
+		if (rawIsland == null || !rawIsland.owner.equals(u.toString())) {
 			return null;
 		}
 		return getIslandWrapper(rawIsland);
@@ -150,8 +152,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 
 	@Override
 	public IslandWrapper getIslandAt(Location loc) {
-		IslandManager islandManager;
-		return getIslandWrapper((islandManager = IridiumSkyblock.getIslandManager()) == null ? null : islandManager.getIslandViaLocation(loc));
+		return getIslandWrapper(IslandManager.getIslandViaLocation(loc));
 	}
 
 	@Override
@@ -193,7 +194,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		Island rawIsland = (Island) island.getRawIsland();
 		IslandWrapper playerIsland = getTeamIsland(u);
 		if (playerIsland != null) {
-			if (rawIsland.getCoop().contains(((Island)rawIsland).getId())) {
+			if (rawIsland.getCoop().contains(((Island)rawIsland).id)) {
 				return "COOP";
 			}
 		}
@@ -207,7 +208,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 
 	@Override
 	public UUID getIslandOwner(IslandWrapper island) {
-		return UUID.fromString(((Island)island.getRawIsland()).getOwner());
+		return UUID.fromString(((Island)island.getRawIsland()).owner);
 	}
 
 	/**
@@ -218,29 +219,29 @@ public class IridiumHook extends SkyblockHook implements Listener {
 		if (rawIsland instanceof IslandWrapper) {
 			rawIsland = ((IslandWrapper) rawIsland).getRawIsland();
 		}
-		return String.valueOf(((Island)rawIsland).getId());
+		return String.valueOf(((Island)rawIsland).id);
 	}
 	
 	@Override
 	public IslandWrapper getIslandFromIdentifier(String identifier) {
-		return getIslandWrapper(IridiumSkyblock.getIslandManager().getIslandViaId(Integer.valueOf(identifier)));
+		return getIslandWrapper(IslandManager.getIslandViaId(Integer.valueOf(identifier)));
 	}
 	
 
 	@Override
 	public boolean isIslandMember(UUID u, IslandWrapper island) {
-		return ((Island)island.getRawIsland()).getMembers().contains(u.toString());
+		return ((Island)island.getRawIsland()).members.contains(u.toString());
 	}
 
 	@Override
 	public double getIslandLevel(UUID u) {
 		IslandWrapper island = getTeamIsland(u);
-		return island == null ? 0 : ((Island)island.getRawIsland()).getValue();
+		return island == null ? 0 : ((Island)island.getRawIsland()).value;
 	}
 
 	@Override
 	public double getIslandLevel(IslandWrapper island) {
-		return ((Island)island.getRawIsland()).getValue();
+		return ((Island)island.getRawIsland()).value;
 	}
 
 	@Override
@@ -256,7 +257,7 @@ public class IridiumHook extends SkyblockHook implements Listener {
 	@Override
 	public boolean isIslandWorld(Location loc) {
 		// Try catches a benign error when using /reload because iridium isnt ready yet.
-		try {return IridiumSkyblock.getIslandManager().isIslandWorld(loc);} catch (Exception e) {
+		try {return IslandManager.isIslandWorld(loc);} catch (Exception e) {
 			return false;
 		}
 	}
