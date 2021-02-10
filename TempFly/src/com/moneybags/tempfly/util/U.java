@@ -1,50 +1,70 @@
 package com.moneybags.tempfly.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.primitives.Doubles;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 public class U {
-	
+
+	private static final Pattern LOCATION_STRING_PATTERN = Pattern.compile("~");
+	private static final String PREFIX = "{PREFIX}";
+
 	public static void command(String s) {
 		Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), s);
 	}
 	
 	public static boolean isPlayer(CommandSender s){
-		if (s instanceof Player){
-			return true;
-		}
-		return false;
+		return s instanceof Player;
 	}
 	
 	public static String locationToString(Location loc) {
-		if (loc != null) {
-			return loc.getWorld().getName() + "~" + loc.getBlockX() + "~" + loc.getBlockY() + "~" + loc.getBlockZ();
-		}
-		return null;
-	}
-	
-	public static Location locationFromString(String loc) {
-		String[] s = loc.split("~");
-		try {
-			return new Location(Bukkit.getWorld(s[0]), Double.valueOf(s[1]), Double.valueOf(s[2]), Double.valueOf(s[3]));
-		} catch (Exception e) {
+		if (loc == null) {
 			return null;
 		}
+
+		return String.format(
+				"%s~%d~%d~%d",
+				loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ()
+		);
+	}
+	
+	@SuppressWarnings("UnstableApiUsage")
+	public static Location locationFromString(String loc) {
+		String[] args = LOCATION_STRING_PATTERN.split(loc);
+
+		if (args.length < 4) {
+			return null;
+		}
+
+		World world = Bukkit.getWorld(args[0]);
+
+		if (world == null) {
+			return null;
+		}
+
+		Double x = Doubles.tryParse(args[1]);
+		Double y = Doubles.tryParse(args[2]);
+		Double z = Doubles.tryParse(args[3]);
+
+		return (x == null || y == null || z == null) ? null : new Location(world, x, y , z);
 	}
 	
 	public static String cc(String m) {
-		return ChatColor.translateAlternateColorCodes('&', m);
+		return ChatColor.translateAlternateColorCodes('&', Strings.nullToEmpty(m));
 	}
 	
 	public static String strip(String m) {
@@ -52,97 +72,74 @@ public class U {
 	}
 	
 	public static void m(CommandSender p, String s) {
-		if (s == null || s.equals("\\{PREFIX}") || s.length() == 0) {
+		if (s == null || s.equals(PREFIX) || s.length() == 0) {
 			return;
 		}
-		p.sendMessage(s.replaceAll("\\{PREFIX}", V.prefix));
+
+		p.sendMessage(s.replace(PREFIX, V.prefix));
 	}
 	
 	public static void m(OfflinePlayer p, String s) {
-		if (!p.isOnline()) {
-			return;
+		if (p.isOnline()) {
+			m((Player) p, s);
 		}
-		m((Player) p, s);
 	}
 	
 	public static void m(Player p, String s) {
-		if (s.equals(V.prefix) || s.equals("\\{PREFIX}") || s == null || s.length() == 0) {
+		if (s == null || s.isEmpty() || s.equals(V.prefix) || s.equals(PREFIX)) {
 			return;
 		}
-		p.sendMessage(s.replaceAll("\\{PREFIX}", V.prefix));
+
+		p.sendMessage(s.replace(PREFIX, V.prefix));
 	}
 	
 	public static boolean hasPermission(CommandSender s, String perm){
-		if (s instanceof Player){
-			Player p = (Player) s;
-			if (p.hasPermission(perm)) {
-				return true;
-			}
-			return false;
-		}
-		return true;
+		return !isPlayer(s) || s.hasPermission(perm);
 	}
 	
 	public static String locToString(Location loc) {
-		return loc.getWorld().getName()
-				+ "~"+ String.valueOf(loc.getBlockX())
-				+ "~" + String.valueOf(loc.getBlockY())
-				+ "~" + String.valueOf(loc.getBlockZ());
+		return locationToString(loc);
 	}
 	
 	public static Location locFromString(String loc) {
-		String[] s = loc.split("~");
-		return new Location(Bukkit.getWorld(s[0]),
-				Double.parseDouble(s[1]), Double.parseDouble(s[2]), Double.parseDouble(s[3]));
+		return locationFromString(loc);
 	}
 	
 	public static ItemStack getConfigItem(FileConfiguration config, String path) {
-		String name = config.getString(path + ".name", "&cThis item is broken. :'(");
-		int amount = config.getInt(path + ".amount", 1);
-		List<String> lore = config.getStringList(path + ".lore");
-		List<String> l = new ArrayList<>();
-		
-		ItemStack it = new ItemStack(Material.STONE, amount);
-		ItemMeta meta = it.getItemMeta();
-		
-		meta.setDisplayName(cc("&r" + name));
-		if (lore != null) {
-			for (String line: lore) {
-				l.add(cc("&r" + line));
-			}
-			meta.setLore(l);
+		ConfigurationSection section = config.getConfigurationSection(path);
+
+		if (section == null) {
+			return new ItemStack(Material.STONE);
 		}
-		it.setItemMeta(meta);
-		it.setAmount(amount);
-		return it;
+
+		ItemStack item = new ItemStack(Material.STONE, Math.max(1, section.getInt("amount", 1)));
+		ItemMeta meta = item.getItemMeta();
+		
+		meta.setDisplayName(cc(ChatColor.RESET + section.getString("name", "&cThis item is broken. :'(")));
+		meta.setLore(
+				section.getStringList("lore").stream()
+						.map(it -> cc(ChatColor.RESET + it))
+						.collect(Collectors.toList())
+		);
+
+		item.setItemMeta(meta);
+		return item;
 	}
 	
 	public static String arrayToString(Object[] array, String divider) {
 		if (array == null) {
 			return null;
 		}
-		if (divider == null) {
-			divider = "";
-		}
-		StringBuilder sb = new StringBuilder();
-		int index = 1;
-		for (Object object: array) {
-			sb.append(String.valueOf(object) + (array.length > index ? divider : ""));
-			index++;
-		}
-		return sb.toString();
+
+		return Joiner.on(Strings.nullToEmpty(divider)).join(array);
 	}
 	
 	public static String[] skipArray(String[] array, int skip) {
-		List<String> strings = new ArrayList<>();
-		for (int i = 0; i < array.length; i++) {
-			if (i < skip) {
-				continue;
-			}
-			strings.add(array[i]);
+		if (array.length <= skip) {
+			return new String[0];
 		}
-		return strings.toArray(new String[strings.size()]);
+
+		return Arrays.copyOfRange(array, skip, array.length);
 	}
-	
-	
+
 }
