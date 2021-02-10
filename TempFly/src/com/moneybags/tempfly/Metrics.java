@@ -46,7 +46,7 @@ public class Metrics {
         }
     }
 
-    // The version of this bStats class
+    // The version of this bStats class..
     public static final int B_STATS_VERSION = 1;
 
     // The url to which the data is sent
