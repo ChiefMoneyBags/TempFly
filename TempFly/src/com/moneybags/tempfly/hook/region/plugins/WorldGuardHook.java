@@ -49,6 +49,7 @@ public class WorldGuardHook implements RegionProvider {
                 Object platform = getPlatFormMethod.invoke(worldGuard);
                 Method getRegionContainerMethod = platform.getClass().getMethod("getRegionContainer");
                 regionContainer = getRegionContainerMethod.invoke(platform);
+                
                 Class<?> worldEditWorldClass = Class.forName("com.sk89q.worldedit.world.World");
                 Class<?> worldEditAdapterClass = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
                 worldAdaptMethod = worldEditAdapterClass.getMethod("adapt", World.class);
@@ -59,7 +60,7 @@ public class WorldGuardHook implements RegionProvider {
             }
         } else {
             try {
-				regionContainer = ((WorldGuardPlugin) worldGuardPlugin).getClass().getMethod("getRegionContainer", WorldGuardPlugin.class).invoke(((WorldGuardPlugin) worldGuardPlugin));
+				regionContainer = ((WorldGuardPlugin) worldGuardPlugin).getClass().getMethod("getRegionContainer").invoke(((WorldGuardPlugin) worldGuardPlugin));
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
 					| NoSuchMethodException | SecurityException e) {
 				e.printStackTrace();
