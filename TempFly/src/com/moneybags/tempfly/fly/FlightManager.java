@@ -387,7 +387,7 @@ public class FlightManager implements Listener, Reloadable {
 	 */
 	@EventHandler (priority = EventPriority.MONITOR)
 	public void onTeleport(PlayerTeleportEvent e) {
-		Console.debug("on teleport-0------------------");
+		Console.debug("------on teleport------", "--|> " + e.getPlayer().getUniqueId());
 		if (!hasUser(e.getPlayer())) {
 			return;
 		}
@@ -397,6 +397,7 @@ public class FlightManager implements Listener, Reloadable {
 		if (!e.getFrom().getBlock().equals(e.getTo().getBlock())) {
 			updateLocation(user, e.getFrom(), e.getTo(), false, false);
 		}
+		user.applyFlightCorrect();
 	}
 	
 	/**
@@ -491,7 +492,6 @@ public class FlightManager implements Listener, Reloadable {
 	public void onJoin(PlayerJoinEvent e) {
 		Console.debug("------------ On PlayerjOIN event ------------");
 		addUser(e.getPlayer());
-		
 	}
 	
 	/**
