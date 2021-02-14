@@ -133,14 +133,16 @@ general:
 
   # If true, flight is disabled when the player;
   combat:
-    # ...attacks another player
+    # attacks another player
     attack_player: true
-    # ...attacks a mob
+    # attacks a mob
     attack_mob: false
-    # ...is attacked by a player
+    # is attacked by a player
     attacked_by_player: true
-    # ...is attacked by a mob
+    # is attacked by a mob
     attacked_by_mob: false
+    # attacks themself
+    self_inflicted: false
 
     # Seconds before flight can be enabled after pvp 
     pvp_tag: 10

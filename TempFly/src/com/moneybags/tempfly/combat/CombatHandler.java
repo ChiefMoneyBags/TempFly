@@ -47,8 +47,12 @@ public class CombatHandler implements RequirementProvider, Listener {
 		}
 		if (vic instanceof Player) {
 			if (act instanceof Player) {
-				onCombat(CombatType.PLAYER_ATTACKS_FLYER, vic, act);
-				onCombat(CombatType.FLYER_ATTACKS_PLAYER, vic, act);
+				if (act.equals(vic)) {
+					onCombat(CombatType.FLYER_ATTACKS_SELF, vic, act);
+				} else {
+					onCombat(CombatType.PLAYER_ATTACKS_FLYER, vic, act);
+					onCombat(CombatType.FLYER_ATTACKS_PLAYER, vic, act);	
+				}
 			} else if (act instanceof LivingEntity) {
 				onCombat(CombatType.MOB_ATTACKS_FLYER, vic, act);
 			}
@@ -80,13 +84,15 @@ public class CombatHandler implements RequirementProvider, Listener {
 	public boolean combatDisable(CombatType type) {
 		switch (type) {
 		case FLYER_ATTACKS_MOB:
-			return V.attackM;
+			return V.tagAttackMob;
 		case FLYER_ATTACKS_PLAYER:
-			return V.attackP;
+			return V.tagAttackPlayer;
 		case MOB_ATTACKS_FLYER:
-			return V.attackedM;
+			return V.tagAttackedByMob;
 		case PLAYER_ATTACKS_FLYER:
-			return V.attackedP;
+			return V.tagAttackedByPlayer;
+		case FLYER_ATTACKS_SELF:
+			return V.tagAttackedBySelf;
 		}
 		return false;
 	}
@@ -95,7 +101,8 @@ public class CombatHandler implements RequirementProvider, Listener {
 		PLAYER_ATTACKS_FLYER(true),
 		MOB_ATTACKS_FLYER(false),
 		FLYER_ATTACKS_PLAYER(true),
-		FLYER_ATTACKS_MOB(false);
+		FLYER_ATTACKS_MOB(false),
+		FLYER_ATTACKS_SELF(true);
 		
 		private boolean pvp;
 		
