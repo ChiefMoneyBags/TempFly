@@ -122,10 +122,12 @@ public class V {
 	particleDefault,
 	list,
 	tag,
-	attackP,
-	attackM,
-	attackedP,
-	attackedM,
+	// Combat tag
+	tagAttackPlayer,
+	tagAttackMob,
+	tagAttackedByPlayer,
+	tagAttackedByMob,
+	tagAttackedBySelf,
 	// Fall damage
 	damageCommand,
 	damageTime,
@@ -329,10 +331,11 @@ public class V {
 		tagName				= st(C.CONFIG, "aesthetic.identifier.name_tag.name");
 		tagPlaceholderOn	= st(C.CONFIG, "aesthetic.identifier.name_tag.placeholder.enabled");
 		tagPlaceholderOff	= st(C.CONFIG, "aesthetic.identifier.name_tag.placeholder.disabled");
-		attackP				= config.getBoolean("general.combat.attack_player");
-		attackM				= config.getBoolean("general.combat.attack_mob");
-		attackedP			= config.getBoolean("general.combat.attacked_by_player");
-		attackedM			= config.getBoolean("general.combat.attacked_by_mob");
+		tagAttackPlayer		= config.getBoolean("general.combat.attack_player");
+		tagAttackMob		= config.getBoolean("general.combat.attack_mob");
+		tagAttackedByPlayer	= config.getBoolean("general.combat.attacked_by_player");
+		tagAttackedByMob	= config.getBoolean("general.combat.attacked_by_mob");
+		tagAttackedBySelf	= config.getBoolean("general.combat.self_inflicted");
 		combatTagPvp		= config.getInt("general.combat.pvp_tag", 5) * 20;
 		combatTagPve		= config.getInt("general.combat.pve_tag", 10) * 20;
 		timeDecay			= config.getBoolean("general.time_decay.enabled");
