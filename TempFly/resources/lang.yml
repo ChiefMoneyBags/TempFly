@@ -37,7 +37,7 @@ general:
     sender: "{PREFIX} &cOnly players can use this command!"
     flyer_self: "{PREFIX} &cYou are not flying!"
     funds: "{PREFIX} &cThis costs &f{COST}&c! You do not have enough money!"
-    economy: "{PREFIX} &cYou must have a valid vault economy installed to use the shop!"
+    economy: "{PREFIX} &cYou must have a (&fvault&c) economy installed to use the shop!"
     vault_perms: "{PREFIX} &cYou must install the plugin (&fvault&c) for the ability to set offline player time!"
     
   time:
