@@ -96,13 +96,17 @@ public class FlightUser {
 		
 		@Override
 		public void run() {
-			if (logged && (hasInfiniteFlight() || time > 0)) {
+			if (logged && (hasInfiniteFlight() || time > 0) && V.autoFly) {
 				Console.debug("--| Player is flight logged");
 				if (!enableFlight()) {
 					sendRequirementMessage();
 					enforce(1);
 				}
+				
+				
 			} else if (!compatLogged) {
+				// Compat flight log is when the player logs out while flying but not with tempfly.
+				// We want to save this value so tempfly doesnt break other plugins flight features.
 				Console.debug("--| Player is not compat flight logged");
 				enforce(1);
 				if (V.permaTimer && time > 0) {
@@ -589,13 +593,15 @@ public class FlightUser {
 		Console.debug("", "--- updating requirements ---", "--| requirements: " + requirements.toString(),
 				"--| flight enabled: " + enabled, "--| auto flight: " + autoEnable, "--| time: " + time);
 		
-		if (requirements.size() == 0 && !hasFlightEnabled() && hasAutoFlyQueued() && (time > 0 || hasInfiniteFlight())) {
-			if (V.debug) Console.debug(hasRequirementBypass() ? "--|> Autofly will not be invoked, User has requirement bypass mode..." : "--|> AutoFly engaged!");
-			autoEnable = false;
-			if (!hasRequirementBypass()) {
-				enableFlight();
-				U.m(p, enableMessage);	
-			}
+		if (requirements.size() == 0 && !hasFlightEnabled() && (time > 0 || hasInfiniteFlight())) {
+			if (hasAutoFlyQueued()) {
+				autoEnable = false;
+				if (!hasRequirementBypass()) {
+					enableFlight();
+				}
+			} 
+			U.m(p, enableMessage);
+			Console.debug(hasRequirementBypass() ? "--|> Autofly will not be invoked, User has requirement bypass mode..." : "--|> AutoFly engaged!");
 			return true;
 		}
 		return requirements.size() == 0;

@@ -20,8 +20,12 @@ public class CmdShop extends TempFlyCommand {
 	
 	@Override
 	public void executeAs(CommandSender s) {
-		if (!V.shop || tempfly.getHookManager().getEconomy() == null) {
+		if (!V.shop) {
 			U.m(s, V.invalidCommand);
+			return;
+		}
+		if (tempfly.getHookManager().getEconomy() == null) {
+			U.m(s, V.invalidEconomy);
 			return;
 		}
 		if (!U.isPlayer(s)) {

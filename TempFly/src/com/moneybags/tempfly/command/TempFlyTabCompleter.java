@@ -21,7 +21,10 @@ public class TempFlyTabCompleter implements TabCompleter, Listener {
 	
 	public TempFlyTabCompleter(CommandManager manager) {
 		this.manager = manager;
-		Bukkit.getServer().getPluginManager().registerEvents(this, manager.getTempFly());
+		try {
+			Class.forName("org.bukkit.event.server.TabCompleteEvent");
+			Bukkit.getServer().getPluginManager().registerEvents(this, manager.getTempFly());
+		} catch (ClassNotFoundException e) {}
 	}
 	
 	@Override

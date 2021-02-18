@@ -1,7 +1,6 @@
 package com.moneybags.tempfly.util;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Doubles;
 import org.bukkit.*;
@@ -12,9 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -42,7 +39,6 @@ public class U {
 		);
 	}
 	
-	@SuppressWarnings("UnstableApiUsage")
 	public static Location locationFromString(String loc) {
 		String[] args = LOCATION_STRING_PATTERN.split(loc);
 
