@@ -369,7 +369,7 @@ public class FlightUser {
 	}
 	
 	/**
-	 * Methid to make sure a player can fly when they are supposed to.
+	 * Method to make sure a player can fly when they are supposed to.
 	 */
 	public void applyFlightCorrect() {
 		Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
@@ -729,6 +729,7 @@ public class FlightUser {
 	
 	public void applySpeedCorrect() {
 		float maxSpeed = getMaxSpeed();
+		Console.debug("--| Max speed: " + String.valueOf(maxSpeed));
 		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
 			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 				if (p.isOnline()) {p.setFlySpeed(maxSpeed * 0.1f);}
@@ -737,19 +738,30 @@ public class FlightUser {
 	}
 	
 	public float getMaxSpeed() {
-		float maxBase = (float) ((V.defaultSpeed < 0) ? 0f : (p.isOp() || V.defaultSpeed > 10) ? 10f : V.defaultSpeed);
+		float maxBase = (float) 
+				((V.defaultSpeed < 0) ?
+						0f : (p.isOp() || V.defaultSpeed > 10) ?
+								10f : V.defaultSpeed);
 		if (!p.isOp()) {
-			float maxFound = maxBase;
+			float maxFound = 0;
 			for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
 				String perm = info.getPermission();
 				if (perm.startsWith("tempfly.speed")) {
+					String[] split = perm.split("\\.");
+					String num = split[2];
+					if (split.length > 3) {
+						num = num.concat("." + split[3]);
+					}
+					num = num.replaceAll("\\[", "").replaceAll("\\]", "");
 					try {
-						float found = Float.parseFloat(perm.split("\\.")[2]);
-						maxFound = found > maxFound ? found : maxFound;
+						float found = Float.parseFloat(num);
+						maxFound = Math.max(found, maxFound);
 					} catch (Exception e) {continue;}
 				}
 			}
-			maxBase = maxFound > maxBase ? maxFound : maxBase;
+			if (maxFound > 0) {
+				maxBase = maxFound;
+			}
 		}
 		return maxBase;
 	}
