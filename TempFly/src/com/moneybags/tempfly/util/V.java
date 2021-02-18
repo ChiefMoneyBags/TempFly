@@ -28,6 +28,7 @@ public class V {
 	invalidReciever,
 	invalidFlyerSelf,
 	invalidFunds,
+	invalidEconomy,
 	
 	timeGivenOther,
 	timeGivenSelf,
@@ -198,6 +199,7 @@ public class V {
 		invalidReciever		= st(C.LANG, "general.invalid.reciever");
 		invalidFlyerSelf	= st(C.LANG, "general.invalid.flyer_self");
 		invalidFunds		= st(C.LANG, "general.invalid.funds");
+		invalidEconomy		= st(C.LANG, "general.invalid.economy");
 		vaultPermsRequired  = st(C.LANG, "general.invalid.vault_perms");
 		
 		timeGivenOther		= st(C.LANG, "general.time.given_other");
