@@ -190,7 +190,7 @@ public class FlightUser {
 	}
 	
 	public boolean hasAutoFlyQueued() {
-		return autoEnable && V.autoFly;
+		return autoEnable;// && V.autoFly;
 	}
 	
 	public void setAutoFly(boolean auto) {
@@ -597,11 +597,13 @@ public class FlightUser {
 			if (hasAutoFlyQueued()) {
 				autoEnable = false;
 				if (!hasRequirementBypass()) {
+					Console.debug("--|> AutoFly engaged!");
+					U.m(p, enableMessage);
 					enableFlight();
+				} else {
+					Console.debug("--|> Autofly will not be invoked, User has requirement bypass mode...");
 				}
-			} 
-			U.m(p, enableMessage);
-			Console.debug(hasRequirementBypass() ? "--|> Autofly will not be invoked, User has requirement bypass mode..." : "--|> AutoFly engaged!");
+			}
 			return true;
 		}
 		return requirements.size() == 0;
