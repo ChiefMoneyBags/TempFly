@@ -4,7 +4,6 @@ import com.moneybags.tempfly.aesthetic.actionbar.ActionBar;
 import com.moneybags.tempfly.aesthetic.actionbar.LegacyActionBar;
 import com.moneybags.tempfly.aesthetic.actionbar.ModernActionBar;
 import org.bukkit.Bukkit;
-import org.bukkit.UnsafeValues;
 import org.bukkit.entity.Player;
 
 import com.moneybags.tempfly.TempFly;
@@ -15,7 +14,7 @@ public class ActionBarAPI {
     
     public static void initialize(TempFly tempfly) {
         // Check if we're on 1.12 or above
-    	  if (Bukkit.getServer().getVersion().matches("1\\.(?!10|11)\\d{2,}")) {
+    	  if (Bukkit.getServer().getVersion().matches(".*1\\.(?!10|11)\\d{2,}.*")) {
     	      actionBar = new ModernActionBar(tempfly);
         } else {
     	      actionBar = new LegacyActionBar(tempfly);
