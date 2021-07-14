@@ -103,7 +103,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		ConfigurationSection csPerms = config.getConfigurationSection(pathPerms);
 		if (csPerms != null) {
 			for (String key: csPerms.getKeys(false)) {
-				basePerms.put(key, config.getBoolean(pathPerms + "." + key));
+				basePerms.put(key.toUpperCase(), config.getBoolean(pathPerms + "." + key));
 			}	
 		}
 		
@@ -549,6 +549,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		Console.debug("", "--- SkyblockHook check flight requirements A ---");
 		IslandWrapper island = getIslandAt(loc);
 		if (island == null) {
+			Console.debug("--|> Island is null, checking wilderness requirements...");
 			return canFlyWilderness() ?
 					new ResultAllow(this, null, V.requirePassDefault)
 					: new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE, V.requireFailDefault, true);
