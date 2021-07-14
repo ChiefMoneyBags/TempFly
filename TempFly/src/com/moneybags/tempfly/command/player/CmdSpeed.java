@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.command.player;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,30 +50,33 @@ public class CmdSpeed extends TempFlyCommand {
 			}
 			p = args.length > 2 ? p : (Player)s;
 			
-			try {
-				speed = Float.parseFloat(args[1]);
-			} catch (Exception e) {
-				U.m(s, V.invalidNumber);
-				return;
+			if (args[1].equalsIgnoreCase("reset")) {
+				speed = -999;
+			} else {
+				try {
+					speed = Float.parseFloat(args[1]);
+				} catch (Exception e) {
+					U.m(s, V.invalidNumber);
+					return;
+				}	
 			}
-			
 		} else {
-			U.m(s, U.cc("/tf speed [speed]"));
+			U.m(s, U.cc("/tf speed [speed / reset]"));
 			return;
 		}
 		
-		float max = tempfly.getFlightManager().getUser(p).getMaxSpeed();
-		if (speed > max) {
-			speed = max;
-		}
-		p.setFlySpeed((float) (speed * 0.1));
+		FlightUser user = tempfly.getFlightManager().getUser(p);
+		user.setSpeedPreference(speed);
+		String result = new DecimalFormat("#.##").format(user.applySpeedCorrect());
+
 		U.m(p, V.flySpeedSelf
-				.replaceAll("\\{SPEED}", String.valueOf(speed)));
+				.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result));
 		if (!s.equals(p)) {
 			U.m(s, V.flySpeedOther
-					.replaceAll("\\{SPEED}", String.valueOf(speed))
+					.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result)
 					.replaceAll("\\{PLAYER}", p.getName()));
 		}
+		
 	}
 
 	@Override
