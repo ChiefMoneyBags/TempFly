@@ -10,6 +10,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.Files.C;
 
+/**
+ * TODO Most of these values should be relocated to their manager objects
+ * @author Kevin
+ *
+ */
 public class V {
 
 	public static String
@@ -156,8 +161,7 @@ public class V {
 	maxTimeBase,
 	firstJoinTime,
 	legacyBonus,
-	decayAmount,
-	defaultSpeed;
+	decayAmount;
 	
 	public static List<String>
 	help,
@@ -347,7 +351,6 @@ public class V {
 		legacyBonus			= config.getLong("general.bonus.daily_login", 0);
 		shop				= config.getBoolean("shop.general.enabled", false);
 		
-		defaultSpeed		= config.getDouble("general.flight.default_speed", 1);
 		maxY				= config.getInt("general.flight.maximum_height", 275);
 		autoFly				= config.getBoolean("general.flight.auto_enable", true);
 		
