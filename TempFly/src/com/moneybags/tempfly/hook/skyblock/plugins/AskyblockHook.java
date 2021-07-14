@@ -120,6 +120,9 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(IslandEnterEvent e) {
 		Player p = Bukkit.getPlayer(e.getPlayer());
+		if (p == null) {
+			return;
+		}
 		Island island = e.getIsland();
 		onIslandEnter(p, island, e.getLocation());
 	}
@@ -127,7 +130,7 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = false)
 	public void on(IslandExitEvent e) {
 		Player p = Bukkit.getPlayer(e.getPlayer());
-		if (!isCurrentlyTracking(p)) {
+		if (p == null || !isCurrentlyTracking(p)) {
 			return;
 		}
 		Island rawIsland = api.getIslandAt(p.getLocation());
