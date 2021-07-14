@@ -591,6 +591,12 @@ public class DataBridge extends Thread implements DataFileHolder {
 				"bypass",
 				new String[] {"players", "bypass"},
 				false),
+		PLAYER_SPEED(
+				DataTable.TEMPFLY_DATA,
+				Float.TYPE,
+				"speed",
+				new String[] {"players", "speed"},
+				false),
 		
 		
 		
