@@ -55,12 +55,12 @@ public class CmdTrailSet extends TempFlyCommand {
 		
 		if (Particles.oldParticles()) {
 			try {Effect.valueOf(particle);} catch (Exception e) {
-				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", args[2]));
+				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", particle));
 				return;
 			}
 		} else {
 			try {Particle.valueOf(particle);} catch (Exception e) {
-				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", args[2]));
+				U.m(s, V.invalidParticle.replaceAll("\\{PARTICLE}", particle));
 				return;
 			}
 		}
