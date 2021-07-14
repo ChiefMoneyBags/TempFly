@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -17,11 +18,13 @@ import org.bukkit.scheduler.BukkitTask;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
+import com.moneybags.tempfly.environment.FlightEnvironment;
 import com.moneybags.tempfly.environment.RelativeTimeRegion;
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
@@ -29,6 +32,7 @@ import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
 import com.moneybags.tempfly.util.data.DataPointer;
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+
 
 public class FlightUser {
 	
@@ -63,8 +67,12 @@ public class FlightUser {
 	private long
 	accumulativeCycle;
 	
+	private double
+	selectedSpeed = -999;
+	
 	public FlightUser(Player p, FlightManager manager,
-			double time, String particle, boolean infinite, boolean bypass, boolean logged, boolean compatLogged) {
+			double time, String particle, boolean infinite, boolean bypass, boolean logged, boolean compatLogged,
+			double selectedSpeed) {
 		this.manager = manager;
 		this.timeManager = manager.getTempFly().getTimeManager();
 		
@@ -73,6 +81,7 @@ public class FlightUser {
 		this.particle = particle;
 		this.infinite = infinite;
 		this.bypass = bypass;
+		this.selectedSpeed = selectedSpeed;
 		
 		this.environment = new UserEnvironment(this, p);
 		this.listName = p.getPlayerListName();
@@ -134,7 +143,8 @@ public class FlightUser {
 				DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u),
 				DataPointer.of(DataValue.PLAYER_TRAIL, u),
 				DataPointer.of(DataValue.PLAYER_INFINITE, u),
-				DataPointer.of(DataValue.PLAYER_BYPASS, u));
+				DataPointer.of(DataValue.PLAYER_BYPASS, u),
+				DataPointer.of(DataValue.PLAYER_SPEED, u));
 	}
 	
 	
@@ -190,7 +200,7 @@ public class FlightUser {
 	}
 	
 	public boolean hasAutoFlyQueued() {
-		return autoEnable && V.autoFly;
+		return autoEnable;// && V.autoFly;
 	}
 	
 	public void setAutoFly(boolean auto) {
@@ -369,7 +379,7 @@ public class FlightUser {
 	}
 	
 	/**
-	 * Methid to make sure a player can fly when they are supposed to.
+	 * Method to make sure a player can fly when they are supposed to.
 	 */
 	public void applyFlightCorrect() {
 		Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
@@ -597,11 +607,13 @@ public class FlightUser {
 			if (hasAutoFlyQueued()) {
 				autoEnable = false;
 				if (!hasRequirementBypass()) {
+					Console.debug("--|> AutoFly engaged!");
+					U.m(p, enableMessage);
 					enableFlight();
+				} else {
+					Console.debug("--|> Autofly will not be invoked, User has requirement bypass mode...");
 				}
-			} 
-			U.m(p, enableMessage);
-			Console.debug(hasRequirementBypass() ? "--|> Autofly will not be invoked, User has requirement bypass mode..." : "--|> AutoFly engaged!");
+			}
 			return true;
 		}
 		return requirements.size() == 0;
@@ -726,31 +738,117 @@ public class FlightUser {
 	 * 
 	 */
 	
+	public double getSpeedPreference() {
+		return selectedSpeed;
+	}
 	
-	public void applySpeedCorrect() {
-		float maxSpeed = getMaxSpeed();
-		if (p.getFlySpeed() >= (maxSpeed * 0.1f)) {
+	public void setSpeedPreference(double speed) {
+		this.selectedSpeed = speed;
+		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_SPEED, p.getUniqueId().toString()), speed);
+	}
+	
+	public boolean hasSpeedPreference() {
+		return selectedSpeed > -1;
+	}
+	
+	public double applySpeedCorrect() {
+		double maxSpeed = getMaxSpeed();
+		Console.debug("--| Max speed: " + String.valueOf(maxSpeed));
+		Console.debug("--| Preferred speed: " + String.valueOf(selectedSpeed));
+		if (hasSpeedPreference() && maxSpeed > selectedSpeed && manager.getFlightEnvironment().allowSpeedPreference()) {
+			maxSpeed = selectedSpeed;
+		}
+		
+		final double val = maxSpeed;
+		Console.debug("--| final speed value: " + val);
+		if (p.getFlySpeed() > (val * 0.1f)
+				|| (p.getFlySpeed() != (val * 0.1f) && !manager.getFlightEnvironment().allowSpeedPreference()) 
+				|| (p.getFlySpeed() < (val * 0.1f) && manager.getFlightEnvironment().allowSpeedPreference())) {
+			Console.debug("--| Player speed is greater than allowed, prepare to change...;");
 			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
-				if (p.isOnline()) {p.setFlySpeed(maxSpeed * 0.1f);}
+				Console.debug("-----> | changing player speed");
+				if (p.isOnline()) {p.setFlySpeed((float) (val * 0.1f));}
 			}, 10);
 		}
+		return val;
 	}
 	
 	public float getMaxSpeed() {
-		float maxBase = (float) ((V.defaultSpeed < 0) ? 0f : (p.isOp() || V.defaultSpeed > 10) ? 10f : V.defaultSpeed);
-		if (!p.isOp()) {
-			float maxFound = maxBase;
-			for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
-				String perm = info.getPermission();
-				if (perm.startsWith("tempfly.speed")) {
-					try {
-						float found = Float.parseFloat(perm.split("\\.")[2]);
-						maxFound = found > maxFound ? found : maxFound;
-					} catch (Exception e) {continue;}
-				}
-			}
-			maxBase = maxFound > maxBase ? maxFound : maxBase;
+		Console.debug("1");
+		CompatRegion[] regions = environment.getCurrentRegionSet();
+		
+		// Permissions for region speed take priority
+		float finSpeed = getMaxSpeed(regions);
+		if (finSpeed != -999) {
+			Console.debug("2: " + finSpeed);
+			return finSpeed;
 		}
+		
+		// Permissions for world speed go next
+		finSpeed = getMaxSpeed(p.getWorld());
+		if (finSpeed != -999) {
+			Console.debug("3: " + finSpeed);
+			return finSpeed;
+		}
+		
+		// Finally default speed settings for the environment from the config go last.
+		FlightEnvironment env = manager.getFlightEnvironment();
+		if (env.hasMaxSpeed(regions)) {
+			Console.debug("4: " + env.getMaxSpeed(regions));
+			return env.getMaxSpeed(regions);
+		} else if (env.hasMaxSpeed(p.getWorld())) {
+			Console.debug("5: " + env.getMaxSpeed(p.getWorld()));
+			return env.getMaxSpeed(p.getWorld());
+		}
+		
+		Console.debug("6: " + env.getDefaultSpeed());
+		return env.getDefaultSpeed();
+	}
+	
+	public float getMaxSpeed(World world) {
+		return this.calculatePermissionSpeed("world." + world.getName());
+	}
+	
+	public float getMaxSpeed(CompatRegion[] regions) {
+		float permSpeed = -999;
+		for (CompatRegion region: regions) {
+			permSpeed = Math.max(calculatePermissionSpeed("region." + region.getId()), permSpeed);
+			Console.debug("--| Region: " + region.getId(), "--| Permission speed for this region is: " + permSpeed);
+		}
+		return permSpeed;
+	}
+	
+	private float calculatePermissionSpeed(String permission) {
+		Console.debug("calc perm speed : " + permission);
+		float maxBase = -999;
+		
+		float maxFound = 0;
+		for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
+			String perm = info.getPermission();
+			if (perm.startsWith("tempfly.speed." + permission)) {
+				Console.debug("found: " + perm);
+				String[] split = perm.split("\\.");
+				if (split.length < 5) {
+					Console.debug("less than 5");
+					continue;
+				}
+				String num = split[4];
+				if (split.length > 5) {
+					num = num.concat("." + split[5]);
+				}
+				num = num.replaceAll("\\[", "").replaceAll("\\]", "");
+				Console.debug(num);
+				try {
+					float found = Float.parseFloat(num);
+					maxFound = Math.max(found, maxFound);
+				} catch (Exception e) {}
+			}
+		}
+		if (maxFound > 0) {
+			maxBase = maxFound;
+		}
+		Console.debug("maxbase: " + maxBase);
+		
 		return maxBase;
 	}
 	
@@ -794,6 +892,9 @@ public class FlightUser {
 					return;
 				}
 				if (p.getGameMode() == GameMode.SPECTATOR && !V.spectatorTimer) {
+					return;
+				}
+				if (p.getVehicle() != null) {
 					return;
 				}
 				this.cancel();
@@ -897,6 +998,9 @@ public class FlightUser {
 				return false;
 			}
 			if (p.getGameMode() == GameMode.SPECTATOR && !V.spectatorTimer) {
+				return false;
+			}
+			if (p.getVehicle() != null) {
 				return false;
 			}
 			if (!p.isFlying()) {

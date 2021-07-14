@@ -35,6 +35,9 @@ public class UserLoader implements Runnable {
 	compatLogged,
 	ready;
 	
+	double
+	selectedSpeed;
+	
 	@Override
 	public void run() {
 		final DataBridge bridge = manager.getTempFly().getDataBridge();
@@ -46,6 +49,7 @@ public class UserLoader implements Runnable {
 		bypass = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()), true);
 		logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()), false);
 		compatLogged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u.toString()), false);
+		selectedSpeed = (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_SPEED, u.toString()), -999D);
 		ready = true;
 		if (async) {
 			manager.addUser(Bukkit.getPlayer(u));
@@ -57,11 +61,11 @@ public class UserLoader implements Runnable {
 	}
 	
 	public FlightUser buildUser() {
-		return new FlightUser(Bukkit.getPlayer(u), manager, time, particle, infinite, bypass, logged, compatLogged);
+		return new FlightUser(Bukkit.getPlayer(u), manager, time, particle, infinite, bypass, logged, compatLogged, selectedSpeed);
 	}
 	
 	public FlightUser buildUser(Player p) {
-		return new FlightUser(p, manager, time, particle, infinite, bypass, logged, compatLogged);
+		return new FlightUser(p, manager, time, particle, infinite, bypass, logged, compatLogged, selectedSpeed);
 	}
 	
 

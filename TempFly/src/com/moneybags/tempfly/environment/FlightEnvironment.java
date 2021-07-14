@@ -28,8 +28,13 @@ public class FlightEnvironment implements RequirementProvider {
 	private Map<String, RelativeTimeRegion> rtRegions = new HashMap<>();
 	private Map<String, RelativeTimeRegion> rtWorlds = new HashMap<>();
 	
-	private List<String> blackRegion = new LinkedList<>();
-	private List<String> blackWorld = new LinkedList<>();
+	private List<String> blackRegions = new LinkedList<>();
+	private List<String> blackWorlds = new LinkedList<>();
+	
+	private float speedGlobal = 1;
+	private boolean allowPreferredSpeed;
+	private Map<String, Float> speedWorlds = new HashMap<>();
+	private Map<String, Float> speedRegions = new HashMap<>();
 	
 	public FlightEnvironment(FlightManager manager) {
 		this.manager = manager;
@@ -89,11 +94,69 @@ public class FlightEnvironment implements RequirementProvider {
 	
 	
 	public boolean isDisabled(World world) {
-		return blackWorld.contains(world.getName());
+		return blackWorlds.contains(world.getName());
 	}
 	
 	public boolean isDisabled(CompatRegion region) {
-		return blackRegion.contains(region.getId());
+		return blackRegions.contains(region.getId());
+	}
+	
+	
+	
+	/**
+	 * 
+	 * --=---------=--
+	 *      Speed
+	 * --=---------=--
+	 * 
+	 */
+	
+	
+	
+	public boolean hasMaxSpeed(World world) {
+		return speedWorlds.containsKey(world.getName());
+	}
+	
+	public boolean hasMaxSpeed(CompatRegion region) {
+		return speedRegions.containsKey(region.getId());
+	}
+	
+	public boolean hasMaxSpeed(CompatRegion[] regions) {
+		for (CompatRegion region: regions) {
+			if (hasMaxSpeed(region)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public float getDefaultSpeed() {
+		return 1;
+	}
+	
+	public float getMaxSpeed(World world) {
+		return speedWorlds.getOrDefault(world.getName(), getDefaultSpeed());
+	}
+	
+	public float getMaxSpeed(CompatRegion region) {
+		return speedWorlds.getOrDefault(region.getId(), getDefaultSpeed());
+	}
+	
+	public float getMaxSpeed(CompatRegion[] regions) {
+		float highest = -999;
+		for (CompatRegion region: regions) {
+			if (hasMaxSpeed(region)) {
+				float speed = getMaxSpeed(region);
+				if (highest == -999 || highest < speed) {
+					highest = speed;
+				}
+			}
+		}
+		return highest == -999 ? getDefaultSpeed() : highest;
+	}
+	
+	public boolean allowSpeedPreference() {
+		return allowPreferredSpeed;
 	}
 	
 	
@@ -119,7 +182,7 @@ public class FlightEnvironment implements RequirementProvider {
 	public boolean flyAllowed(Location loc) {
 		if (manager.getTempFly().getHookManager().hasRegionProvider()) {
 			for (CompatRegion r: manager.getTempFly().getHookManager().getRegionProvider().getApplicableRegions(loc)) {
-				if (blackRegion.contains(r.getId())) {
+				if (blackRegions.contains(r.getId())) {
 					return false;
 				}
 			}
@@ -146,6 +209,9 @@ public class FlightEnvironment implements RequirementProvider {
 	 */
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
+		
+		
+		
 		return isDisabled(r) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.REGION, V.requireFailRegion, !V.damageRegion)
 				: new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
@@ -155,6 +221,8 @@ public class FlightEnvironment implements RequirementProvider {
 	 */
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, World world) {
+		
+		
 		return isDisabled(world) ? new ResultDeny(DenyReason.DISABLED_WORLD, this, InquiryType.WORLD, V.requireFailWorld, !V.damageWorld)
 				: new ResultAllow(this, InquiryType.WORLD, V.requirePassDefault);
 	}
@@ -181,8 +249,8 @@ public class FlightEnvironment implements RequirementProvider {
 
 	@Override
 	public void onTempflyReload() {
-		blackRegion = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
-		blackWorld = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
+		blackRegions = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
+		blackWorlds = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
 	
 		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
 		if (csRtW != null) {
@@ -198,6 +266,28 @@ public class FlightEnvironment implements RequirementProvider {
 						Files.config.getDouble("other.relative_time.regions." + s, 1), false, s));
 			}
 		}
+		
+		ConfigurationSection csSpeedW = Files.config.getConfigurationSection("general.flight.speed.worlds");
+		if (csSpeedW != null) {
+			for (String s : csSpeedW.getKeys(false)) {
+				speedWorlds.put(s, (float) Files.config.getDouble("general.flight.speed.worlds." + s, 1));
+			}
+		}
+		ConfigurationSection csSpeedR = Files.config.getConfigurationSection("general.flight.speed.regions");
+		if (csSpeedR != null) {
+			for (String s : csSpeedR.getKeys(false)) {
+				speedRegions.put(s, (float) Files.config.getDouble("general.flight.speed.regions." + s, 1));
+			}
+		}
+		
+		// legacy default speed.
+		speedGlobal = (float) Files.config.getDouble("general.flight.default_speed");
+		// new default speed.
+		if (speedGlobal == 0) {
+			speedGlobal = (float) Files.config.getDouble("general.flight.speed.default", 1);
+		}
+		
+		allowPreferredSpeed = Files.config.getBoolean("general.flight.speed.user_preference", true);
 	}
 	
 	

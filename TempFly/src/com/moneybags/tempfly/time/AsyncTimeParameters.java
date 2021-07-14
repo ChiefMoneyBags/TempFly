@@ -45,7 +45,10 @@ public class AsyncTimeParameters implements Runnable {
 		}
 		maxTime = tempfly.getTimeManager().getMaxTime(p.getUniqueId());
 		currentTime = tempfly.getTimeManager().getTime(p.getUniqueId());
-		executor.execute(this);
+		
+		Bukkit.getScheduler().runTask(tempfly, () -> {
+			executor.execute(this);
+		});
 	}
 	
 	public TempFly getTempfly() {
