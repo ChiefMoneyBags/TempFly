@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.gui.pages;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -159,10 +160,11 @@ public class PageShop extends DynamicPage {
 			List<String> l = Files.page.getStringList("page.shop.option.lore");
 			List<String> lore = new ArrayList<>();
 			if (l != null) {
+				DecimalFormat df = new DecimalFormat("##.##");
 				for (String s: l) {
 					lore.add(U.cc(
 							tempfly.getTimeManager().regexString(s, time)
-							.replaceAll("\\{COST}", String.valueOf(cost))
+							.replaceAll("\\{COST}", df.format(cost))
 							));
 				}
 			}

@@ -42,6 +42,8 @@ public class LegacyActionBar extends ActionBar {
         	newConstructor = true;
         }
         
+        
+        
         try {
         	craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + nmsver + ".entity.CraftPlayer");
         	packetPlayOutChatClass = Class.forName("net.minecraft.server." + nmsver + ".PacketPlayOutChat");

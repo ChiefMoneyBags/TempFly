@@ -42,6 +42,9 @@ public class TempFlyTabCompleter implements TabCompleter, Listener {
 	@EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void on(TabCompleteEvent e) {
 		String[] args = e.getBuffer().split(" ");
+		if (args.length == 0) {
+			return;
+		}
 		if (!args[0].equalsIgnoreCase("/fly")) {
 			return;
 		}

@@ -16,6 +16,7 @@ import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.BskyblockHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.IridiumHook;
 import com.moneybags.tempfly.util.Console;
+import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Reloadable;
 
 import net.milkbowl.vault.economy.Economy;
@@ -96,7 +97,7 @@ public class HookManager implements Reloadable {
 	}
 	
     public boolean hasRegionProvider() {
-    	return regions != null && regions.isEnabled();
+    	return !V.disableTracker && regions != null && regions.isEnabled();
     }
     
     public RegionProvider getRegionProvider() {

@@ -75,6 +75,8 @@ general:
     disabled_self: "{PREFIX} &cYour flight was disabled!"
     speed_other: "{PREFIX} &f{PLAYER} &ahad their speed set to {SPEED}&a."
     speed_self: "{PREFIX} &aYour fly speed was set to &f{SPEED}&a."
+    speed_limit_other: "{PREFIX} &f{PLAYER} &cIs currently limited to fly speed &f{SPEED}&c."
+    speed_limit_self: "{PREFIX} &cYour fly speed is currently limited to &f{SPEED}&c."
     already_enabled: "{PREFIX} &aYour flight is already enabled!"
     already_disabled: "{PREFIX} &cYour flight is already disabled!"
     idle_drop: "{PREFIX} &cYou lost flight due to being idle!"

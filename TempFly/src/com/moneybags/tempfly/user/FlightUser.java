@@ -164,6 +164,7 @@ public class FlightUser {
 		if (time <= 0) {
 			time = 0;
 		}
+		double oldTime = this.time;
 		this.time = time;
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);
 		if ((timer instanceof FlightTimer) 
@@ -171,7 +172,7 @@ public class FlightUser {
 				&& p.isFlying()) {
 			if (V.actionBar) {doActionBar();}
 		}
-		if (time > 0 && hasAutoFlyQueued() && !enabled) {
+		if (time > 0 && (hasAutoFlyQueued()) && !enabled) {
 			enableFlight();
 		} else if (time == 0) {
 			disableFlight(0, !V.damageTime);
@@ -179,11 +180,13 @@ public class FlightUser {
 			if (timer != null) {
 				timer.cancel();
 			}
+		} else if (oldTime == 0 && time > 0 && !enabled && V.autoFlyTimeReceived) {
+			enableFlight();
 		} else if (V.permaTimer) {
 			if (timer != null) {
 				timer.cancel();
 			}
-			timer = new FlightTimer();	
+			timer = new FlightTimer();
 		}
 	}
 	
@@ -300,6 +303,7 @@ public class FlightUser {
 	 * @param delay The delay in ticks to enforce removal of flight. 1 should suffice.
 	 */
 	public void enforce(int delay) {
+		Console.debug("enforcing disabled flight");
 		if (enforceTask != null) {
 			enforceTask.cancel();
 		}
@@ -332,6 +336,7 @@ public class FlightUser {
 	 * @param delay The delay in ticks to enforce removal of flight. 1 should suffice. -1 for no enforcement
 	 */
 	public void disableFlight(int delay, boolean fallSafely) {
+		Console.debug("------ disable flight -------");
 		if (!enabled) {return;}
 		enabled = false;
 		if (timer != null && (!V.permaTimer || time <= 0)) {
@@ -344,9 +349,11 @@ public class FlightUser {
 		// Fixes a weird bug where fall damage accumulates through flight and damages even when 1 block off the ground.
 		if (p.isFlying()) {p.setFallDistance(0);}
 		if (m == GameMode.CREATIVE && V.creativeTimer) {
+			Console.debug("--> set flying false 1");
 			p.setFlying(false);
 			p.setAllowFlight(false);
 		} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
+			Console.debug("--> set flying false 2");
 			p.setFlying(false);
 			p.setAllowFlight(false);
 			if (fallSafely) {addDamageProtection();}
@@ -360,6 +367,7 @@ public class FlightUser {
 	 */
 	@SuppressWarnings("deprecation")
 	public boolean enableFlight() {
+		Console.debug("------ enable flight -------");
 		if (hasFlightRequirements() && !hasRequirementBypass()) {
 			setAutoFly(true);
 			return false;
@@ -368,6 +376,7 @@ public class FlightUser {
 			setAutoFly(true);
 			return false;
 		}
+		Console.debug("--> set flying true");
 		enabled = true;
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
@@ -382,6 +391,7 @@ public class FlightUser {
 	 * Method to make sure a player can fly when they are supposed to.
 	 */
 	public void applyFlightCorrect() {
+		Console.debug("------ apply flight correct -------");
 		Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 			if (p.isOnline() && hasFlightEnabled()) {
 				p.setAllowFlight(true);
@@ -751,6 +761,10 @@ public class FlightUser {
 		return selectedSpeed > -1;
 	}
 	
+	/**
+	 * Correct the users flight speed. Takes into account permissions and max world / region speeds.
+	 * @return The resulting speed of the user.
+	 */
 	public double applySpeedCorrect() {
 		double maxSpeed = getMaxSpeed();
 		Console.debug("--| Max speed: " + String.valueOf(maxSpeed));
@@ -932,7 +946,7 @@ public class FlightUser {
 			// Update the players identifiers each tick as it isn't resource heavy it looks good.
 			doIdentifier();
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
-			if (enabled) {p.setAllowFlight(true);}
+			//if (enabled) {p.setAllowFlight(true);}
 			
 			if (hasInfiniteFlight()) {
 				return;
@@ -1027,14 +1041,23 @@ public class FlightUser {
 		 * 
 		 * @return True if the timer should continue, false if it can switch to ground timer.
 		 */
+		private boolean messaged = false;
+		
 		private boolean doIdleCheck() {
 			if (isIdle()) {
 				if (V.idleDrop) {
 					disableFlight(0, !V.damageIdle);
 				}
-				U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
+				
+				if (!this.messaged) {
+					U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
+					this.messaged = true;
+				}
 				return V.idleTimer;
+			} else {
+				this.messaged = false;
 			}
+			
 			return true;
 		}
 		

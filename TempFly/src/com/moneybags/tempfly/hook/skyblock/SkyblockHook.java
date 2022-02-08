@@ -344,6 +344,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 		
 		locationCache.put(p, island);
 		FlightUser user = tempfly.getFlightManager().getUser(p);
+		if (user == null) {
+			return;
+		}
 		user.submitFlightResult(checkFlightRequirements(p.getUniqueId(), island));
 	}
 	
@@ -375,6 +378,9 @@ public abstract class SkyblockHook extends TempFlyHook {
 					return;
 				}
 				FlightUser user = tempfly.getFlightManager().getUser(p);
+				if (user == null) {
+					return;
+				}
 				if (user.hasFlightRequirement(provider, InquiryType.OUT_OF_SCOPE) && !locationCache.containsKey(user.getPlayer())) {
 					user.submitFlightResult(new ResultAllow(provider, InquiryType.OUT_OF_SCOPE, V.requirePassDefault));
 				}

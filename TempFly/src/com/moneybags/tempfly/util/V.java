@@ -71,6 +71,8 @@ public class V {
 	flyDisabledSelf,
 	flySpeedOther,
 	flySpeedSelf,
+	flySpeedLimitSelf,
+	flySpeedLimitOther,
 	flyAlreadyEnabled,
 	flyAlreadyDisabled,
 	flyInfiniteEnabled,
@@ -142,12 +144,22 @@ public class V {
 	damageWorld,
 	damageRegion,
 	
+	infiniteDisablePayment,
+	infiniteDisableBonus,
+	infiniteDisableDecay,
+	
 	autoFly,
+	autoFlyTimeReceived,
 	actionBar,
 	timeDecay,
 	flightToggle,
 	hideVanish,
-	shop;
+	shop,
+	
+	disableTracker,
+	
+	bugInfiniteA,
+	bugInfiniteB;
 	
 	public static int
 	idleThreshold,
@@ -242,6 +254,8 @@ public class V {
 		flyDisabledSelf 	= st(C.LANG, "general.fly.disabled_self");
 		flySpeedOther		= st(C.LANG, "general.fly.speed_other");
 		flySpeedSelf		= st(C.LANG, "general.fly.speed_self");
+		flySpeedLimitOther	= st(C.LANG, "general.fly.speed_limit_other");
+		flySpeedLimitSelf	= st(C.LANG, "general.fly.speed_limit_self");
 		flyAlreadyEnabled	= st(C.LANG, "general.fly.already_enabled");
 		flyAlreadyDisabled	= st(C.LANG, "general.fly.already_disabled");
 		flyInfiniteEnabled	= st(C.LANG, "general.fly.infinite_enabled");
@@ -350,9 +364,14 @@ public class V {
 		firstJoinTime		= config.getLong("general.bonus.first_join", 0);
 		legacyBonus			= config.getLong("general.bonus.daily_login", 0);
 		shop				= config.getBoolean("shop.general.enabled", false);
+		disableTracker		= config.getBoolean("system.disable_region_tracking");
+		
+		bugInfiniteA		= config.getBoolean("workarounds.infinite_flight.fix_a");
+		bugInfiniteB		= config.getBoolean("workarounds.infinite_flight.fix_b");
 		
 		maxY				= config.getInt("general.flight.maximum_height", 275);
 		autoFly				= config.getBoolean("general.flight.auto_enable", true);
+		autoFlyTimeReceived = config.getBoolean("general.flight.enable_on_time_received", false);
 		
 		
 		damageCommand		= config.getBoolean("general.damage.on_command");

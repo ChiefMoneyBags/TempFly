@@ -28,13 +28,19 @@ public class FlightEnvironment implements RequirementProvider {
 	private Map<String, RelativeTimeRegion> rtRegions = new HashMap<>();
 	private Map<String, RelativeTimeRegion> rtWorlds = new HashMap<>();
 	
-	private List<String> blackRegions = new LinkedList<>();
-	private List<String> blackWorlds = new LinkedList<>();
+	private List<String> blackRegions = new ArrayList<>();
+	private List<String> blackWorlds = new ArrayList<>();
+	
+	private List<String> whiteRegions = new ArrayList<>();
+	private List<String> whiteWorlds = new ArrayList<>();
+	
+	
 	
 	private float speedGlobal = 1;
 	private boolean allowPreferredSpeed;
 	private Map<String, Float> speedWorlds = new HashMap<>();
 	private Map<String, Float> speedRegions = new HashMap<>();
+	
 	
 	public FlightEnvironment(FlightManager manager) {
 		this.manager = manager;
@@ -99,6 +105,24 @@ public class FlightEnvironment implements RequirementProvider {
 	
 	public boolean isDisabled(CompatRegion region) {
 		return blackRegions.contains(region.getId());
+	}
+	
+	
+	
+	/**
+	 * 
+	 * --=---------=--
+	 *    whitelist
+	 * --=---------=--
+	 * 
+	 */
+
+	public boolean isWhitelisted(World world) {
+		return whiteWorlds.size() == 0 || whiteWorlds.contains(world.getName());
+	}
+	
+	public boolean isWhitelisted(CompatRegion region) {
+		return whiteRegions.size() == 0 || whiteRegions.contains(region.getId());
 	}
 	
 	
@@ -209,10 +233,7 @@ public class FlightEnvironment implements RequirementProvider {
 	 */
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
-		
-		
-		
-		return isDisabled(r) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.REGION, V.requireFailRegion, !V.damageRegion)
+		return isDisabled(r) || !isWhitelisted(r) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.REGION, V.requireFailRegion, !V.damageRegion)
 				: new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
 	}
 
@@ -221,9 +242,7 @@ public class FlightEnvironment implements RequirementProvider {
 	 */
 	@Override
 	public FlightResult handleFlightInquiry(FlightUser user, World world) {
-		
-		
-		return isDisabled(world) ? new ResultDeny(DenyReason.DISABLED_WORLD, this, InquiryType.WORLD, V.requireFailWorld, !V.damageWorld)
+		return isDisabled(world) || !isWhitelisted(world) ? new ResultDeny(DenyReason.DISABLED_WORLD, this, InquiryType.WORLD, V.requireFailWorld, !V.damageWorld)
 				: new ResultAllow(this, InquiryType.WORLD, V.requirePassDefault);
 	}
 
@@ -251,6 +270,9 @@ public class FlightEnvironment implements RequirementProvider {
 	public void onTempflyReload() {
 		blackRegions = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
 		blackWorlds = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
+		
+		whiteRegions = Files.config.contains("general.whitelist.regions") ? Files.config.getStringList("general.whitelist.regions") : new ArrayList<>();
+		whiteWorlds = Files.config.contains("general.whitelist.worlds") ? Files.config.getStringList("general.whitelist.worlds") : new ArrayList<>();
 	
 		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
 		if (csRtW != null) {
