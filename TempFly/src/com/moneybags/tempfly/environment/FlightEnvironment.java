@@ -18,6 +18,7 @@ import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
 
@@ -142,6 +143,7 @@ public class FlightEnvironment implements RequirementProvider {
 	}
 	
 	public boolean hasMaxSpeed(CompatRegion region) {
+		//Console.debug(region.getId(), speedRegions.containsKey(region.getId()));
 		return speedRegions.containsKey(region.getId());
 	}
 	
@@ -163,7 +165,8 @@ public class FlightEnvironment implements RequirementProvider {
 	}
 	
 	public float getMaxSpeed(CompatRegion region) {
-		return speedWorlds.getOrDefault(region.getId(), getDefaultSpeed());
+		//Console.debug(region.getId(), speedRegions.get(region.getId()));
+		return speedRegions.getOrDefault(region.getId(), getDefaultSpeed());
 	}
 	
 	public float getMaxSpeed(CompatRegion[] regions) {
@@ -298,6 +301,8 @@ public class FlightEnvironment implements RequirementProvider {
 		ConfigurationSection csSpeedR = Files.config.getConfigurationSection("general.flight.speed.regions");
 		if (csSpeedR != null) {
 			for (String s : csSpeedR.getKeys(false)) {
+				Console.debug(s, Files.config.getDouble("general.flight.speed.regions." + s));
+				
 				speedRegions.put(s, (float) Files.config.getDouble("general.flight.speed.regions." + s, 1));
 			}
 		}

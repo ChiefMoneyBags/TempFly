@@ -60,15 +60,16 @@ general:
     worlds:
       - 'example_world'
     regions:
-      - 'test'
+      - 'example_region'
 
   whitelist:
     # If worlds are specified in the whitelist players will be denied from flying in non whitelisted worlds.
     worlds:
-      - 'world'
+    # - 'world'
+    
     # If regions are specified in the whitelist players will be denied from flying in non whitelisted regions.
     regions:
-      - 'example_region'
+    # - 'example_region'
   
   timer:
     # If true the players timer will count down even when they have flight disabled.
@@ -99,11 +100,10 @@ general:
       # Default global speed. This speed is used as a base unless a value is otherwise specified below.
       default: 1
       # If false the users speed will be forcefully set to the value defined upon entering valid areas regardless of the
-      # speed chosen by the player with /tempfly speed {speed}.
+      # speed chosen by the player with /tempfly speed {speed}. This also applies to permission speeds.
       #
       # If true the configured speed will only be applied if the users speed exceeds that of the maximum defined for the area.
       # Upon leaving the area the users chosen speed will be restored.
-      # If false the configured speed for areas will always be forced onto the player.
       user_preference: true
       # Default maximum speeds for worlds.
       worlds:
@@ -193,7 +193,7 @@ general:
     idle: false
     # ...from entering a disabled world
     world: false
-      # ...from entering a disabled region
+    # ...from entering a disabled region
     region: false
 
 aesthetic:

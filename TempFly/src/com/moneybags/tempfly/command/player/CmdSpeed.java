@@ -49,7 +49,7 @@ public class CmdSpeed extends TempFlyCommand {
 				return;
 			}
 			if (p == null) {
-				p = (Player)s;
+				p = (Player) s;
 			}
 			
 			if (args[1].equalsIgnoreCase("reset")) {
@@ -69,11 +69,15 @@ public class CmdSpeed extends TempFlyCommand {
 		
 		FlightUser user = tempfly.getFlightManager().getUser(p);
 		user.setSpeedPreference(speed);
-		double fin = user.applySpeedCorrect();
-		String result = new DecimalFormat("#.##").format(fin);
+		float old = user.getPlayer().getFlySpeed();
+		float fin = user.applySpeedCorrect(false, 0);
+		String result = new DecimalFormat("#.##").format(fin * 10);
 
-		if (fin < speed && p.equals(s)) {
+		if (fin < (speed / 10) && p.equals(s)) {
 			U.m(p, V.flySpeedLimitSelf.replaceAll("\\{SPEED}", result));
+			if (old == (speed / 10)) {
+				return;
+			}
 		}
 		U.m(p, V.flySpeedSelf
 				.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result));
@@ -82,6 +86,9 @@ public class CmdSpeed extends TempFlyCommand {
 				U.m(s, V.flySpeedLimitOther
 						.replaceAll("\\{SPEED}", result)
 						.replaceAll("\\{PLAYER}", p.getName()));
+				if (old == (speed / 10)) {
+					return;
+				}
 			}
 			U.m(s, V.flySpeedOther
 					.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result)

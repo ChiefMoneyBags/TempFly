@@ -36,6 +36,7 @@ import org.bukkit.event.player.PlayerToggleFlightEvent;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
+import com.moneybags.tempfly.environment.StructureProximity;
 import com.moneybags.tempfly.event.FlightUserInitializedEvent;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
@@ -50,6 +51,7 @@ public class FlightManager implements Listener, Reloadable {
 
 	private final TempFly tempfly;
 	private final FlightEnvironment environment;
+	//private StructureProximity structures;
 	private final CombatHandler combat;
 
 	private final List<RequirementProvider> providers = new LinkedList<>();
@@ -59,6 +61,9 @@ public class FlightManager implements Listener, Reloadable {
 
 		providers.add(this.environment = new FlightEnvironment(this));
 		providers.add(this.combat = new CombatHandler(this));
+		//try { providers.add(this.structures = new StructureProximity(this)); } catch (Exception e) {
+		//	e.printStackTrace();
+		//}
 
 		tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
 	}// /tf give 1m
@@ -74,6 +79,12 @@ public class FlightManager implements Listener, Reloadable {
 	public CombatHandler getCombatHandler() {
 		return combat;
 	}
+	
+	/**
+	public StructureProximity getStructureProximity() {
+		return this.structures;
+	}
+	*/
 
 	@Override
 	public void onTempflyReload() {
@@ -364,16 +375,17 @@ public class FlightManager implements Listener, Reloadable {
 	public void updateLocation(FlightUser user, Location from, Location to, boolean forceWorld, boolean forceRegion) {
 		if (V.bugInfiniteA) {
 			if (user.getPlayer().isFlying()
-					&& !user.hasFlightEnabled()
+					&& !user.hasTimer()
 					&& !user.getPlayer().hasPermission("tempfly.workaround.infinite.bypass.fix_a")) {
-				user.enforce(1);
+				user.enforce(0);
 			}
 		} else if (V.bugInfiniteB) {
+			Console.debug(0);
 			if (user.getPlayer().isFlying()
-					&& !user.hasFlightEnabled()
+					&& !user.hasTimer()
 					&& !user.getPlayer().hasPermission("tempfly.workaround.infinite.bypass.fix_b")) {
-				if (user.enableFlight()) {
-					user.enforce(1);
+				if (!user.enableFlight()) {
+					user.enforce(0);
 				}
 			}
 		}
@@ -388,6 +400,10 @@ public class FlightManager implements Listener, Reloadable {
 				results.addAll(inquireFlight(user, regions.toArray(new CompatRegion[regions.size()])));
 				// Update the users current regions.
 				user.getEnvironment().updateCurrentRegionSet(regions.toArray(new CompatRegion[regions.size()]));
+				
+				if (user.hasFlightEnabled()) {
+					user.applySpeedCorrect(true, 0);	
+				}
 			}
 		}
 
@@ -445,7 +461,7 @@ public class FlightManager implements Listener, Reloadable {
 		// reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
-			user.applySpeedCorrect();
+			user.applySpeedCorrect(false, 1);
 		}
 		user.enforce(1);
 	}
@@ -469,7 +485,7 @@ public class FlightManager implements Listener, Reloadable {
 		// reset to 1.
 		if (user.hasFlightEnabled()) {
 			user.applyFlightCorrect();
-			user.applySpeedCorrect();
+			user.applySpeedCorrect(true, 10);
 
 		}
 		// TODO flight cannot just be enforced on every world change as it will break

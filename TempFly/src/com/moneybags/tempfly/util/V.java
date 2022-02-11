@@ -71,6 +71,7 @@ public class V {
 	flyDisabledSelf,
 	flySpeedOther,
 	flySpeedSelf,
+	flySpeedDenied,
 	flySpeedLimitSelf,
 	flySpeedLimitOther,
 	flyAlreadyEnabled,
@@ -91,6 +92,7 @@ public class V {
 	requireFailRegion,
 	requireFailWorld,
 	requireFailHeight,
+	requireFailStruct,
 	
 	particleType,
 	listName,
@@ -143,6 +145,7 @@ public class V {
 	damageIdle,
 	damageWorld,
 	damageRegion,
+	damageStruct,
 	
 	infiniteDisablePayment,
 	infiniteDisableBonus,
@@ -256,6 +259,7 @@ public class V {
 		flySpeedSelf		= st(C.LANG, "general.fly.speed_self");
 		flySpeedLimitOther	= st(C.LANG, "general.fly.speed_limit_other");
 		flySpeedLimitSelf	= st(C.LANG, "general.fly.speed_limit_self");
+		flySpeedDenied		= st(C.LANG, "general.fly.speed_restricted");
 		flyAlreadyEnabled	= st(C.LANG, "general.fly.already_enabled");
 		flyAlreadyDisabled	= st(C.LANG, "general.fly.already_disabled");
 		flyInfiniteEnabled	= st(C.LANG, "general.fly.infinite_enabled");
@@ -274,6 +278,7 @@ public class V {
 		requireFailRegion	= st(C.LANG, "general.requirement.fail.region");
 		requireFailWorld	= st(C.LANG, "general.requirement.fail.world");
 		requireFailHeight	= st(C.LANG, "general.requirement.fail.height");
+		requireFailStruct   = st(C.LANG, "general.requirement.fail.structure");
 		
 		fbDays				= st(C.LANG, "aesthetic.featherboard.days");
 		fbHours				= st(C.LANG, "aesthetic.featherboard.hours");
@@ -380,6 +385,7 @@ public class V {
 		damageIdle			= config.getBoolean("general.damage.idle");
 		damageWorld			= config.getBoolean("general.damage.disabled_world");
 		damageRegion		= config.getBoolean("general.damage.disabled_region");
+		damageStruct		= config.getBoolean("general.damage.structure_proximity");
 		
 		actionBar			= config.getBoolean("aesthetic.action_bar.enabled");
 		

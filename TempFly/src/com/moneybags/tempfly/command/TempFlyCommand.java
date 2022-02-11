@@ -19,6 +19,10 @@ public abstract class TempFlyCommand {
 		this.args = args;
 	}
 	
+	public TempFly getTempFly() {
+		return this.tempfly;
+	}
+	
 	public String[] getArguments() {
 		return args;
 	}

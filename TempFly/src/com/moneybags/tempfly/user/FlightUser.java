@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.user;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import com.google.common.primitives.Floats;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
@@ -380,7 +383,7 @@ public class FlightUser {
 		enabled = true;
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
-		applySpeedCorrect();
+		applySpeedCorrect(true, 0);
 		if (timer == null) {
 			this.timer = new FlightTimer();	
 		}
@@ -765,37 +768,49 @@ public class FlightUser {
 	 * Correct the users flight speed. Takes into account permissions and max world / region speeds.
 	 * @return The resulting speed of the user.
 	 */
-	public double applySpeedCorrect() {
-		double maxSpeed = getMaxSpeed();
+	public float applySpeedCorrect(boolean message, int delay) {
+		float maxSpeed = getMaxSpeed();
 		Console.debug("--| Max speed: " + String.valueOf(maxSpeed));
 		Console.debug("--| Preferred speed: " + String.valueOf(selectedSpeed));
 		if (hasSpeedPreference() && maxSpeed > selectedSpeed && manager.getFlightEnvironment().allowSpeedPreference()) {
-			maxSpeed = selectedSpeed;
+			maxSpeed = (float) selectedSpeed;
 		}
 		
-		final double val = maxSpeed;
+		final float val = maxSpeed / 10;
 		Console.debug("--| final speed value: " + val);
-		if (p.getFlySpeed() > (val * 0.1f)
-				|| (p.getFlySpeed() != (val * 0.1f) && !manager.getFlightEnvironment().allowSpeedPreference()) 
-				|| (p.getFlySpeed() < (val * 0.1f) && manager.getFlightEnvironment().allowSpeedPreference())) {
+		if (p.getFlySpeed() > val
+				|| (p.getFlySpeed() != val && !manager.getFlightEnvironment().allowSpeedPreference()) 
+				|| (p.getFlySpeed() < val && manager.getFlightEnvironment().allowSpeedPreference())) {
 			Console.debug("--| Player speed is greater than allowed, prepare to change...;");
 			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 				Console.debug("-----> | changing player speed");
-				if (p.isOnline()) {p.setFlySpeed((float) (val * 0.1f));}
-			}, 10);
+				if (p.isOnline()) {
+					Console.debug("player speed: " + p.getFlySpeed(), "value: " + val);
+					Console.debug("is speed prefernce allowed? " + manager.getFlightEnvironment().allowSpeedPreference(),
+							p.getFlySpeed() != val && !manager.getFlightEnvironment().allowSpeedPreference());
+					if (p.getFlySpeed() > val && message) {
+						U.m(p, V.flySpeedLimitSelf.replaceAll("\\{SPEED}", new DecimalFormat("#.##").format(val * 10)));
+					}
+					p.setFlySpeed((float) val);
+				}
+			}, delay);
 		}
 		return val;
 	}
 	
 	public float getMaxSpeed() {
-		Console.debug("1");
+		Console.debug("get max speed 1");
 		CompatRegion[] regions = environment.getCurrentRegionSet();
+		FlightEnvironment env = manager.getFlightEnvironment();
 		
 		// Permissions for region speed take priority
 		float finSpeed = getMaxSpeed(regions);
 		if (finSpeed != -999) {
 			Console.debug("2: " + finSpeed);
 			return finSpeed;
+		} else if (env.hasMaxSpeed(regions)) {
+			Console.debug("4: " + env.getMaxSpeed(regions));
+			return env.getMaxSpeed(regions);
 		}
 		
 		// Permissions for world speed go next
@@ -803,43 +818,38 @@ public class FlightUser {
 		if (finSpeed != -999) {
 			Console.debug("3: " + finSpeed);
 			return finSpeed;
-		}
-		
-		// Finally default speed settings for the environment from the config go last.
-		FlightEnvironment env = manager.getFlightEnvironment();
-		if (env.hasMaxSpeed(regions)) {
-			Console.debug("4: " + env.getMaxSpeed(regions));
-			return env.getMaxSpeed(regions);
 		} else if (env.hasMaxSpeed(p.getWorld())) {
-			Console.debug("5: " + env.getMaxSpeed(p.getWorld()));
+			Console.debug("4: " + env.getMaxSpeed(p.getWorld()));
 			return env.getMaxSpeed(p.getWorld());
 		}
 		
-		Console.debug("6: " + env.getDefaultSpeed());
+		// return default environment speed indicator
+		Console.debug("5: " + env.getDefaultSpeed());
 		return env.getDefaultSpeed();
 	}
 	
 	public float getMaxSpeed(World world) {
-		return this.calculatePermissionSpeed("world." + world.getName());
+		return this.calculatePermissionSpeed("world." + world.getName(), "world.*");
 	}
 	
 	public float getMaxSpeed(CompatRegion[] regions) {
 		float permSpeed = -999;
 		for (CompatRegion region: regions) {
-			permSpeed = Math.max(calculatePermissionSpeed("region." + region.getId()), permSpeed);
+			permSpeed = Math.max(calculatePermissionSpeed("region." + region.getId(), "region.*"), permSpeed);
 			Console.debug("--| Region: " + region.getId(), "--| Permission speed for this region is: " + permSpeed);
 		}
 		return permSpeed;
 	}
 	
-	private float calculatePermissionSpeed(String permission) {
+	private float calculatePermissionSpeed(String permission, String wildcard) {
 		Console.debug("calc perm speed : " + permission);
 		float maxBase = -999;
 		
 		float maxFound = 0;
 		for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
 			String perm = info.getPermission();
-			if (perm.startsWith("tempfly.speed." + permission)) {
+			if (perm.startsWith("tempfly.speed." + permission)
+					|| perm.startsWith("tempfly.speed." + wildcard)) {
 				Console.debug("found: " + perm);
 				String[] split = perm.split("\\.");
 				if (split.length < 5) {
@@ -874,6 +884,11 @@ public class FlightUser {
 	 * --=---------=--
 	 * 
 	 */
+	
+	
+	public boolean hasTimer() {
+		return this.timer != null;
+	}
 	
 	public abstract class TempFlyTimer extends BukkitRunnable {
 		
