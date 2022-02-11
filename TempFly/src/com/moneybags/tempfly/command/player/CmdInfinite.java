@@ -26,6 +26,7 @@ public class CmdInfinite extends TempFlyCommand {
 		}
 		if (!U.isPlayer(s)) {
 			U.m(s, V.invalidSender);
+			return;
 		}
 		FlightUser user = tempfly.getFlightManager().getUser((Player)s);
 		boolean toggleVal = false;

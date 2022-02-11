@@ -40,7 +40,7 @@ public class CmdSpeed extends TempFlyCommand {
 		}
 		
 		if (args.length > 1) {
-			if (!U.isPlayer(s)) {
+			if (p == null && !U.isPlayer(s)) {
 				U.m(s, V.invalidSender);
 				return;
 			}
@@ -48,7 +48,9 @@ public class CmdSpeed extends TempFlyCommand {
 				U.m(s, V.invalidPermission);
 				return;
 			}
-			p = args.length > 2 ? p : (Player)s;
+			if (p == null) {
+				p = (Player) s;
+			}
 			
 			if (args[1].equalsIgnoreCase("reset")) {
 				speed = -999;
@@ -67,11 +69,27 @@ public class CmdSpeed extends TempFlyCommand {
 		
 		FlightUser user = tempfly.getFlightManager().getUser(p);
 		user.setSpeedPreference(speed);
-		String result = new DecimalFormat("#.##").format(user.applySpeedCorrect());
+		float old = user.getPlayer().getFlySpeed();
+		float fin = user.applySpeedCorrect(false, 0);
+		String result = new DecimalFormat("#.##").format(fin * 10);
 
+		if (fin < (speed / 10) && p.equals(s)) {
+			U.m(p, V.flySpeedLimitSelf.replaceAll("\\{SPEED}", result));
+			if (old == (speed / 10)) {
+				return;
+			}
+		}
 		U.m(p, V.flySpeedSelf
 				.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result));
 		if (!s.equals(p)) {
+			if (fin < speed) {
+				U.m(s, V.flySpeedLimitOther
+						.replaceAll("\\{SPEED}", result)
+						.replaceAll("\\{PLAYER}", p.getName()));
+				if (old == (speed / 10)) {
+					return;
+				}
+			}
 			U.m(s, V.flySpeedOther
 					.replaceAll("\\{SPEED}", speed == -999 ? "DEFAULT" : result)
 					.replaceAll("\\{PLAYER}", p.getName()));

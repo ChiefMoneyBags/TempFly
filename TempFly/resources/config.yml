@@ -45,6 +45,9 @@ system:
   # If true your console will be subjected to spam from the internal workings of the plugin.
   # If you have an issue i may ask you to turn it on.
   debug: false
+  # If true tempfly will not track player regions. This can improve performance but will disable ALL
+  # features of tempfly that rely on regions to function, such as disabled regions, relative time regions etc..
+  disable_region_tracking: false
 
 general:
   # This feature prevents conflictions with other plugins fly features.
@@ -57,7 +60,16 @@ general:
     worlds:
       - 'example_world'
     regions:
-      - 'test'
+      - 'example_region'
+
+  whitelist:
+    # If worlds are specified in the whitelist players will be denied from flying in non whitelisted worlds.
+    worlds:
+    # - 'world'
+    
+    # If regions are specified in the whitelist players will be denied from flying in non whitelisted regions.
+    regions:
+    # - 'example_region'
   
   timer:
     # If true the players timer will count down even when they have flight disabled.
@@ -88,11 +100,10 @@ general:
       # Default global speed. This speed is used as a base unless a value is otherwise specified below.
       default: 1
       # If false the users speed will be forcefully set to the value defined upon entering valid areas regardless of the
-      # speed chosen by the player with /tempfly speed {speed}.
+      # speed chosen by the player with /tempfly speed {speed}. This also applies to permission speeds.
       #
       # If true the configured speed will only be applied if the users speed exceeds that of the maximum defined for the area.
       # Upon leaving the area the users chosen speed will be restored.
-      # If false the configured speed for areas will always be forced onto the player.
       user_preference: true
       # Default maximum speeds for worlds.
       worlds:
@@ -111,6 +122,9 @@ general:
     # - A user flies into a disabled region and loses flight.
     # - If auto_fly is true they will fly again automatically without needing to use the fly command.
     auto_enable: true
+    # If true a user will always have their flight enabled for them when they receive flight time so
+    # long as their balance previous to receiving the time was 0.
+    enable_on_time_received: false
   
   time:
     # If true players can send eachother time as if it were a currency.
@@ -179,7 +193,7 @@ general:
     idle: false
     # ...from entering a disabled world
     world: false
-      # ...from entering a disabled region
+    # ...from entering a disabled region
     region: false
 
 aesthetic:
@@ -245,7 +259,6 @@ aesthetic:
 # Oddball features and things many people probably wont use can be found here.
 other:
   # relative time is a feature that lets you control how fast time will be used in worlds and regions.
-  # this can be useful for many things, for example, making time move slower on larger planets on a space themed server due to higher gravity
   # In the example below;
   # - time will pass '0.5' times or 50% slower than in real time on world 'example_world'
   # - time will pass '1.5' times or 50% faster than in real time in region 'example_region'.
@@ -276,4 +289,18 @@ shop:
       time: 3600
       cost: 50000
       
-        
+# This is where i will put last ditch efforts to fix bugs I either cannot reproduce or otherwise fix.
+workarounds:
+  # Regarding the infinite flight bug. This bug has been produced in a wide range of situations and
+  # conflictions with various plugins. Everytime I fix it something else will cause it to occur.
+  # If you encounter an unlimited flight bug this may help you.
+  infinite_flight:
+    # If true a player will ALWAYS have flight disabled if they are not using tempfly.
+    # This workaround can be disabled for users with the permission
+    # tempfly.workaround.infinite.bypass.fix_a
+    fix_a: false
+    # If true a player will Always have tempfly enabled if they are flying without
+    # a tempfly timer. If the player has no time flight will be disabled.
+    # This workaround can be disabled for users with the permission
+    # tempfly.workaround.infinite.bypass.fix_b
+    fix_b: false

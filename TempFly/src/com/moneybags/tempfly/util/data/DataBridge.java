@@ -214,7 +214,19 @@ public class DataBridge extends Thread implements DataFileHolder {
 	}
 	*/
 	
+	public void requestUpdates(DataValue listener) {
+		
+	}
+	
+	public void stopListening(DataValue listen) {
+		
+	}
+	
 	public boolean isStaged(DataPointer pointer) {
+		
+		
+		
+		
 		return changes.containsKey(pointer);
 		
 		/**
@@ -414,7 +426,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 			return value.getTable().getDataFileHolder(tempfly).getDataConfiguration().get(sb.toString());
 		} else {
 			Console.debug("--| Using SQL");
-			//TODO sql
+			String table = value.getTable().getSqlTable();
+			
+			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table + " WHERE " + path[0] + "=" + path[1];
 		}
 		return null;
 	}
@@ -597,6 +611,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 				"speed",
 				new String[] {"players", "speed"},
 				false),
+		
 		
 		
 		

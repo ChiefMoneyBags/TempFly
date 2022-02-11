@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.user;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +16,8 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+
+import com.google.common.primitives.Floats;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
@@ -164,6 +167,7 @@ public class FlightUser {
 		if (time <= 0) {
 			time = 0;
 		}
+		double oldTime = this.time;
 		this.time = time;
 		manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);
 		if ((timer instanceof FlightTimer) 
@@ -171,7 +175,7 @@ public class FlightUser {
 				&& p.isFlying()) {
 			if (V.actionBar) {doActionBar();}
 		}
-		if (time > 0 && hasAutoFlyQueued() && !enabled) {
+		if (time > 0 && (hasAutoFlyQueued()) && !enabled) {
 			enableFlight();
 		} else if (time == 0) {
 			disableFlight(0, !V.damageTime);
@@ -179,11 +183,13 @@ public class FlightUser {
 			if (timer != null) {
 				timer.cancel();
 			}
+		} else if (oldTime == 0 && time > 0 && !enabled && V.autoFlyTimeReceived) {
+			enableFlight();
 		} else if (V.permaTimer) {
 			if (timer != null) {
 				timer.cancel();
 			}
-			timer = new FlightTimer();	
+			timer = new FlightTimer();
 		}
 	}
 	
@@ -300,6 +306,7 @@ public class FlightUser {
 	 * @param delay The delay in ticks to enforce removal of flight. 1 should suffice.
 	 */
 	public void enforce(int delay) {
+		Console.debug("enforcing disabled flight");
 		if (enforceTask != null) {
 			enforceTask.cancel();
 		}
@@ -332,6 +339,7 @@ public class FlightUser {
 	 * @param delay The delay in ticks to enforce removal of flight. 1 should suffice. -1 for no enforcement
 	 */
 	public void disableFlight(int delay, boolean fallSafely) {
+		Console.debug("------ disable flight -------");
 		if (!enabled) {return;}
 		enabled = false;
 		if (timer != null && (!V.permaTimer || time <= 0)) {
@@ -344,9 +352,11 @@ public class FlightUser {
 		// Fixes a weird bug where fall damage accumulates through flight and damages even when 1 block off the ground.
 		if (p.isFlying()) {p.setFallDistance(0);}
 		if (m == GameMode.CREATIVE && V.creativeTimer) {
+			Console.debug("--> set flying false 1");
 			p.setFlying(false);
 			p.setAllowFlight(false);
 		} else if (m != GameMode.CREATIVE && m != GameMode.SPECTATOR) {
+			Console.debug("--> set flying false 2");
 			p.setFlying(false);
 			p.setAllowFlight(false);
 			if (fallSafely) {addDamageProtection();}
@@ -360,6 +370,7 @@ public class FlightUser {
 	 */
 	@SuppressWarnings("deprecation")
 	public boolean enableFlight() {
+		Console.debug("------ enable flight -------");
 		if (hasFlightRequirements() && !hasRequirementBypass()) {
 			setAutoFly(true);
 			return false;
@@ -368,10 +379,11 @@ public class FlightUser {
 			setAutoFly(true);
 			return false;
 		}
+		Console.debug("--> set flying true");
 		enabled = true;
 		p.setAllowFlight(true);
 		p.setFlying(!p.isOnGround());
-		applySpeedCorrect();
+		applySpeedCorrect(true, 0);
 		if (timer == null) {
 			this.timer = new FlightTimer();	
 		}
@@ -382,6 +394,7 @@ public class FlightUser {
 	 * Method to make sure a player can fly when they are supposed to.
 	 */
 	public void applyFlightCorrect() {
+		Console.debug("------ apply flight correct -------");
 		Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 			if (p.isOnline() && hasFlightEnabled()) {
 				p.setAllowFlight(true);
@@ -751,37 +764,53 @@ public class FlightUser {
 		return selectedSpeed > -1;
 	}
 	
-	public double applySpeedCorrect() {
-		double maxSpeed = getMaxSpeed();
+	/**
+	 * Correct the users flight speed. Takes into account permissions and max world / region speeds.
+	 * @return The resulting speed of the user.
+	 */
+	public float applySpeedCorrect(boolean message, int delay) {
+		float maxSpeed = getMaxSpeed();
 		Console.debug("--| Max speed: " + String.valueOf(maxSpeed));
 		Console.debug("--| Preferred speed: " + String.valueOf(selectedSpeed));
 		if (hasSpeedPreference() && maxSpeed > selectedSpeed && manager.getFlightEnvironment().allowSpeedPreference()) {
-			maxSpeed = selectedSpeed;
+			maxSpeed = (float) selectedSpeed;
 		}
 		
-		final double val = maxSpeed;
+		final float val = maxSpeed / 10;
 		Console.debug("--| final speed value: " + val);
-		if (p.getFlySpeed() > (val * 0.1f)
-				|| (p.getFlySpeed() != (val * 0.1f) && !manager.getFlightEnvironment().allowSpeedPreference()) 
-				|| (p.getFlySpeed() < (val * 0.1f) && manager.getFlightEnvironment().allowSpeedPreference())) {
+		if (p.getFlySpeed() > val
+				|| (p.getFlySpeed() != val && !manager.getFlightEnvironment().allowSpeedPreference()) 
+				|| (p.getFlySpeed() < val && manager.getFlightEnvironment().allowSpeedPreference())) {
 			Console.debug("--| Player speed is greater than allowed, prepare to change...;");
 			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 				Console.debug("-----> | changing player speed");
-				if (p.isOnline()) {p.setFlySpeed((float) (val * 0.1f));}
-			}, 10);
+				if (p.isOnline()) {
+					Console.debug("player speed: " + p.getFlySpeed(), "value: " + val);
+					Console.debug("is speed prefernce allowed? " + manager.getFlightEnvironment().allowSpeedPreference(),
+							p.getFlySpeed() != val && !manager.getFlightEnvironment().allowSpeedPreference());
+					if (p.getFlySpeed() > val && message) {
+						U.m(p, V.flySpeedLimitSelf.replaceAll("\\{SPEED}", new DecimalFormat("#.##").format(val * 10)));
+					}
+					p.setFlySpeed((float) val);
+				}
+			}, delay);
 		}
 		return val;
 	}
 	
 	public float getMaxSpeed() {
-		Console.debug("1");
+		Console.debug("get max speed 1");
 		CompatRegion[] regions = environment.getCurrentRegionSet();
+		FlightEnvironment env = manager.getFlightEnvironment();
 		
 		// Permissions for region speed take priority
 		float finSpeed = getMaxSpeed(regions);
 		if (finSpeed != -999) {
 			Console.debug("2: " + finSpeed);
 			return finSpeed;
+		} else if (env.hasMaxSpeed(regions)) {
+			Console.debug("4: " + env.getMaxSpeed(regions));
+			return env.getMaxSpeed(regions);
 		}
 		
 		// Permissions for world speed go next
@@ -789,43 +818,38 @@ public class FlightUser {
 		if (finSpeed != -999) {
 			Console.debug("3: " + finSpeed);
 			return finSpeed;
-		}
-		
-		// Finally default speed settings for the environment from the config go last.
-		FlightEnvironment env = manager.getFlightEnvironment();
-		if (env.hasMaxSpeed(regions)) {
-			Console.debug("4: " + env.getMaxSpeed(regions));
-			return env.getMaxSpeed(regions);
 		} else if (env.hasMaxSpeed(p.getWorld())) {
-			Console.debug("5: " + env.getMaxSpeed(p.getWorld()));
+			Console.debug("4: " + env.getMaxSpeed(p.getWorld()));
 			return env.getMaxSpeed(p.getWorld());
 		}
 		
-		Console.debug("6: " + env.getDefaultSpeed());
+		// return default environment speed indicator
+		Console.debug("5: " + env.getDefaultSpeed());
 		return env.getDefaultSpeed();
 	}
 	
 	public float getMaxSpeed(World world) {
-		return this.calculatePermissionSpeed("world." + world.getName());
+		return this.calculatePermissionSpeed("world." + world.getName(), "world.*");
 	}
 	
 	public float getMaxSpeed(CompatRegion[] regions) {
 		float permSpeed = -999;
 		for (CompatRegion region: regions) {
-			permSpeed = Math.max(calculatePermissionSpeed("region." + region.getId()), permSpeed);
+			permSpeed = Math.max(calculatePermissionSpeed("region." + region.getId(), "region.*"), permSpeed);
 			Console.debug("--| Region: " + region.getId(), "--| Permission speed for this region is: " + permSpeed);
 		}
 		return permSpeed;
 	}
 	
-	private float calculatePermissionSpeed(String permission) {
+	private float calculatePermissionSpeed(String permission, String wildcard) {
 		Console.debug("calc perm speed : " + permission);
 		float maxBase = -999;
 		
 		float maxFound = 0;
 		for (PermissionAttachmentInfo info: p.getEffectivePermissions()) {
 			String perm = info.getPermission();
-			if (perm.startsWith("tempfly.speed." + permission)) {
+			if (perm.startsWith("tempfly.speed." + permission)
+					|| perm.startsWith("tempfly.speed." + wildcard)) {
 				Console.debug("found: " + perm);
 				String[] split = perm.split("\\.");
 				if (split.length < 5) {
@@ -860,6 +884,11 @@ public class FlightUser {
 	 * --=---------=--
 	 * 
 	 */
+	
+	
+	public boolean hasTimer() {
+		return this.timer != null;
+	}
 	
 	public abstract class TempFlyTimer extends BukkitRunnable {
 		
@@ -932,7 +961,7 @@ public class FlightUser {
 			// Update the players identifiers each tick as it isn't resource heavy it looks good.
 			doIdentifier();
 			// This line fixed an unknown confliction with another plugin on some guys server so i'l just leave it.
-			if (enabled) {p.setAllowFlight(true);}
+			//if (enabled) {p.setAllowFlight(true);}
 			
 			if (hasInfiniteFlight()) {
 				return;
@@ -1027,14 +1056,23 @@ public class FlightUser {
 		 * 
 		 * @return True if the timer should continue, false if it can switch to ground timer.
 		 */
+		private boolean messaged = false;
+		
 		private boolean doIdleCheck() {
 			if (isIdle()) {
 				if (V.idleDrop) {
 					disableFlight(0, !V.damageIdle);
 				}
-				U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
+				
+				if (!this.messaged) {
+					U.m(p, V.idleDrop ? V.disabledIdle : V.consideredIdle);
+					this.messaged = true;
+				}
 				return V.idleTimer;
+			} else {
+				this.messaged = false;
 			}
+			
 			return true;
 		}
 		
