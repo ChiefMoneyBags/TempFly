@@ -56,21 +56,21 @@ general:
   fly_override_permissions:
     - 'essentials.fly'
   
+  # This setting allows you to disable flight in specific worlds or regions.
   disabled:
     worlds:
       - 'example_world'
     regions:
       - 'example_region'
 
+  # This setting enables you to allow flight only in whitelisted worlds or regions.
   whitelist:
-    # If worlds are specified in the whitelist players will be denied from flying in non whitelisted worlds.
     worlds:
     # - 'world'
     
-    # If regions are specified in the whitelist players will be denied from flying in non whitelisted regions.
     regions:
     # - 'example_region'
-  
+
   timer:
     # If true the players timer will count down even when they have flight disabled.
     # If you want the time to count down while they are offline please see the feature "time_decay"
@@ -117,7 +117,7 @@ general:
 
     # The maximum y level a player can reach before flight is disabled.
     maximum_height: 275
-    # If true a user will start flying again when they no longer have flight requirements so long as their flight is enabled.
+    # If true a user will start flying again when they no longer have flight restrictions so long as their flight is enabled.
     # Example;
     # - A user flies into a disabled region and loses flight.
     # - If auto_fly is true they will fly again automatically without needing to use the fly command.
@@ -138,8 +138,16 @@ general:
       # If a player inherits more than 1 group the highest value will always be used.
       # The permission is "tempfly.max.[group]"
       groups:
-        member: 60
-        vip: 120
+        # member: 60
+        # vip: 120
+
+    # This setting allows you to give players infinite flight while they are in specific worlds or regions.
+    # Players do not need a permission to obtain infinite flight in these areas.
+    infinite:
+      worlds:
+        - 'example_world'
+      regions:
+        - 'example_region'
   
   bonus:
     # Time in seconds given to a player when they first join the server.

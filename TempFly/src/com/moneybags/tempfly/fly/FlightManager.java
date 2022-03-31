@@ -412,6 +412,7 @@ public class FlightManager implements Listener, Reloadable {
 		if (!from.getWorld().equals(to.getWorld()) || forceWorld) {
 			results.addAll((inquireFlight(user, to.getWorld())));
 			user.getEnvironment().asessRtWorld();
+			user.getEnvironment().asessInfiniteFlight();
 		}
 		// Check flight requirements at player location. Doesn't really do anything if
 		// no hooks are enabled.

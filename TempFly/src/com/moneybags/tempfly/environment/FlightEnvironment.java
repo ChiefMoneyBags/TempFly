@@ -35,6 +35,9 @@ public class FlightEnvironment implements RequirementProvider {
 	private List<String> whiteRegions = new ArrayList<>();
 	private List<String> whiteWorlds = new ArrayList<>();
 	
+	private List<String> freeRegions = new ArrayList<>();
+	private List<String> freeWorlds = new ArrayList<>();
+	
 	
 	
 	private float speedGlobal = 1;
@@ -126,6 +129,23 @@ public class FlightEnvironment implements RequirementProvider {
 		return whiteRegions.size() == 0 || whiteRegions.contains(region.getId());
 	}
 	
+	
+	
+	/**
+	 * 
+	 * --=---------=--
+	 *    infinite
+	 * --=---------=--
+	 * 
+	 */
+	
+	public boolean isInfinite(World world) {
+		return freeWorlds.contains(world.getName());
+	}
+	
+	public boolean isInfinite(CompatRegion region) {
+		return freeRegions.contains(region.getId());
+	}
 	
 	
 	/**
@@ -277,6 +297,12 @@ public class FlightEnvironment implements RequirementProvider {
 		whiteRegions = Files.config.contains("general.whitelist.regions") ? Files.config.getStringList("general.whitelist.regions") : new ArrayList<>();
 		whiteWorlds = Files.config.contains("general.whitelist.worlds") ? Files.config.getStringList("general.whitelist.worlds") : new ArrayList<>();
 	
+		whiteRegions = Files.config.contains("general.whitelist.regions") ? Files.config.getStringList("general.whitelist.regions") : new ArrayList<>();
+		whiteWorlds = Files.config.contains("general.whitelist.worlds") ? Files.config.getStringList("general.whitelist.worlds") : new ArrayList<>();
+		
+		freeRegions = Files.config.contains("general.time.infinite.regions") ? Files.config.getStringList("general.time.infinite.regions") : new ArrayList<>();
+		freeWorlds = Files.config.contains("general.time.infinite.worlds") ? Files.config.getStringList("general.time.infinite.worlds") : new ArrayList<>();
+		
 		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
 		if (csRtW != null) {
 			for (String s : csRtW.getKeys(false)) {
@@ -315,6 +341,8 @@ public class FlightEnvironment implements RequirementProvider {
 		}
 		
 		allowPreferredSpeed = Files.config.getBoolean("general.flight.speed.user_preference", true);
+		
+		
 	}
 	
 	

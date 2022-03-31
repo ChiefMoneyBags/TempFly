@@ -34,7 +34,6 @@ import com.wasteofplastic.askyblock.events.IslandPostLevelEvent;
  * Askyblock contains events for island enter and island exit. Therefore it will not need to initiate the
  * super island tracker in SkyblockHook.
  * 
- * This plugin was very easy to work with compared to newer / better plugins.
  * @author Kevin
  *
  */

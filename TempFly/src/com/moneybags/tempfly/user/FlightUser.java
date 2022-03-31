@@ -225,7 +225,7 @@ public class FlightUser {
 	 * @return true if the user has infinite flight and it is enabled.
 	 */
 	public boolean hasInfiniteFlight() {
-		return p.hasPermission("tempfly.infinite") && infinite;
+		return (p.hasPermission("tempfly.infinite") && infinite) || environment.hasInfiniteFlight();
 	}
 	
 	/**
@@ -999,7 +999,10 @@ public class FlightUser {
 				
 				manager.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, p.getUniqueId().toString()), time);	
 				
-				if (V.warningTimes.contains((long)time)) {TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time), timeManager.regexString(V.warningSubtitle, time));}
+				if (V.warningTimes.contains((long)time)) {
+					TitleAPI.sendTitle(p, 15, 30, 15, timeManager.regexString(V.warningTitle, time),
+							timeManager.regexString(V.warningSubtitle, time));
+				}
 				if (V.actionBar) {doActionBar();}
 				
 				if (time == 0) {

@@ -17,6 +17,8 @@ public class UserEnvironment {
 	private final FlightUser user;
 	private final FlightEnvironment environment;
 	
+	private boolean freeFlight;
+	
 	private final List<CompatRegion> encompassing = new LinkedList<>();
 	
 	private final List<RelativeTimeRegion> rtRegions = new ArrayList<>();
@@ -37,6 +39,7 @@ public class UserEnvironment {
 		Console.debug("--| Current regions: " + builder);
 		asessRtRegions();
 		asessRtWorld();
+		asessInfiniteFlight();
 	}
 	
 	public FlightUser getUser() {
@@ -62,6 +65,7 @@ public class UserEnvironment {
 		this.encompassing.clear();
 		this.encompassing.addAll(Arrays.asList(regions));
 		asessRtRegions();
+		asessInfiniteFlight();
 	}
 	
 	public boolean isInside(CompatRegion region) {
@@ -112,6 +116,26 @@ public class UserEnvironment {
 			}
 		}
 	}
+	
+	public void asessInfiniteFlight() {
+		if (environment.isInfinite(user.getPlayer().getWorld())) {
+			freeFlight = true;
+			return;
+		}
+		
+		for (CompatRegion r: encompassing) {
+			if (environment.isInfinite(r)) {
+				freeFlight = true;
+				return;
+			}
+		}
+		freeFlight = false;
+	}
+	
+	public boolean hasInfiniteFlight() {
+		return freeFlight;
+	}
+	
 
 	/**
 	 * @param regions The list of regions to check

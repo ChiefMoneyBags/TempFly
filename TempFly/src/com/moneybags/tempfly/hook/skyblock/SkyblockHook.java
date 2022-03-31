@@ -59,7 +59,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 	requireLevelSelf,
 	requireLevelOther,
 	requireChallengeSelf,
-	requireChallengeOther;
+	requireChallengeOther,
+	roleDenied;
 	
 	
 	private Map<SkyblockRequirementType, SkyblockRequirement[]> requirements;
@@ -103,6 +104,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		ConfigurationSection csPerms = config.getConfigurationSection(pathPerms);
 		if (csPerms != null) {
 			for (String key: csPerms.getKeys(false)) {
+				Console.debug("--| Loading default role permission: " + key);
 				basePerms.put(key.toUpperCase(), config.getBoolean(pathPerms + "." + key));
 			}	
 		}
@@ -113,6 +115,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		requireChallengeOther	= V.st(config, "language.requirements.challenge_other", name);
 		requireLevelSelf		= V.st(config, "language.requirements.level_self", name);
 		requireLevelOther		= V.st(config, "language.requirements.level_other", name);
+		roleDenied				= V.st(config, "language.requirements.role_denied", name);
 		
 		settingsHook			= config.getBoolean("gui.hook_settings.enabled");
 		settingsButton			= U.getConfigItem(config, "gui.hook_settings.button");
@@ -186,7 +189,12 @@ public abstract class SkyblockHook extends TempFlyHook {
 			path = path + "challenges";
 		}
 		List<SkyblockChallenge> challenges = new ArrayList<>();
-		if (csChallenges != null) {
+		if (config.getStringList(path).size() > 0) {
+			Console.debug("--|> Challenges are a StringList, Adding challenges based on completion...");
+			for (String challenge: config.getStringList(path)) {
+				challenges.add(new SkyblockChallenge(challenge, 0, 1));	
+			}
+		} else if (csChallenges != null) {
 			for (String key: csChallenges.getKeys(false)) {
 				Console.debug("--| loading SkyblockChallenge: " + key);
 				if (config.isConfigurationSection(path + "." + key)) {
@@ -254,7 +262,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			return false;
 		}
 		for (SkyblockRequirement require: getRequirements(type)) {
-			if (require.getName().equals(name)) {
+			if (require.getName().equals(name.toUpperCase())) {
 				return true;
 			}
 		}
@@ -263,7 +271,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	public SkyblockRequirement getRequirement(SkyblockRequirementType type, String name) {
 		for (SkyblockRequirement require: getRequirements(type)) {
-			if (require.getName().equals(name)) {
+			if (require.getName().equals(name.toUpperCase())) {
 				return require;
 			}
 		}
@@ -278,7 +286,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	private SkyblockTracker manualTracker = null;
 	private Map<Player, IslandWrapper> locationCache = new HashMap<>();
-	private Map<String, IslandWrapper> wrapperCache = new WeakHashMap<>();
+	private Map<String, IslandWrapper> wrapperCache = new HashMap<>();
 	
 	public void startManualTracking() {
 		Console.debug("---> (" + getHookName() + ") Started manual island tracking");
@@ -296,6 +304,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	public IslandWrapper getIslandWrapper(Object rawIsland) {
+		Console.debug(rawIsland, getIslandIdentifier(rawIsland));
 		if (rawIsland == null) {
 			return null;
 		}
@@ -306,6 +315,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 		} else {
 			 wrapper = wrapperCache.get(getIslandIdentifier(rawIsland));
 		}
+		Console.debug("raw island: " + rawIsland, wrapperCache);
 		return wrapper;
 	}
 	
@@ -315,18 +325,18 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * 
 	 * @param p The player who entered the island.
 	 * @param rawIsland The raw object representing the island. A wrapper will be created for it.
-	 * @param loc The location where the player entered the island.
+	 * @param loc Nullable, The location where the player entered the island.
 	 */
 	public void onIslandEnter(Player p, Object rawIsland, Location loc) {
 		if (V.debug) {
-			Console.debug("", "------ On Island Enter ------", "--| Player: " + p.getName());
+			Console.debug("", "------ On Island Enter ------", "--| Player: " + p.getName(), rawIsland);
 		}
 		if (rawIsland instanceof IslandWrapper) {
 			rawIsland = ((IslandWrapper)rawIsland).getRawIsland();
 		}
 		if (locationCache.containsKey(p)) {
 			// Player already being tracked.
-			if (locationCache.get(p).getRawIsland() == rawIsland) {
+			if (locationCache.get(p).getRawIsland().equals(rawIsland)) {
 				// Player is already on this island...
 				return;
 			}
@@ -335,7 +345,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			IslandWrapper island = locationCache.get(p);
 			locationCache.remove(p);
 			if(!locationCache.containsValue(island)) {
-				wrapperCache.remove(rawIsland);
+				wrapperCache.remove(getIslandIdentifier(rawIsland));
 			}
 		}
 		
@@ -485,6 +495,8 @@ public abstract class SkyblockHook extends TempFlyHook {
 	public Player[] getPlayersOn(IslandWrapper island) {
 		List<Player> players = new ArrayList<>();
 		for (Map.Entry<Player, IslandWrapper> entry: locationCache.entrySet()) {
+			Console.debug(entry,
+					island, entry.getValue());
 			if (entry.getValue().equals(island)) {
 				players.add(entry.getKey());
 			}
@@ -564,6 +576,24 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	/**
+	 * Evaluate and update flight restrictions for all players on an island. 
+	 * @param island
+	 */
+	public void evaluate(IslandWrapper island) {
+		Console.debug("----- evaluate island -----");
+		for (Player player: getPlayersOn(island)) {
+			Console.debug("--| Player: " + player.getUniqueId());
+			FlightUser user = getTempFly().getFlightManager().getUser(player);
+			if (user == null) {
+				//TODO why is this returning null users here.
+				return;
+			}
+			user.submitFlightResult(checkRoleRequirements(player.getUniqueId(), island));
+			user.evaluateFlightRequirement(this, player.getLocation());
+		}
+	}
+	
+	/**
 	 * Check all requirements for a player.
 	 * @param u The player trying to fly
 	 * @param loc The location they are trying to fly at.
@@ -591,7 +621,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 			Console.debug("", "--- SkyblockHook check role requirements ---", "--| Players Role: " + role, "--| Can role fly: " + settings.canFly(role));	
 		}
 		return !settings.canFly(role) ? new ResultDeny(DenyReason.DISABLED_REGION, this, InquiryType.OUT_OF_SCOPE,
-				V.requireFailDefault, true) :
+				roleDenied.replaceAll("\\{ROLE}", role), true) :
 			(hasRequirement(SkyblockRequirementType.ISLAND_ROLE, role)
 					? runRequirement(getRequirement(SkyblockRequirementType.ISLAND_ROLE, role), island, u)
 							.setInquiryType(InquiryType.OUT_OF_SCOPE)
