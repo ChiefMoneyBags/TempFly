@@ -1,6 +1,8 @@
 package com.moneybags.tempfly.hook.skyblock;
 
-public class IslandWrapper {
+import com.moneybags.tempfly.hook.TerritoryWrapper;
+
+public class IslandWrapper implements TerritoryWrapper {
 
 	private SkyblockHook hook;
 	private Object island;
@@ -12,8 +14,17 @@ public class IslandWrapper {
 		this.settings = new IslandSettings(this, hook);
 	}
 	
-	public Object getRawIsland() {
+	@Override
+	public Object getRawTerritory() {
 		return island;
+	}
+	
+	/**
+	 * Retain compatibility with versions before TerritoryHook was added
+	 * @return The raw island Object from the respective skyblock plugin.
+	 */
+	public Object getRawIsland() {
+		return getRawTerritory();
 	}
 	
 	public SkyblockHook getHook() {

@@ -23,7 +23,6 @@ public class IslandSettings {
 	private Map<String, Boolean> settings = new HashMap<>();
 	
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
-		Console.generateException("");
 		this.hook = hook;
 		this.island = island;
 		String id = hook.getIslandIdentifier(island.getRawIsland());

@@ -32,6 +32,8 @@ import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.TempFlyHook;
+import com.moneybags.tempfly.hook.TerritoryHook;
+import com.moneybags.tempfly.hook.TerritoryWrapper;
 import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
@@ -49,7 +51,7 @@ import com.moneybags.tempfly.util.V;
  * 2) Invoke the super methods onIslandEnter and onIslandExit when players enter and leave islands as well as onIslandLevelChange and onChallengeComplete.
  * 3) Profit?
  */
-public abstract class SkyblockHook extends TempFlyHook {
+public abstract class SkyblockHook extends TerritoryHook {
 
 	private Map<String, Boolean> basePerms;
 	private boolean wilderness, settingsHook;
@@ -71,12 +73,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 	
 	@Override
 	public void onTempflyReload() {
-		super.onTempflyReload();
 		loadValues();
-		for (FlightUser user: getTempFly().getFlightManager().getUsers()) {
-			user.submitFlightResult(checkFlightRequirements(user.getPlayer().getUniqueId(), user.getPlayer().getLocation()));
-		}
+		super.onTempflyReload();
 	}
+	
 	
 	@Override
 	public boolean initializeFiles() throws Exception {
@@ -279,44 +279,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}
 	
 	
-	/**
-	 * 
-	 * Island Settings
-	 * 
-	 */
-	private SkyblockTracker manualTracker = null;
-	private Map<Player, IslandWrapper> locationCache = new HashMap<>();
-	private Map<String, IslandWrapper> wrapperCache = new HashMap<>();
-	
-	public void startManualTracking() {
-		Console.debug("---> (" + getHookName() + ") Started manual island tracking");
-		if (manualTracker == null) {
-			manualTracker = new SkyblockTracker(this);
-		}
-	}
-	
-	public void stopManualTracking() {
-		Console.debug("---> (" + getHookName() + ") Stopped manual island tracking");
-		if (manualTracker != null) {
-			manualTracker.unregister();
-			manualTracker = null;
-		}
-	}
+
 	
 	public IslandWrapper getIslandWrapper(Object rawIsland) {
-		Console.debug(rawIsland, getIslandIdentifier(rawIsland));
-		if (rawIsland == null) {
-			return null;
-		}
-		IslandWrapper wrapper;
-		if (!wrapperCache.containsKey(getIslandIdentifier(rawIsland))) {
-			wrapper = new IslandWrapper(rawIsland, this);
-			wrapperCache.put(getIslandIdentifier(rawIsland), wrapper);
-		} else {
-			 wrapper = wrapperCache.get(getIslandIdentifier(rawIsland));
-		}
-		Console.debug("raw island: " + rawIsland, wrapperCache);
-		return wrapper;
+		return (IslandWrapper) super.getTerritoryWrapper(rawIsland);
 	}
 	
 	/**
@@ -328,36 +294,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @param loc Nullable, The location where the player entered the island.
 	 */
 	public void onIslandEnter(Player p, Object rawIsland, Location loc) {
-		if (V.debug) {
-			Console.debug("", "------ On Island Enter ------", "--| Player: " + p.getName(), rawIsland);
-		}
-		if (rawIsland instanceof IslandWrapper) {
-			rawIsland = ((IslandWrapper)rawIsland).getRawIsland();
-		}
-		if (locationCache.containsKey(p)) {
-			// Player already being tracked.
-			if (locationCache.get(p).getRawIsland().equals(rawIsland)) {
-				// Player is already on this island...
-				return;
-			}
-			// Player is now on 2 islands at once, this is a bug.
-			Console.severe("If you are seeing this message there may be a bug. Please contact the tempfly dev with this info: SkyblockHook | onIslandEnter()");
-			IslandWrapper island = locationCache.get(p);
-			locationCache.remove(p);
-			if(!locationCache.containsValue(island)) {
-				wrapperCache.remove(getIslandIdentifier(rawIsland));
-			}
-		}
-		
-		IslandWrapper island = getIslandWrapper(rawIsland);
-		if (V.debug) {Console.debug("--|> Island Identifier: " + getIslandIdentifier(rawIsland), "------ End Island Enter ------", "");}
-		
-		locationCache.put(p, island);
-		FlightUser user = tempfly.getFlightManager().getUser(p);
-		if (user == null) {
-			return;
-		}
-		user.submitFlightResult(checkFlightRequirements(p.getUniqueId(), island));
+		super.onTerritoryEnter(p, rawIsland, loc);
 	}
 	
 	/**
@@ -367,66 +304,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @param p The player who entered the island.
 	 */
 	public void onIslandExit(final Player p) {
-		if (V.debug) {
-			Console.debug("", "------ On Island Exit ------", "--| Player: " + p.getName());
-		}
-		if (locationCache.containsKey(p)) {
-			IslandWrapper currentIsland = locationCache.get(p);
-			locationCache.remove(p);
-			if(!locationCache.containsValue(currentIsland)) {
-				wrapperCache.remove(getIslandIdentifier(currentIsland.getRawIsland()));
-			}
-			if (V.debug) {Console.debug("--|> Island Identifier: " + getIslandIdentifier(currentIsland.getRawIsland()), "------ End Island Exit ------", "");}
-		}
-		// On island exit i will wait 1 tick then check if the player still has this requirement.
-		// If they are no longer on an island it will be removed.
-		final RequirementProvider provider = this;
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (!p.isOnline()) {
-					return;
-				}
-				FlightUser user = tempfly.getFlightManager().getUser(p);
-				if (user == null) {
-					return;
-				}
-				if (user.hasFlightRequirement(provider, InquiryType.OUT_OF_SCOPE) && !locationCache.containsKey(user.getPlayer())) {
-					user.submitFlightResult(new ResultAllow(provider, InquiryType.OUT_OF_SCOPE, V.requirePassDefault));
-				}
-			}
-		}.runTaskLater(tempfly, 1);
-	}
-	
-	/**
-	 * This method is used for plugins that do not have internal island tracking or events
-	 * such as IridiumSkyblock where we will need to process the player locations ourselves. Onn player teleport, player respawn etc.
-	 * @param p The player to update.
-	 * @param loc The new location of the player.
-	 */
-	public void updateLocation(Player p, Location loc) {
-		if (isCurrentlyTracking(p)) {
-			Console.debug("--| Player is being tracked");
-			IslandWrapper island = getTrackedIsland(p);
-			if (!isInIsland(island, loc)) {
-				Console.debug("--|> Player is no longer on the same island");
-				onIslandExit(p);
-			}
-		}
-		if (!isIslandWorld(loc)) {
-			Console.debug("--| Player not in an island world");
-			return;
-		}
-		IslandWrapper island = getIslandAt(loc);
-		
-		if (island == null) {
-			Console.debug("--| Player is not on an island");
-			return;
-		}
-		if (!isCurrentlyTracking(p)) {
-			Console.debug("--|> Player is on a new island!");
-			onIslandEnter(p, island.getRawIsland(), loc);	
-		}
+		super.onTerritoryExit(p);
 	}
 	
 	/**
@@ -485,63 +363,17 @@ public abstract class SkyblockHook extends TempFlyHook {
 		FlightUser user = getTempFly().getFlightManager().getUser(p);
 		user.submitFlightResult(checkRoleRequirements(p.getUniqueId(), island));
 		user.evaluateFlightRequirement(this, p.getLocation());
+		
+		this.getPlayersOn(new IslandWrapper(island, null));
 	}
 	
-	/**
-	 * Get all the players that are currently being tracked on an island.
-	 * @param island The island in question
-	 * @return All the players currently on the island.
-	 */
-	public Player[] getPlayersOn(IslandWrapper island) {
-		List<Player> players = new ArrayList<>();
-		for (Map.Entry<Player, IslandWrapper> entry: locationCache.entrySet()) {
-			Console.debug(entry,
-					island, entry.getValue());
-			if (entry.getValue().equals(island)) {
-				players.add(entry.getKey());
-			}
-		}
-		return players.toArray(new Player[players.size()]);
-	}
-	
-	/**
-	 * @return true if the player is currently being tracked on an island
-	 */
-	public boolean isCurrentlyTracking(Player p) {
-		return locationCache.containsKey(p);
-	}
-	
-	/**
-	 * @return The island the player is currently being tracked on.
-	 */
-	public IslandWrapper getTrackedIsland(Player p) {
-		return locationCache.get(p);
-	}
-	
+
 	@Override
-	public void onUserInitialized(FlightUser user) {
-		Console.debug("", "-- on user initialized --");
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if (!isCurrentlyTracking(user.getPlayer())) {
-					IslandWrapper island = getIslandAt(user.getPlayer().getLocation());
-					if (island != null) {
-						onIslandEnter(user.getPlayer(), island.getRawIsland(), user.getPlayer().getLocation());
-					}
-				}
-			}
-		}.runTaskLater(getTempFly(), 5);
+	public TerritoryWrapper createTerritoryWrapper(Object rawTerritory, TerritoryHook hook) {
+		return new IslandWrapper(rawTerritory, this);
 	}
 	
-	@Override
-	public void onUserQuit(FlightUser user) {
-		Player p = user.getPlayer();
-		IslandWrapper island = getIslandAt(p.getLocation());
-		if (island != null) {
-			onIslandExit(p);
-		}
-	}
+	
 	
 	/**
 	 * 
@@ -591,6 +423,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 			user.submitFlightResult(checkRoleRequirements(player.getUniqueId(), island));
 			user.evaluateFlightRequirement(this, player.getLocation());
 		}
+	}
+	
+	@Override
+	public FlightResult checkFlightRequirements(UUID playerId, TerritoryWrapper territory) {
+		return checkFlightRequirements(playerId, (IslandWrapper) territory);
 	}
 	
 	/**
@@ -775,45 +612,7 @@ public abstract class SkyblockHook extends TempFlyHook {
 	}};
 	}
 	
-	private class SkyblockTracker implements Listener {
-		private SkyblockHook hook;
-		
-		public SkyblockTracker(SkyblockHook hook) {
-			this.hook = hook;
-			hook.getTempFly().getServer().getPluginManager().registerEvents(this, hook.getTempFly());
-		}
-		
-		public void unregister() {
-			PlayerMoveEvent.getHandlerList().unregister(this);
-			PlayerRespawnEvent.getHandlerList().unregister(this);
-			PlayerTeleportEvent.getHandlerList().unregister(this);
-			PlayerChangedWorldEvent.getHandlerList().unregister(this);
-		}
-		
-		@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-		public void on(PlayerMoveEvent e) {
-			Location to = e.getTo();
-			if (e.getFrom().getBlock().equals(to.getBlock())) {
-				return;
-			}
-			hook.updateLocation(e.getPlayer(), e.getTo());
-		}
-		
-		@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-		public void on(PlayerRespawnEvent e) {
-			hook.updateLocation(e.getPlayer(), e.getRespawnLocation());
-		}
-		
-		@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-		public void on(PlayerTeleportEvent e) {
-			hook.updateLocation(e.getPlayer(), e.getTo());
-		}
-		
-		@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
-		public void on(PlayerChangedWorldEvent e) {
-			hook.updateLocation(e.getPlayer(), e.getPlayer().getLocation());
-		}
-	}
+	
 	
 	/**
 	 * 
@@ -862,6 +661,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	public abstract IslandWrapper getIslandAt(Location loc);
 
+	@Override
+	public TerritoryWrapper getTerritoryAt(Location loc) {
+		return getIslandAt(loc);
+	}
+	
 	/**
 	 * @param loc The location to check.
 	 * @return True if the world given contains islands.
@@ -918,6 +722,11 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 */
 	public abstract String getIslandIdentifier(Object rawIsland);
 	
+	@Override
+	public String getTerritoryIdentifier(Object rawTerritory) {
+		return getIslandIdentifier(rawTerritory);
+	}
+	
 	/**
 	 * Get an island from its identifier.
 	 * @param identifier
@@ -961,5 +770,10 @@ public abstract class SkyblockHook extends TempFlyHook {
 	 * @return True if the location specified is within the boundries of the island given.
 	 */
 	public abstract boolean isInIsland(IslandWrapper island, Location loc);
+	
+	@Override
+	public boolean isInTerritory(TerritoryWrapper territory, Location loc) {
+		return isInIsland((IslandWrapper) territory, loc);
+	}
 	
 }
