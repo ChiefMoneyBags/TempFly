@@ -23,6 +23,7 @@ public class IslandSettings {
 	private Map<String, Boolean> settings = new HashMap<>();
 	
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
+		Console.generateException("");
 		this.hook = hook;
 		this.island = island;
 		String id = hook.getIslandIdentifier(island.getRawIsland());
@@ -45,10 +46,12 @@ public class IslandSettings {
 	}
 	
 	public boolean canFly(String role) {
+		role = role.toUpperCase();
 		return role.equalsIgnoreCase("OWNER") ? true : settings.getOrDefault(role, hook.getDefaults().getOrDefault(role, false));
 	}
 	
 	public void setCanFly(String role, boolean canFly) {
+		role = role.toUpperCase();
 		if (role.equals("OWNER")) {
 			return;
 		}
@@ -56,16 +59,19 @@ public class IslandSettings {
 				"currently: " + canFly(role),
 				"mapped settings contains: " + settings.containsKey(role));
 		settings.put(role, canFly);
+		hook.evaluate(island);
 		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island), role), canFly, hook);
 	}
 	
 	public void toggleCanFly(String role) {
+		role = role.toUpperCase();
 		if (role.equals("OWNER")) {
 			return;
 		}
 		if (V.debug) {Console.debug("-- Set flight for: " + role, "--| currently: " + canFly(role), "--| mapped settings contains: " + settings.containsKey(role));}
 		boolean canFly = !canFly(role);
 		settings.put(role, canFly);
+		hook.evaluate(island);
 		hook.getTempFly().getDataBridge().stageChange(DataPointer.of(DataValue.ISLAND_SETTING, hook.getIslandIdentifier(island.getRawIsland()), role), canFly, hook);
 	}
 	
@@ -73,6 +79,7 @@ public class IslandSettings {
 		Map<String, Boolean> state = new HashMap<>();
 		state.putAll(settings);
 		for (String role: hook.getRoles()) {
+			role = role.toUpperCase();
 			if (!role.equalsIgnoreCase("OWNER") && !state.containsKey(role)) {
 				state.put(role, hook.getDefaults().getOrDefault(role, false));
 			}

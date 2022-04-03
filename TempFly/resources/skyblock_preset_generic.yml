@@ -129,6 +129,7 @@ language:
     # Levels support the placeholders; {LEVEL} | {ROLE}
     level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
     level_other: "{PREFIX} &cThis island does not meet the level requirement for &f{ROLE}'s &cto fly!"
+    role_denied: "{PREFIX} &cThis island does not allow &f{ROLE}'s &cto fly!"
 
 gui:
   # This setting will allow you to place a button inside the island settings panel for your respective
