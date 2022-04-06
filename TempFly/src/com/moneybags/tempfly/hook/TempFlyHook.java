@@ -12,11 +12,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.CommandManager;
 import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.HookManager.Genre;
+import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.Reloadable;
@@ -46,7 +49,9 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 			e.printStackTrace();
 			return;
 		}
-		initializeHook();
+		if (initializeHook()) {
+			setEnabled(true);
+		}
 	}
 	
 	public boolean isEnabled() {
@@ -130,6 +135,10 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	public TempFly getTempFly() {
 		return tempfly;
+	}
+	
+	public FlightUser getUser(Player p) {
+		return getTempFly().getFlightManager().getUser(p);
 	}
 	
 	public String getHookedPlugin() {

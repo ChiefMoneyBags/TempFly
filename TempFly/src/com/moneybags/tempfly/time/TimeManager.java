@@ -333,6 +333,9 @@ public class TimeManager implements Listener {
 	public String getPlaceHolder(Player p, Placeholder type) {
 		double supply = getTime(p.getUniqueId());
 		FlightUser user = tempfly.getFlightManager().getUser(p);
+		if (user == null) {
+			return "broken message";
+		}
 		switch (type) {
 		case TIME_FORMATTED:
 		{

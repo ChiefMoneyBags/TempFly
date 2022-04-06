@@ -103,6 +103,10 @@ public abstract class TerritoryHook extends TempFlyHook {
 		user.submitFlightResult(checkFlightRequirements(p.getUniqueId(), territory));
 	}
 	
+	public void evaluate(Player p) {
+		getUser(p).submitFlightResult(checkFlightRequirements(p.getUniqueId(), p.getLocation()));
+	}
+	
 	public abstract FlightResult checkFlightRequirements(UUID playerId, Location loc);
 	
 	public abstract FlightResult checkFlightRequirements(UUID playerId, TerritoryWrapper territory);
@@ -157,7 +161,6 @@ public abstract class TerritoryHook extends TempFlyHook {
 		} else {
 			 wrapper = wrapperCache.get(getTerritoryIdentifier(rawTerritory));
 		}
-		Console.debug("raw territory: " + rawTerritory, wrapperCache);
 		return wrapper;
 	}
 	

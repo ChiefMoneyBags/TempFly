@@ -31,6 +31,7 @@ import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
+import com.moneybags.tempfly.hook.IslandSettings;
 import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.TerritoryHook;
 import com.moneybags.tempfly.hook.TerritoryWrapper;

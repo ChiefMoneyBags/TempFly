@@ -55,7 +55,6 @@ public class IridiumHook extends SkyblockHook implements Listener {
         if (super.initializeHook()) {
             getTempFly().getServer().getPluginManager().registerEvents(this, getTempFly());
             startManualTracking();
-            setEnabled(true);
             return true;
         }
         return false;

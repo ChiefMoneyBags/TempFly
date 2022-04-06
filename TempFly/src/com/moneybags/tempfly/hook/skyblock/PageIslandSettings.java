@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
+import com.moneybags.tempfly.hook.IslandSettings;
 import com.moneybags.tempfly.util.CompatMaterial;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;

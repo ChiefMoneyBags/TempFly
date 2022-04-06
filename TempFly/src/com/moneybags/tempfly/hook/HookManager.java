@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.hook.factions.plugins.FactionsUUIDHook;
 import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
@@ -203,7 +204,7 @@ public class HookManager implements Reloadable {
 	public static enum Genre {
 		SKYBLOCK("SkyBlock", AskyblockHook.class, IridiumHook.class, BskyblockHook.class, SuperiorHook.class),
 		LANDS("Lands"),
-		FACTIONS("Factions"),
+		FACTIONS("Factions", FactionsUUIDHook.class),
 		OTHER("Other");
 		
 		private String folder;

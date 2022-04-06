@@ -4,8 +4,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 
 import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
+import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Reloadable;
 
 public interface RequirementProvider extends Reloadable {
@@ -16,7 +18,9 @@ public interface RequirementProvider extends Reloadable {
 	 * @param regions
 	 * @return
 	 */
-	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions) {return null;}
+	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion[] regions) {
+		return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
+	}
 	
 	/**
 	 * Inquire whether a player can fly within a specific regions.
@@ -24,7 +28,9 @@ public interface RequirementProvider extends Reloadable {
 	 * @param regions
 	 * @return
 	 */
-	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {return null;}
+	public default FlightResult handleFlightInquiry(FlightUser user, CompatRegion r) {
+		return new ResultAllow(this, InquiryType.REGION, V.requirePassDefault);
+	}
 
 	/**
 	 * Inquire whether a player can fly within a given world.
@@ -32,7 +38,9 @@ public interface RequirementProvider extends Reloadable {
 	 * @param regions
 	 * @return
 	 */
-	public default FlightResult handleFlightInquiry(FlightUser user, World world) {return null;}
+	public default FlightResult handleFlightInquiry(FlightUser user, World world) {
+		return new ResultAllow(this, InquiryType.WORLD, V.requirePassDefault);
+	}
 	
 	/**
 	 * Inquire whether a player can fly at a given location.
@@ -40,7 +48,9 @@ public interface RequirementProvider extends Reloadable {
 	 * @param regions
 	 * @return
 	 */
-	public default FlightResult handleFlightInquiry(FlightUser user, Location loc) {return null;}
+	public default FlightResult handleFlightInquiry(FlightUser user, Location loc) {
+		return new ResultAllow(this, InquiryType.LOCATION, V.requirePassDefault);
+	}
 
 	/**
 	 * Called when a player joins the server and their flight user is done being initialized.
@@ -62,7 +72,9 @@ public interface RequirementProvider extends Reloadable {
 	 * it has nothing to do with combat.
 	 * @return true if tempfly should let the RequirementProvider handle its own location.
 	 */
-	public abstract boolean handles(InquiryType type);
+	public default boolean handles(InquiryType type) {
+		return true;
+	}
 
 	/**
 	 * 

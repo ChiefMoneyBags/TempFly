@@ -65,6 +65,11 @@
         </repository>
 
         <repository>
+            <id>factionsuuid</id>
+            <url>https://ci.ender.zone/plugin/repository/everything/</url>
+        </repository>		
+
+        <repository>
             <id>sk89q-repo</id>
             <url>https://maven.enginehub.org/repo/</url>
         </repository>
@@ -163,5 +168,13 @@
             <scope>provided</scope>
         </dependency>
 
+		<!-- Factions Plugins -->
+
+        <dependency>
+        	<groupId>com.massivecraft</groupId>
+        	<artifactId>Factions</artifactId>
+        	<version>1.6.9.5-U0.6.8</version>
+			<scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

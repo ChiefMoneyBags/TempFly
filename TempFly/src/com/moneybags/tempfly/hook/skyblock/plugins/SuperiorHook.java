@@ -84,7 +84,6 @@ public class SuperiorHook extends SkyblockHook implements Listener {
 		}
 		this.roles = roles.toArray(new String[roles.size()]);
 		
-		setEnabled(true);
 		return true;
 	}
 

@@ -1,5 +1,6 @@
 package com.moneybags.tempfly.hook.skyblock;
 
+import com.moneybags.tempfly.hook.IslandSettings;
 import com.moneybags.tempfly.hook.TerritoryWrapper;
 
 public class IslandWrapper implements TerritoryWrapper {
