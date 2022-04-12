@@ -63,7 +63,6 @@ public class AskyblockHook extends SkyblockHook implements Listener {
 		
 		if (super.initializeHook()) {
 			tempfly.getServer().getPluginManager().registerEvents(this, tempfly);
-			setEnabled(true);
 			return true;
 		}
 		return false;

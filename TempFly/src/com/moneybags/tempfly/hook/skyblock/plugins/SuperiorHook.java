@@ -1,6 +1,5 @@
 package com.moneybags.tempfly.hook.skyblock.plugins;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -18,7 +17,6 @@ import com.bgsoftware.superiorskyblock.api.events.IslandEnterEvent;
 import com.bgsoftware.superiorskyblock.api.events.IslandLeaveEvent;
 import com.bgsoftware.superiorskyblock.api.events.IslandWorthUpdateEvent;
 import com.bgsoftware.superiorskyblock.api.events.MissionCompleteEvent;
-import com.bgsoftware.superiorskyblock.api.handlers.RolesManager;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.PlayerRole;
 import com.bgsoftware.superiorskyblock.api.missions.Mission;
@@ -81,7 +79,7 @@ public class SuperiorHook extends SkyblockHook implements Listener {
 		}
 		this.roles = roles.toArray(new String[roles.size()]);
 		
-		setEnabled(true);
+		
 		return true;
 	}
 
@@ -192,11 +190,15 @@ public class SuperiorHook extends SkyblockHook implements Listener {
 
 	@Override
 	public double getIslandLevel(UUID playerId) {
-		return getIslandLevel(getTeamIsland(playerId));
+		IslandWrapper island = getTeamIsland(playerId);
+		return island == null ? 0 : getIslandLevel(island);
 	}
 
 	@Override
 	public double getIslandLevel(IslandWrapper island) {
+		if (island == null) {
+			return 0;
+		}
 		return ((Island) island.getRawIsland()).getIslandLevel().doubleValue();
 	}
 

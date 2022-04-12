@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
 
 import com.moneybags.tempfly.util.U;
+import com.moneybags.tempfly.util.V;
 
 public class TempFlyTabCompleter implements TabCompleter, Listener {
 	
@@ -29,6 +30,9 @@ public class TempFlyTabCompleter implements TabCompleter, Listener {
 	
 	@Override
 	public List<String> onTabComplete(CommandSender s, Command cmd, String label, String[] args) {
+		if (V.disableTab && !U.hasPermission(s, "tempfly.disable_tab.bypass")) {
+			return new ArrayList<>();
+		}
 		if (args.length == 0) {
 			return manager.getAllCommandBases();
 		} else if (args.length == 1) {

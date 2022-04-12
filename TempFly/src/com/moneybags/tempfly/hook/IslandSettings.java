@@ -1,4 +1,4 @@
-package com.moneybags.tempfly.hook.skyblock;
+package com.moneybags.tempfly.hook;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.DataFormatException;
 
+import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
+import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
@@ -23,7 +25,6 @@ public class IslandSettings {
 	private Map<String, Boolean> settings = new HashMap<>();
 	
 	public IslandSettings(IslandWrapper island, SkyblockHook hook) {
-		Console.generateException("");
 		this.hook = hook;
 		this.island = island;
 		String id = hook.getIslandIdentifier(island.getRawIsland());

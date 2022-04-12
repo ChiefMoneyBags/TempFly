@@ -176,7 +176,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
 		if (V.debug) {
-			Console.debug(""); Console.debug("-----------Staging new change-----------"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | ")); Console.debug("--| Data: " + String.valueOf(data));
+			//Console.debug(""); Console.debug("-----------Staging new change-----------"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | ")); Console.debug("--| Data: " + String.valueOf(data));
 		}
 		
 		changes.put(pointer, new StagedChange(value, data, path, fileHolder));
@@ -194,7 +194,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 		}
 		changes.add(new StagedChange(value, data, path, fileHolder));
 		*/
-		Console.debug("-----------End of stage-----------");
+		//Console.debug("-----------End of stage-----------");
 	}
 
 	/**
@@ -428,6 +428,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 			Console.debug("--| Using SQL");
 			String table = value.getTable().getSqlTable();
 			
+			@SuppressWarnings("unused")
 			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table + " WHERE " + path[0] + "=" + path[1];
 		}
 		return null;

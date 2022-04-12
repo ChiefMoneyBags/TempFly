@@ -12,11 +12,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.CommandManager;
 import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.HookManager.Genre;
+import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.Files;
 import com.moneybags.tempfly.util.data.Reloadable;
@@ -33,10 +37,31 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	private FileConfiguration hookConfig;
 	
+	@SuppressWarnings("unchecked")
 	public TempFlyHook(TempFly tempfly) {
 		this.target = getPluginName();
 		this.tempfly = tempfly;
-		if (Bukkit.getPluginManager().getPlugin(target) == null) {
+		
+		Console.debug("--| Trying to load hook: " + getHookName());
+		
+		if (getTargetClass() != null) {
+			Console.debug("--| Using plugins declared class as a target...", "--| Class: " + getTargetClass());
+			try {
+				Class<?> clazz = Class.forName(getTargetClass());
+				Console.debug("--| Found class...");
+				if (!JavaPlugin.class.isAssignableFrom(clazz)) {
+					Console.debug("--| Target class is not a JavaPlugin...");
+					return;
+				}
+				if (JavaPlugin.getPlugin((Class<JavaPlugin>) clazz) == null) {
+					Console.debug("--| Target plugin is not present...");
+					return;
+				}
+			} catch (ClassNotFoundException e) {
+				return;
+			}	
+		} else if (Bukkit.getPluginManager().getPlugin(target) == null) {
+			Console.debug("--| Plugin (" + target + ") is not present...");
 			return;
 		}
 		
@@ -46,7 +71,9 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 			e.printStackTrace();
 			return;
 		}
-		initializeHook();
+		if (initializeHook()) {
+			setEnabled(true);
+		}
 	}
 	
 	public boolean isEnabled() {
@@ -87,6 +114,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	    	Files.createConfig(tempfly.getResource(getEmbeddedConfigName() + ".yml"), hookConfigf);
 	    }
 	    
+	    Console.debug("--<[ loading config into memory...");
 	    hookConfig = new YamlConfiguration();
     	hookConfig.load(hookConfigf);
 		if (!hookConfig.getBoolean("enable_hook")) {
@@ -99,6 +127,10 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	
 	public void initializeData() throws IOException, InvalidConfigurationException, SQLException {
 		Console.debug("--<[ Initializing hook data...");
+		if (!needsDataFile()) {
+			Console.debug("--| This hook does not require a data file.");
+			return;
+		}
 		Connection connection;
 		if ((connection = tempfly.getDataBridge().getConnection()) == null) {
 			File hookDataf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory() + File.separator + getDataName() + "_data.yml");
@@ -132,6 +164,10 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		return tempfly;
 	}
 	
+	public FlightUser getUser(Player p) {
+		return getTempFly().getFlightManager().getUser(p);
+	}
+	
 	public String getHookedPlugin() {
 		return target;
 	}
@@ -139,6 +175,8 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	public FileConfiguration getConfig() {
 		return hookConfig;
 	}
+	
+	public abstract boolean needsDataFile();
 	
 	@Override
 	public void onTempflyReload() {
@@ -209,5 +247,13 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	@Override
 	public void saveData() {
 		try { data.save(dataf); } catch (Exception e) {e.printStackTrace();}
+	}
+	
+	/**
+	 * Needed to differentiate between plugins that have identical names.
+	 * @return
+	 */
+	public String getTargetClass() {
+		return null;
 	}
 }

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ChiefBeef</groupId>
     <artifactId>TempFly</artifactId>
-    <version>3.1.4</version>
+    <version>3.1.5</version>
     <build>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
@@ -63,6 +63,11 @@
             <id>placeholderapi</id>
             <url>http://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
+
+        <repository>
+            <id>factionsuuid</id>
+            <url>https://ci.ender.zone/plugin/repository/everything/</url>
+        </repository>		
 
         <repository>
             <id>sk89q-repo</id>
@@ -163,5 +168,13 @@
             <scope>provided</scope>
         </dependency>
 
+		<!-- Factions Plugins -->
+
+        <dependency>
+        	<groupId>com.massivecraft</groupId>
+        	<artifactId>Factions</artifactId>
+        	<version>1.6.9.5-U0.6.8</version>
+			<scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

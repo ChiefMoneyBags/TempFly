@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
 import com.moneybags.tempfly.TempFly;
+import com.moneybags.tempfly.hook.factions.plugins.FactionsUUIDHook;
 import com.moneybags.tempfly.hook.region.RegionProvider;
 import com.moneybags.tempfly.hook.region.plugins.WorldGuardHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.AskyblockHook;
@@ -135,7 +136,16 @@ public class HookManager implements Reloadable {
 			Console.debug("", "--< Loading: " + genre.toString());
 			for (Class<?> clazz: genre.getInternalClasses()) {
 				Console.debug("", "----< Class: " + clazz.getName());
-				try {hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin); Console.debug("----< Enabled: " + hook.isEnabled());} catch (Exception e) {e.printStackTrace();}
+				try {
+					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
+					Console.debug("----< Enabled: " + hook.isEnabled());
+				} catch (Exception e) {
+					e.printStackTrace();
+				} catch (Error e) {
+					if (V.debug) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		Console.debug("--------Loading Genre Hooks End--------", "");
@@ -203,7 +213,7 @@ public class HookManager implements Reloadable {
 	public static enum Genre {
 		SKYBLOCK("SkyBlock", AskyblockHook.class, IridiumHook.class, BskyblockHook.class, SuperiorHook.class),
 		LANDS("Lands"),
-		FACTIONS("Factions"),
+		FACTIONS("Factions", FactionsUUIDHook.class),
 		OTHER("Other");
 		
 		private String folder;
@@ -232,6 +242,7 @@ public class HookManager implements Reloadable {
 	public void onTempflyReload() {
 		for (Entry<Genre, List<TempFlyHook>> entry: hooks.entrySet()) {
 			for (TempFlyHook hook: entry.getValue()) {
+				Console.debug("Preparing to reload hook: " + hook.getHookName());
 				((Reloadable)hook).onTempflyReload();
 			}
 		}

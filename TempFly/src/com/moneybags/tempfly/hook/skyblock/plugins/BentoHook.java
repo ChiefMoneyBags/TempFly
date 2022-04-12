@@ -26,12 +26,7 @@ import world.bentobox.bentobox.api.user.User;
 import world.bentobox.bentobox.database.objects.Island;
 
 /**
- * - Dev Notes -
- * BentoBox uses its own ClassLoader for its addons and does not register the classes it loads into 
- * the Bukkit ClassLoader. This causes ClassNotFound exceptions whenever i try to use addon objects
- * from BentoBox in a normal fashion. Therefore i have taken to using reflection to access them in this hook.
- * 
- * In addition BentoBox does not include built in island tracking or events for player location and islands
+ * BentoBox does not include built in island tracking or events for player location and islands
  * so BentoBoxHook will initiate the super tracker in SkyblockHook.
  * @author Kevin
  *
@@ -51,7 +46,6 @@ public abstract class BentoHook extends SkyblockHook implements Listener {
 		if (super.initializeHook()) {
 			getTempFly().getServer().getPluginManager().registerEvents(this, getTempFly());
 			startManualTracking();
-			setEnabled(true);
 			return true;
 		}
 		return false;

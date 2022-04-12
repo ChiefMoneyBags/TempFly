@@ -120,7 +120,6 @@ public class V {
 	vaultPermsRequired;
 
 	public static boolean
-	debug,
 	permaTimer,
 	groundTimer,
 	creativeTimer,
@@ -159,7 +158,9 @@ public class V {
 	hideVanish,
 	shop,
 	
+	debug,
 	disableTracker,
+	disableTab,
 	
 	bugInfiniteA,
 	bugInfiniteB;
@@ -334,7 +335,11 @@ public class V {
 		}
 		
 		
+		save 				= config.getInt("system.backup", 5);
 		debug 				= config.getBoolean("system.debug");
+		disableTracker		= config.getBoolean("system.disable_region_tracking");
+		disableTab			= config.getBoolean("system.disable_tab");
+		
 		permaTimer			= config.getBoolean("general.timer.constant");
 		groundTimer			= config.getBoolean("general.timer.ground");
 		creativeTimer		= config.getBoolean("general.timer.creative");
@@ -343,7 +348,6 @@ public class V {
 		idleDrop			= config.getBoolean("general.idle.drop_player");
 		idleThreshold 		= config.getInt("general.idle.threshold");
 		payable				= config.getBoolean("general.time.payable");
-		save 				= config.getInt("system.backup", 5);
 		particles			= config.getBoolean("aesthetic.identifier.particles.enabled");
 		particleType		= config.getString("aesthetic.identifier.particles.type", "VILLAGER_HAPPY");
 		particleDefault		= config.getBoolean("aesthetic.identifier.particles.display_by_default");
@@ -369,7 +373,6 @@ public class V {
 		firstJoinTime		= config.getLong("general.bonus.first_join", 0);
 		legacyBonus			= config.getLong("general.bonus.daily_login", 0);
 		shop				= config.getBoolean("shop.general.enabled", false);
-		disableTracker		= config.getBoolean("system.disable_region_tracking");
 		
 		bugInfiniteA		= config.getBoolean("workarounds.infinite_flight.fix_a");
 		bugInfiniteB		= config.getBoolean("workarounds.infinite_flight.fix_b");

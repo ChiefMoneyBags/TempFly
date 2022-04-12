@@ -48,6 +48,8 @@ system:
   # If true tempfly will not track player regions. This can improve performance but will disable ALL
   # features of tempfly that rely on regions to function, such as disabled regions, relative time regions etc..
   disable_region_tracking: false
+  # If true this will disable all tab completions for tempfly commands
+  disable_tab: false
 
 general:
   # This feature prevents conflictions with other plugins fly features.
@@ -252,7 +254,7 @@ aesthetic:
     enabled: true
     # Supports placeholders for time.
     title: "&cWARNING!"
-    subtitle: "&fYou have &c{SECONDS} &fseconds of flight remaining!"
+    subtitle: "&fYou have {FORMATTED_TIME} &fof flight remaining!"
     # Time intervals in seconds to display the title to players.
     # ONLY use numbers
     seconds:

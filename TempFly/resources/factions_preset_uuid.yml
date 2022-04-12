@@ -1,0 +1,114 @@
+enable_hook: true
+
+##------------------------------------------------------------------##
+#|                Valid power requirements include                  |#
+##--------------------------+---------------------------------------##
+#| self_power_percentage    | The power of the home faction as a    |#
+#|                          | percentage of its max power           |#
+#| Effect: (>=)             | Home power must be _% or greater      |#
+#|                          | IE: 75 equals 75% or greater power    |#
+##--------------------------+---------------------------------------##
+#| foreign_power_percentage | The power of the foreign faction as a |#
+#|                          | percentage of its max power           |#
+#| Effect: (<=)             | Foreign power must be _% or less      |#
+#|                          | IE: 75 equals 75% or less power       |#
+##--------------------------+---------------------------------------##
+#| allied_power_percentage  | The power of the allied faction as a  |#
+#|                          | percentage of its max power           |#
+#| Effect: (>=)             | Ally's power must be _% or greater    |#
+#|                          | IE: 75 equals 75% or greater power    |#
+##--------------------------+---------------------------------------##
+#| self_power_absolute      | The power of the home faction as an   |#
+#|                          | absolute number                       |#
+#| Effect: (>=)             | Home power must be this or greater    |#
+#|                          | IE: 115 equals at least 115 power     |#
+##--------------------------+---------------------------------------##
+#| foreign_power_absolute   | The power of the foreign faction as   |#
+#|                          | an absolute number                    |#
+#| Effect: (<=)             | Foreign power must be this or less    |#
+#|                          | IE: 115 equals less than 75 power     |#
+##--------------------------+---------------------------------------##
+#| allied_power_absolute    | The power of the allied faction as    |#
+#|                          | an absolute number                    |#
+#| Effect: (>=)             | Ally's power must be this or greater  |#
+#|                          | IE: 115 equals at least 115 power     |#
+##--------------------------+---------------------------------------##
+
+# Allows you to configure fall damage for factions related flight restrictions.
+fall_damage:
+  # Should the player take fall damage if flight is lost due to power restrictions in the following territories?
+  power:
+    home: true
+    enemy: true
+    neutral: false
+    allied: true
+    wilderness: false
+
+  # Should the player take fall damage if they fall due to entering flight disabled territories?
+  disabled:
+    home: false
+    enemy: true
+    neutral: false
+    allied: false
+    wilderness: false
+
+language:
+  requirements:
+    illegal_territory: "{PREFIX} &f{ROLE}'s &cfrom your faction may not fly in &f{FACTION_NAME} &cland!"
+    power_self: "{PREFIX} &cYou must have at least &f{POWER} &cpower to fly in &f{FACTION_NAME} &cland!"
+    power_foreign: "{PREFIX} &cThe faction &f{FACTION_NAME} &cmust have less than &f{POWER} &cpower!"
+    power_allied: "{PREFIX} &cThe faction &f{FACTION_NAME} &cmust have at least &f{POWER} &cpower!"
+    faction_self: "{PREFIX} &cYou must be in a faction to fly in &f{FACTION_NAME} &cland!"
+
+# These are the base values regarding flight requirements for all faction roles.
+# If you do not want to use the power requirements you may remove them.
+# My default values are geared more towards ease of raiding rather than ease of defense.
+base_requirements:
+  home:
+    # If false players will never be allowed to fly in home territory.
+    allowed: true
+    # To fly in home faction land, the players faction must have at least this much power.
+    home_power_percentage: 65
+
+  enemy:
+    # If false players will never be allowed to fly in enemy land
+    allowed: true
+    # To fly in enemy land the players faction must have at least this much power
+    home_power_percentage: 50
+    # To fly in enemy land the enemy faction must be weakened to this amount or less before flight is allowed in their land.
+    # This setting may also be applied to neutal territory.
+    foreign_power_percentage: 80
+
+  allied:
+    # If false players will never be allowed to fly in allied land
+    allowed: true
+    # To fly in allied land the players faction must have at least this much power
+    home_power_percentage: 65
+    # To fly in allied land the allied faction must have at least this much power before flight is allowed in their land.
+    allied_power_percentage: 80
+
+  neutral:
+    # If false players will never be allowed to fly in neutral faction land.
+    allowed: false
+
+  wilderness:
+    # If false players will never be allowed to fly in unclaimed land.
+    allowed: false
+
+# Here you can specify special requirements for each faction role.
+# Any values specified here will override the default values.
+# FactionsUUID faction roles;
+# recruit | normal | moderator | coleader | admin
+role_requirements:
+
+#  admin:
+#    home:
+#      home_power_percentage: 50
+
+#    enemy:
+#      home_power_percentage: 30
+
+#    neutral:
+#      allowed: true
+#      home_power_percentage: 25
+#      foreign_power_percentage: 100
