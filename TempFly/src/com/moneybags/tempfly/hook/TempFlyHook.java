@@ -42,6 +42,8 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 		this.target = getPluginName();
 		this.tempfly = tempfly;
 		
+		Console.debug("--| Trying to load hook: " + getHookName());
+		
 		if (getTargetClass() != null) {
 			Console.debug("--| Using plugins declared class as a target...", "--| Class: " + getTargetClass());
 			try {
