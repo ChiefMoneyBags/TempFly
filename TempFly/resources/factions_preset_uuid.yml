@@ -4,19 +4,34 @@ enable_hook: true
 #|                Valid power requirements include                  |#
 ##--------------------------+---------------------------------------##
 #| self_power_percentage    | The power of the home faction as a    |#
-#|                          | percentage of the factions max power  |#
+#|                          | percentage of its max power           |#
+#| Effect: (>=)             | Home power must be _% or greater      |#
 #|                          | IE: 75 equals 75% or greater power    |#
 ##--------------------------+---------------------------------------##
 #| foreign_power_percentage | The power of the foreign faction as a |#
-#|                          | percentage of the factions max power  |#
+#|                          | percentage of its max power           |#
+#| Effect: (<=)             | Foreign power must be _% or less      |#
 #|                          | IE: 75 equals 75% or less power       |#
+##--------------------------+---------------------------------------##
+#| allied_power_percentage  | The power of the allied faction as a  |#
+#|                          | percentage of its max power           |#
+#| Effect: (>=)             | Ally's power must be _% or greater    |#
+#|                          | IE: 75 equals 75% or greater power    |#
 ##--------------------------+---------------------------------------##
 #| self_power_absolute      | The power of the home faction as an   |#
 #|                          | absolute number                       |#
-#|                          | IE: 75 equals 75 power                |#
+#| Effect: (>=)             | Home power must be this or greater    |#
+#|                          | IE: 115 equals at least 115 power     |#
 ##--------------------------+---------------------------------------##
 #| foreign_power_absolute   | The power of the foreign faction as   |#
 #|                          | an absolute number                    |#
+#| Effect: (<=)             | Foreign power must be this or less    |#
+#|                          | IE: 115 equals less than 75 power     |#
+##--------------------------+---------------------------------------##
+#| allied_power_absolute    | The power of the allied faction as    |#
+#|                          | an absolute number                    |#
+#| Effect: (>=)             | Ally's power must be this or greater  |#
+#|                          | IE: 115 equals at least 115 power     |#
 ##--------------------------+---------------------------------------##
 
 # Allows you to configure fall damage for factions related flight restrictions.
