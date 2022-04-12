@@ -136,7 +136,16 @@ public class HookManager implements Reloadable {
 			Console.debug("", "--< Loading: " + genre.toString());
 			for (Class<?> clazz: genre.getInternalClasses()) {
 				Console.debug("", "----< Class: " + clazz.getName());
-				try {hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin); Console.debug("----< Enabled: " + hook.isEnabled());} catch (Exception e) {e.printStackTrace();}
+				try {
+					hook = (TempFlyHook) clazz.getConstructor(TempFly.class).newInstance(plugin);
+					Console.debug("----< Enabled: " + hook.isEnabled());
+				} catch (Exception e) {
+					e.printStackTrace();
+				} catch (Error e) {
+					if (V.debug) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 		Console.debug("--------Loading Genre Hooks End--------", "");
