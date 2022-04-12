@@ -190,11 +190,15 @@ public class SuperiorHook extends SkyblockHook implements Listener {
 
 	@Override
 	public double getIslandLevel(UUID playerId) {
-		return getIslandLevel(getTeamIsland(playerId));
+		IslandWrapper island = getTeamIsland(playerId);
+		return island == null ? 0 : getIslandLevel(island);
 	}
 
 	@Override
 	public double getIslandLevel(IslandWrapper island) {
+		if (island == null) {
+			return 0;
+		}
 		return ((Island) island.getRawIsland()).getIslandLevel().doubleValue();
 	}
 

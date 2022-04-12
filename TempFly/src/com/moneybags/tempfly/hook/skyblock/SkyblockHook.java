@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
@@ -64,7 +66,12 @@ public abstract class SkyblockHook extends TerritoryHook {
 		super.onTempflyReload();
 		
 		loadValues();
+		for (Player player: Bukkit.getOnlinePlayers()) {
+			evaluate(player);
+		}
 	}
+	
+	
 	
 	@Override
 	public boolean needsDataFile() {
@@ -380,6 +387,12 @@ public abstract class SkyblockHook extends TerritoryHook {
 		WORLD,
 		WILDERNESS,
 		ISLAND_ROLE;
+	}
+	
+	
+	
+	public void evaluate(Player p) {
+		getUser(p).submitFlightResult(checkFlightRequirements(p.getUniqueId(), p.getLocation()));
 	}
 	
 	/**
