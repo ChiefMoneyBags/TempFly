@@ -17,7 +17,6 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.google.common.primitives.Floats;
 import com.moneybags.tempfly.aesthetic.ActionBarAPI;
 import com.moneybags.tempfly.aesthetic.TitleAPI;
 import com.moneybags.tempfly.aesthetic.particle.Particles;
@@ -313,6 +312,14 @@ public class FlightUser {
 		enforceTask = Bukkit.getScheduler().runTaskLater(manager.getTempFly(), new EnforceTask(), delay);
 	}
 	
+	/**
+	 * TODO
+	 * if players take fall damage when flight is lost and they are not supposed to
+	 * there is an infinite flight bug somewhere to track down because the enforcement task is
+	 * removing the flight after is was supposed to be disabled without adding the proper damage protec1tion. 
+	 * @author Kevin
+	 *
+	 */
 	public class EnforceTask implements Runnable {
 
 		@Override
@@ -342,6 +349,7 @@ public class FlightUser {
 		Console.debug("------ disable flight -------");
 		if (!enabled) {return;}
 		enabled = false;
+		//TODO 
 		if (timer != null && (!V.permaTimer || time <= 0)) {
 			timer.cancel();
 			timer = null;
@@ -430,7 +438,7 @@ public class FlightUser {
 	}
 	
 	public void submitFlightRequirement(RequirementProvider requirement, FlightResult failedResult) {
-		if (V.debug) {Console.debug("", "---- Submitting failed requirement to user ----", "--| Requirement: " + requirement.getClass().toGenericString(), "--| Requirements: " + requirements);}
+		if (V.debug) {Console.debug("", "---- Submitting failed requirement to user (" + p.getName() + ") ----", "--| Requirement: " + requirement.getClass().toGenericString(), "--| Requirements: " + requirements);}
 		Map<InquiryType, FlightResult> types = requirements.getOrDefault(requirement, new HashMap<>());
 		InquiryType type = failedResult.getInquiryType();
 		if (types.containsKey(type)) {
@@ -507,6 +515,7 @@ public class FlightUser {
 		if (manager.getTempFly().getHookManager().hasRegionProvider()) {
 			results.addAll(manager.inquireFlight(this, manager.getTempFly().getHookManager().getRegionProvider().getApplicableRegions(p.getLocation())));
 		}
+		results.addAll(manager.inquireFlightBeyondScope(this));
 		submitFlightResults(results, false);
 		if (hasFlightRequirements()) {
 			if (!hasRequirementBypass() && failMessage) {

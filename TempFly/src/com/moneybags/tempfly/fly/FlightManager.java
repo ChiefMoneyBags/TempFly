@@ -36,10 +36,10 @@ import org.bukkit.event.player.PlayerToggleFlightEvent;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.combat.CombatHandler;
 import com.moneybags.tempfly.environment.FlightEnvironment;
-import com.moneybags.tempfly.environment.StructureProximity;
 import com.moneybags.tempfly.event.FlightUserInitializedEvent;
 import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
+import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.user.UserLoader;
@@ -89,6 +89,9 @@ public class FlightManager implements Listener, Reloadable {
 	@Override
 	public void onTempflyReload() {
 		for (RequirementProvider provider : providers) {
+			if (provider instanceof TempFlyHook) {
+				continue;
+			}
 			provider.onTempflyReload();
 		}
 
@@ -339,6 +342,14 @@ public class FlightManager implements Listener, Reloadable {
 				continue;
 			}
 			results.add(requirement.handleFlightInquiry(user, loc));
+		}
+		return results;
+	}
+	
+	public List<FlightResult> inquireFlightBeyondScope(FlightUser user) {
+		List<FlightResult> results = new ArrayList<>();
+		for (RequirementProvider requirement : providers) {
+			results.add(requirement.handleFlightInquiry(user));
 		}
 		return results;
 	}

@@ -51,6 +51,10 @@ public interface RequirementProvider extends Reloadable {
 	public default FlightResult handleFlightInquiry(FlightUser user, Location loc) {
 		return new ResultAllow(this, InquiryType.LOCATION, V.requirePassDefault);
 	}
+	
+	public default FlightResult handleFlightInquiry(FlightUser user) {
+		return new ResultAllow(this, InquiryType.UNDEFINED, V.requirePassDefault);
+	}
 
 	/**
 	 * Called when a player joins the server and their flight user is done being initialized.
@@ -98,7 +102,8 @@ public interface RequirementProvider extends Reloadable {
 		 * Inquiry is not within the scope of the base tempfly plugin, for instance
 		 * island plots in the skyblock hook cannot be processed by the FlightManager, they are out_of_scope.
 		 */
-		OUT_OF_SCOPE;
+		OUT_OF_SCOPE,
+		UNDEFINED;
 	}
 
 }

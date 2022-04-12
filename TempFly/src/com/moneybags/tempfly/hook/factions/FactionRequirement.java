@@ -3,7 +3,6 @@ package com.moneybags.tempfly.hook.factions;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -52,7 +51,9 @@ public class FactionRequirement {
 			Console.debug("--| Configuration section is null, loading defaults if applicable.");
 			if (enforceDefaults) {
 				powerRequirements.put(PowerContext.HOME_POWER_PERCENTAGE, 0d);
-				if (relation.getPowerContext() != PowerContext.SELF) {
+				if (relation == FactionRelation.ALLIED) {
+					powerRequirements.put(PowerContext.ALLIED_POWER_PERCENTAGE, 0d);	
+				} else {
 					powerRequirements.put(PowerContext.FOREIGN_POWER_PERCENTAGE, 100d);
 				}
 				allowed = true;
@@ -72,6 +73,7 @@ public class FactionRequirement {
 				continue;
 			}
 			if (powerRequirements.keySet().stream().anyMatch(definedContext -> definedContext.getContext() == context.getContext())) {
+				Console.warn("You cannot set more than one power requirement under the context of (" + context.getContext() + ") power. | (" + context + ")");
 				continue;
 			}
 			
@@ -89,9 +91,13 @@ public class FactionRequirement {
 				Console.debug("--| No self requirement defined, loading default.");
 				powerRequirements.put(PowerContext.HOME_POWER_PERCENTAGE, 0d);
 			}
-			if (!foreign && relation.getPowerContext() == PowerContext.FOREIGN) {
+			if (!foreign) {
 				Console.debug("--| No foreign requirement defined, loading default.");
-				powerRequirements.put(PowerContext.FOREIGN_POWER_PERCENTAGE, 100d);
+				if (relation == FactionRelation.ALLIED) {
+					powerRequirements.put(PowerContext.ALLIED_POWER_PERCENTAGE, 0d);	
+				} else {
+					powerRequirements.put(PowerContext.FOREIGN_POWER_PERCENTAGE, 100d);
+				}
 			} 	
 		}
 		Console.debug(powerRequirements);
@@ -106,7 +112,7 @@ public class FactionRequirement {
 			PowerPackage pack = new PowerPackage();
 			pack.defined = entry.getValue();
 			pack.current = currentPower;
-			pack.max = maxPower;
+			pack.max = Math.max(maxPower, 1);
 			Console.debug("--| value defined in config: " + pack.defined);
 			return entry.getKey().meetsThreshold(pack);
 		}
@@ -132,7 +138,7 @@ public class FactionRequirement {
 			PowerPackage pack = new PowerPackage();
 			pack.defined = entry.getValue();
 			pack.current = currentPower;
-			pack.max = maxPower;
+			pack.max = Math.max(maxPower, 1);
 			return entry.getKey().getFormatted(pack);
 		}
 		return hook.getBaseRequirement(relation).getPowerFormatted(context, currentPower, maxPower);
@@ -168,6 +174,16 @@ public class FactionRequirement {
 		FOREIGN_POWER_ABSOLUTE(FOREIGN, false,
 				pack -> {
 					return pack.current <= pack.defined;
+				}),
+		
+		
+		ALLIED_POWER_PERCENTAGE(FOREIGN, true,
+				pack -> {
+					return (pack.current / pack.max) * 100 >= pack.defined;
+				}),
+		ALLIED_POWER_ABSOLUTE(FOREIGN, false,
+				pack -> {
+					return pack.current >= pack.defined;
 				});
 		
 		private PowerContext context;

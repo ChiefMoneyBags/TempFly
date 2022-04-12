@@ -11,8 +11,6 @@ import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
-
 import com.massivecraft.factions.Board;
 import com.massivecraft.factions.FLocation;
 import com.massivecraft.factions.FPlayer;
@@ -20,19 +18,15 @@ import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
 import com.massivecraft.factions.event.FPlayerJoinEvent;
 import com.massivecraft.factions.event.FPlayerLeaveEvent;
+import com.massivecraft.factions.event.FactionDisbandEvent;
 import com.massivecraft.factions.event.FactionRelationEvent;
 import com.massivecraft.factions.event.LandClaimEvent;
 import com.massivecraft.factions.event.LandUnclaimAllEvent;
 import com.massivecraft.factions.event.LandUnclaimEvent;
 import com.massivecraft.factions.event.PowerLossEvent;
-import com.massivecraft.factions.perms.Relation;
 import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.fly.result.FlightResult;
-import com.moneybags.tempfly.hook.TerritoryHook;
-import com.moneybags.tempfly.hook.TerritoryWrapper;
 import com.moneybags.tempfly.hook.factions.FactionWrapper;
 import com.moneybags.tempfly.hook.factions.FactionsHook;
-import com.moneybags.tempfly.util.Console;
 
 public class FactionsUUIDHook extends FactionsHook implements Listener {
 
@@ -46,6 +40,10 @@ public class FactionsUUIDHook extends FactionsHook implements Listener {
 		return super.initializeHook();
 	}
 	
+	@Override
+	public String getTargetClass() {
+		return "com.massivecraft.factions.FactionsPlugin";
+	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onClaim(LandClaimEvent e) {
@@ -89,6 +87,11 @@ public class FactionsUUIDHook extends FactionsHook implements Listener {
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onRelation(FactionRelationEvent e) {
 		super.onFactionRelationshipChange(getFactionWrapper(e.getFaction()), getFactionWrapper(e.getTargetFaction()));
+	}
+	
+	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
+	public void onDisband(FactionDisbandEvent e) {
+		super.onFactionDisband(getFactionWrapper(e.getFaction()));
 	}
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)

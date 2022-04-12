@@ -233,6 +233,7 @@ public class HookManager implements Reloadable {
 	public void onTempflyReload() {
 		for (Entry<Genre, List<TempFlyHook>> entry: hooks.entrySet()) {
 			for (TempFlyHook hook: entry.getValue()) {
+				Console.debug("Preparing to reload hook: " + hook.getHookName());
 				((Reloadable)hook).onTempflyReload();
 			}
 		}

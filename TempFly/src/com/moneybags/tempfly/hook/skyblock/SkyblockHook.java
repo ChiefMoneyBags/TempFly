@@ -7,32 +7,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.WeakHashMap;
-
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
-import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.hook.IslandSettings;
-import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.TerritoryHook;
 import com.moneybags.tempfly.hook.TerritoryWrapper;
 import com.moneybags.tempfly.hook.HookManager.Genre;
@@ -74,10 +61,15 @@ public abstract class SkyblockHook extends TerritoryHook {
 	
 	@Override
 	public void onTempflyReload() {
-		loadValues();
 		super.onTempflyReload();
+		
+		loadValues();
 	}
 	
+	@Override
+	public boolean needsDataFile() {
+		return true;
+	}
 	
 	@Override
 	public boolean initializeFiles() throws Exception {

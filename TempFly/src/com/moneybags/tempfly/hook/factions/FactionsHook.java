@@ -1,12 +1,14 @@
 package com.moneybags.tempfly.hook.factions;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bouncycastle.jcajce.provider.symmetric.PBEPBKDF2.BasePBKDF2;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -20,25 +22,17 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
-import com.moneybags.tempfly.fly.RequirementProvider;
-import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
 import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.hook.skyblock.CmdIslandSettings;
-import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
-import com.moneybags.tempfly.hook.skyblock.SkyblockHook.SkyblockRequirementType;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.hook.IslandSettings;
-import com.moneybags.tempfly.hook.TempFlyHook;
 import com.moneybags.tempfly.hook.TerritoryHook;
 import com.moneybags.tempfly.hook.TerritoryWrapper;
 import com.moneybags.tempfly.hook.factions.FactionRequirement.PowerContext;
@@ -50,7 +44,9 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	private String
 	requireIllegalTerritory,
 	requirePowerSelf,
-	requirePowerForeign;
+	requirePowerForeign,
+	requirePowerAllied,
+	requireFactionSelf;
 	
 	private Map<FactionRelation, FactionRequirement> baseRequirements;
 	private Map<String, FactionRoleSettings> roleRequirements;
@@ -59,7 +55,7 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 		HOME(PowerContext.SELF),
 		ENEMY(PowerContext.FOREIGN),
 		NEUTRAL(PowerContext.FOREIGN),
-		ALLIED(PowerContext.SELF),
+		ALLIED(PowerContext.FOREIGN),
 		WILDERNESS(PowerContext.FOREIGN);
 		
 		private PowerContext context;
@@ -122,6 +118,8 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 		requireIllegalTerritory 	= V.st(config, "language.requirements.illegal_territory", name);
 		requirePowerSelf			= V.st(config, "language.requirements.power_self", name);
 		requirePowerForeign			= V.st(config, "language.requirements.power_foreign", name);
+		requirePowerAllied			= V.st(config, "language.requirements.power_allied", name);
+		requireFactionSelf			= V.st(config, "language.requirements.faction_self", name);
 		
 		// Load base faction requirements from the config.
 		ConfigurationSection csBase = config.getConfigurationSection("base_requirements");
@@ -145,7 +143,7 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 		}
 		
 		ConfigurationSection csRole = config.getConfigurationSection("role_requirements");
-		if (csBase != null) {
+		if (csRole != null) {
 			for (String key: csRole.getKeys(false)) {
 				roleRequirements.put(key.toUpperCase(), new FactionRoleSettings(this, key.toUpperCase(), csRole.getConfigurationSection(key)));
 			}
@@ -272,7 +270,25 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	}
 	
 	public void onPlayerJoinFaction(Player p, FactionWrapper faction) {
+		for (Player player: getOnlineMembers(faction)) {
+			if (p.equals(player)) {
+				continue;
+			}
+			evaluate(player);
+		}
 		evaluate(p);
+	}
+	
+	public List<Player> getOnlineMembers(FactionWrapper faction) {
+		List<Player> players = new ArrayList<>();
+		for (UUID playerId: getAllMembers(faction)) {
+			Player p = Bukkit.getPlayer(playerId);
+			if (p == null) {
+				continue;
+			}
+			players.add(p);
+		}
+		return players;
 	}
 	
 	/**
@@ -281,7 +297,34 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	 * @param faction
 	 */
 	public void onPlayerLeaveFaction(Player p, FactionWrapper faction) {
+		for (Player player: getOnlineMembers(faction)) {
+			if (p.equals(player)) {
+				continue;
+			}
+			evaluate(player);
+		}
 		evaluate(p);
+	}
+	
+	public void onFactionDisband(FactionWrapper faction) {
+		List<UUID> players = Arrays.asList(getAllMembers(faction));
+		
+		Bukkit.getScheduler().runTask(tempfly, () -> {
+			for (UUID playerId: players) {
+				Player p = Bukkit.getPlayer(playerId);
+				if (p == null) {
+					continue;
+				}
+				evaluate(p);
+			}
+			for (Player p: getPlayersOn(faction)) {
+				if (!p.isOnline() || players.contains(p.getUniqueId())) {
+					continue;
+				}
+				evaluate(p);
+				onTerritoryExit(p);
+			}
+		});
 	}
 	
 	/**
@@ -313,6 +356,13 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	 */
 	public void onFactionRelationshipChange(FactionWrapper faction, FactionWrapper target) {
 		for (UUID id: getAllMembers(faction)) {
+			Player p = Bukkit.getPlayer(id);
+			if (p != null) {
+				evaluate(p);
+			}
+		}
+		
+		for (UUID id: getAllMembers(target)) {
 			Player p = Bukkit.getPlayer(id);
 			if (p != null) {
 				evaluate(p);
@@ -375,6 +425,11 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	}
 	
 	@Override
+	public FlightResult handleFlightInquiry(FlightUser user) {
+		return checkFlightRequirements(user.getPlayer().getUniqueId(), user.getPlayer().getLocation());
+	}
+	
+	@Override
 	public FlightResult checkFlightRequirements(UUID playerId, Location loc) {
 		return checkFlightRequirements(playerId, getFactionAt(loc));
 	}
@@ -398,6 +453,12 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 		if (V.debug) {
 			Console.debug("", "--- FactionHook check role requirements ---", "--| Players Role: " + role);	
 		}
+		FactionWrapper home = getFaction(playerId);
+		if (home == null || isWilderness(home)) {
+			return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.OUT_OF_SCOPE, requireFactionSelf
+					.replaceAll("\\{FACTION_NAME}", getFactionName(faction)),
+					false);
+		}
 		FactionRelation relation = getRelation(playerId, faction);
 		Console.debug("--| Players relation to faction: " + relation);
 		FactionRoleSettings roleSettings = roleRequirements.get(role.toUpperCase());
@@ -415,24 +476,32 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 					!damageIllegal.contains(relation));
 		}
 		Console.debug("--| flight is allowed in the land.");
+	
 		
-		double
-		currentPower = relation.getPowerContext() == PowerContext.SELF ? getCurrentPower(playerId) : getCurrentPower(faction), 
-		maxPower = relation.getPowerContext() == PowerContext.SELF ? getMaxPower(playerId) : getMaxPower(faction);
-		
-		Console.debug("--| currentPower: " + currentPower, "--| maxPower: " + maxPower);
-		
-		if (requirement.isThresholdMet(relation.getPowerContext(), currentPower, maxPower)) {
-			Console.debug("--| Power threshold for flight is met.");
-			return new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassDefault);
+		if (!requirement.isThresholdMet(PowerContext.SELF, getCurrentPower(home), getMaxPower(home))) {
+			Console.debug("--| Power threshold for flight is not met A.");
+			return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.OUT_OF_SCOPE, requirePowerSelf
+					.replaceAll("\\{POWER}", String.valueOf(requirement.getPowerFormatted(PowerContext.SELF, getCurrentPower(home), getMaxPower(home))))
+					.replaceAll("\\{FACTION_NAME}", getFactionName(faction))
+					, !damagePower.contains(relation));
 		}
 		
-		String message = relation.getPowerContext() == PowerContext.SELF ? requirePowerSelf : requirePowerForeign;
+		boolean allied = isAllied(playerId, faction);
 		
-		return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.OUT_OF_SCOPE, message
-				.replaceAll("\\{POWER}", String.valueOf(requirement.getPowerFormatted(relation.getPowerContext(), currentPower, maxPower)))
-				.replaceAll("\\{FACTION_NAME}", getFactionName(faction))
-				, !damagePower.contains(relation));
+		if (!requirement.isThresholdMet(PowerContext.FOREIGN, getCurrentPower(faction), getMaxPower(faction))) {
+			Console.debug("--| Power threshold for flight is not met B.");
+			
+			return new ResultDeny(DenyReason.REQUIREMENT, this, InquiryType.OUT_OF_SCOPE,
+					(allied ? requirePowerAllied : requirePowerForeign)
+					.replaceAll("\\{POWER}", String.valueOf(requirement.getPowerFormatted(PowerContext.FOREIGN, getCurrentPower(faction), getMaxPower(faction))))
+					.replaceAll("\\{FACTION_NAME}", getFactionName(faction))
+					, !damagePower.contains(relation));
+		}
+		
+		
+		Console.debug("--| Power threshold for flight is met.");
+		return new ResultAllow(this, InquiryType.OUT_OF_SCOPE, V.requirePassDefault);
+		
 	}
 	
 	
@@ -584,6 +653,8 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	
 	@Override
 	public void onTempflyReload() {
+		super.onTempflyReload();
+		
 		baseRequirements.clear();
 		roleRequirements.clear();
 		loadValues();
@@ -598,6 +669,11 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 		getTempFly().getServer().getPluginManager().registerEvents(this, getTempFly());
 		
 		return true;
+	}
+	
+	@Override
+	public boolean needsDataFile() {
+		return false;
 	}
 	
 	@Override

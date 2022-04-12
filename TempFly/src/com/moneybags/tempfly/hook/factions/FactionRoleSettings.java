@@ -34,6 +34,9 @@ public class FactionRoleSettings {
 		}
 	}
 	
+	public String getRole() {
+		return role;
+	}
 	
 	public FactionsHook getHook() {
 		return hook;

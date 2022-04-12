@@ -19,11 +19,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.fly.RequirementProvider;
-import com.moneybags.tempfly.fly.RequirementProvider.InquiryType;
 import com.moneybags.tempfly.fly.result.FlightResult;
 import com.moneybags.tempfly.fly.result.ResultAllow;
-import com.moneybags.tempfly.hook.skyblock.IslandWrapper;
-import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
@@ -37,9 +34,11 @@ public abstract class TerritoryHook extends TempFlyHook {
 	@Override
 	public void onTempflyReload() {
 		super.onTempflyReload();
+		/**
 		for (FlightUser user: getTempFly().getFlightManager().getUsers()) {
 			user.submitFlightResult(checkFlightRequirements(user.getPlayer().getUniqueId(), user.getPlayer().getLocation()));
 		}
+		*/
 	}
 	
 	
@@ -125,6 +124,7 @@ public abstract class TerritoryHook extends TempFlyHook {
 			TerritoryWrapper currentTerritory = locationCache.get(p);
 			locationCache.remove(p);
 			if(!locationCache.containsValue(currentTerritory)) {
+				Console.debug("----------------- removing wrapper from cache");
 				wrapperCache.remove(getTerritoryIdentifier(currentTerritory.getRawTerritory()));
 			}
 			if (V.debug) {Console.debug("--|> Territory Identifier: " + getTerritoryIdentifier(currentTerritory.getRawTerritory()), "------ End Territory Exit ------", "");}
@@ -150,7 +150,6 @@ public abstract class TerritoryHook extends TempFlyHook {
 	}
 	
 	public TerritoryWrapper getTerritoryWrapper(Object rawTerritory) {
-		Console.debug(rawTerritory, getTerritoryIdentifier(rawTerritory));
 		if (rawTerritory == null) {
 			return null;
 		}
@@ -161,6 +160,7 @@ public abstract class TerritoryHook extends TempFlyHook {
 		} else {
 			 wrapper = wrapperCache.get(getTerritoryIdentifier(rawTerritory));
 		}
+		Console.debug(wrapperCache);
 		return wrapper;
 	}
 	
@@ -176,8 +176,6 @@ public abstract class TerritoryHook extends TempFlyHook {
 	public Player[] getPlayersOn(TerritoryWrapper territory) {
 		List<Player> players = new ArrayList<>();
 		for (Map.Entry<Player, TerritoryWrapper> entry: locationCache.entrySet()) {
-			Console.debug(entry,
-					territory, entry.getValue());
 			if (entry.getValue().equals(territory)) {
 				players.add(entry.getKey());
 			}
@@ -237,18 +235,18 @@ public abstract class TerritoryHook extends TempFlyHook {
 			Console.debug("--| Player is being tracked");
 			TerritoryWrapper territory = getTrackedTerritory(p);
 			if (!isInTerritory(territory, loc)) {
-				Console.debug("--|> Player is no longer on the same island");
+				Console.debug("--|> Player is no longer in the same territory");
 				onTerritoryExit(p);
 			}
 		}
 		TerritoryWrapper territory = getTerritoryAt(loc);
 		
 		if (territory == null) {
-			Console.debug("--| Player is not on an island");
+			Console.debug("--| Player is not in a territory");
 			return;
 		}
 		if (!isCurrentlyTracking(p)) {
-			Console.debug("--|> Player is on a new island!");
+			Console.debug("--|> Player is in a new territory!");
 			onTerritoryEnter(p, territory.getRawTerritory(), loc);	
 		}
 	}

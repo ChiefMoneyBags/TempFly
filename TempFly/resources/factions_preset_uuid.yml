@@ -41,9 +41,12 @@ language:
   requirements:
     illegal_territory: "{PREFIX} &f{ROLE}'s &cfrom your faction may not fly in &f{FACTION_NAME} &cland!"
     power_self: "{PREFIX} &cYou must have at least &f{POWER} &cpower to fly in &f{FACTION_NAME} &cland!"
-    power_foreign: "{PREFIX} &cThe faction &f{FACTION NAME} &cmust have less than &f{POWER} &cfor you to fly here!"
+    power_foreign: "{PREFIX} &cThe faction &f{FACTION_NAME} &cmust have less than &f{POWER} &cpower!"
+    power_allied: "{PREFIX} &cThe faction &f{FACTION_NAME} &cmust have at least &f{POWER} &cpower!"
+    faction_self: "{PREFIX} &cYou must be in a faction to fly in &f{FACTION_NAME} &cland!"
 
 # These are the base values regarding flight requirements for all faction roles.
+# If you do not want to use the power requirements you may remove them.
 # My default values are geared more towards ease of raiding rather than ease of defense.
 base_requirements:
   home:
@@ -67,7 +70,7 @@ base_requirements:
     # To fly in allied land the players faction must have at least this much power
     home_power_percentage: 65
     # To fly in allied land the allied faction must have at least this much power before flight is allowed in their land.
-    foreign_power_percentage: 80
+    allied_power_percentage: 80
 
   neutral:
     # If false players will never be allowed to fly in neutral faction land.
@@ -78,16 +81,19 @@ base_requirements:
     allowed: false
 
 # Here you can specify special requirements for each faction role.
+# Any values specified here will override the default values.
+# FactionsUUID faction roles;
+# recruit | normal | moderator | coleader | admin
 role_requirements:
-  # The faction owner
-  admin:
-    home:
-      home_power_percentage: 50
 
-    enemy:
-      home_power_percentage: 30
+#  admin:
+#    home:
+#      home_power_percentage: 50
 
-    neutral:
-      allowed: true
-      home_power_percentage: 25
-      foreign_power_percentage: 100
+#    enemy:
+#      home_power_percentage: 30
+
+#    neutral:
+#      allowed: true
+#      home_power_percentage: 25
+#      foreign_power_percentage: 100
