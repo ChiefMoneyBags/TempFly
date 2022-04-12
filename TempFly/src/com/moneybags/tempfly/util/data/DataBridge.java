@@ -428,6 +428,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 			Console.debug("--| Using SQL");
 			String table = value.getTable().getSqlTable();
 			
+			@SuppressWarnings("unused")
 			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table + " WHERE " + path[0] + "=" + path[1];
 		}
 		return null;

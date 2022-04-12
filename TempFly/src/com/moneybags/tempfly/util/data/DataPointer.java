@@ -1,6 +1,5 @@
 package com.moneybags.tempfly.util.data;
 
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.data.DataBridge.DataValue;
 
 public class DataPointer {
@@ -31,7 +30,6 @@ public class DataPointer {
 		for (String string: path) {
 			code += string.hashCode();
 		}
-		Console.debug(value.toString().hashCode() + code);
 		return value.toString().hashCode() + code;
 	}
 	

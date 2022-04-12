@@ -21,8 +21,6 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.Files;
 
-import scala.util.control.Exception;
-
 public class StructureProximity implements RequirementProvider {
 	
 	private FlightManager manager;
