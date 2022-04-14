@@ -1,5 +1,7 @@
 package com.moneybags.tempfly.user;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -42,6 +44,20 @@ public class UserLoader implements Runnable {
 	public void run() {
 		final DataBridge bridge = manager.getTempFly().getDataBridge();
 		final TimeManager timeManager = manager.getTempFly().getTimeManager();
+		
+		if (bridge.hasSqlEnabled()) {
+			PreparedStatement st = bridge.prepareStatement("INSERT IGNORE INTO tempfly_data(uuid) VALUES(?)");
+			try {
+				st.setString(1, u.toString());
+				st.execute();
+				st.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}
+			
+		}
+		
 		
 		time = timeManager.getTime(u);
 		particle = Particles.loadTrail(u);

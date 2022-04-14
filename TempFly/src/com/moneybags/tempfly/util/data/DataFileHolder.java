@@ -16,4 +16,7 @@ public interface DataFileHolder {
 	
 	public abstract void saveData();
 	
+	public default boolean forceYaml() {
+		return false;
+	}
 }

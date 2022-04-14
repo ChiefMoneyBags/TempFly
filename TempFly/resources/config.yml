@@ -49,7 +49,16 @@ system:
   # features of tempfly that rely on regions to function, such as disabled regions, relative time regions etc..
   disable_region_tracking: false
   # If true this will disable all tab completions for tempfly commands
+  # Can be bypassed with tempfly.disable_tab.bypass
   disable_tab: false
+  # database
+  mysql:
+    enabled: false
+    host: "127.0.0.1"
+    port: 3306
+    name: "name"
+    user: "user"
+    pass: "pass"
 
 general:
   # This feature prevents conflictions with other plugins fly features.
@@ -99,13 +108,14 @@ general:
   flight:
     # Speed settings.
     speed:
-      # Default global speed. This speed is used as a base unless a value is otherwise specified below.
+      # Default global speed for all players. This speed is used as a base unless a value is otherwise specified below.
       default: 1
-      # If false the users speed will be forcefully set to the value defined upon entering valid areas regardless of the
-      # speed chosen by the player with /tempfly speed {speed}. This also applies to permission speeds.
-      #
-      # If true the configured speed will only be applied if the users speed exceeds that of the maximum defined for the area.
-      # Upon leaving the area the users chosen speed will be restored.
+      # If false the users speed will be forcefully set to the values defined below upon entering valid areas regardless of the
+      # speed chosen by the player or the default speed. This also overrides permission speeds.
+
+      # If true the configured speeds will act as a maximum speed for the area
+      # and will only be forced if the users speed exceeds the maximum defined for the area.
+      # Upon leaving the area the users selected / default speed will be restored.
       user_preference: true
       # Default maximum speeds for worlds.
       worlds:
