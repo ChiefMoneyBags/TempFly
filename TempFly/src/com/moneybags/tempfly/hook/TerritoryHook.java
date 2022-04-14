@@ -83,7 +83,7 @@ public abstract class TerritoryHook extends TempFlyHook {
 				return;
 			}
 			// Player is now on 2 islands at once, this is a bug.
-			Console.severe("If you are seeing this message there may be a bug. Please contact the tempfly dev with this info: SkyblockHook | onIslandEnter()");
+			Console.severe("If you are seeing this message there may be a bug. Please contact the tempfly dev with this info: TerritoryHook | onTerritoeyEnter()");
 			TerritoryWrapper territory = locationCache.get(p);
 			locationCache.remove(p);
 			if(!locationCache.containsValue(territory)) {
@@ -160,7 +160,6 @@ public abstract class TerritoryHook extends TempFlyHook {
 		} else {
 			 wrapper = wrapperCache.get(getTerritoryIdentifier(rawTerritory));
 		}
-		Console.debug(wrapperCache);
 		return wrapper;
 	}
 	
