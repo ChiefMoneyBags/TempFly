@@ -112,6 +112,8 @@ public class FlightUser {
 				if (!enableFlight()) {
 					sendRequirementMessage();
 					enforce(1);
+				} else {
+					applySpeedCorrect(true, 0);
 				}
 				
 				
@@ -770,7 +772,7 @@ public class FlightUser {
 	}
 	
 	public boolean hasSpeedPreference() {
-		return selectedSpeed > -1;
+		return selectedSpeed > -1 && manager.getFlightEnvironment().allowSpeedPreference();
 	}
 	
 	/**
@@ -786,11 +788,12 @@ public class FlightUser {
 		}
 		
 		final float val = maxSpeed / 10;
+		final float def = manager.getFlightEnvironment().getDefaultSpeed() / 10;
 		Console.debug("--| final speed value: " + val);
 		if (p.getFlySpeed() > val
 				|| (p.getFlySpeed() != val && !manager.getFlightEnvironment().allowSpeedPreference()) 
-				|| (p.getFlySpeed() < val && manager.getFlightEnvironment().allowSpeedPreference())) {
-			Console.debug("--| Player speed is greater than allowed, prepare to change...;");
+				|| (p.getFlySpeed() < val && hasSpeedPreference())) {
+			Console.debug("--| Players speed needs to be changed.");
 			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
 				Console.debug("-----> | changing player speed");
 				if (p.isOnline()) {
@@ -801,6 +804,17 @@ public class FlightUser {
 						U.m(p, V.flySpeedLimitSelf.replaceAll("\\{SPEED}", new DecimalFormat("#.##").format(val * 10)));
 					}
 					p.setFlySpeed((float) val);
+				}
+			}, delay);
+			
+		} else if (p.getFlySpeed() != def && !hasSpeedPreference()) {
+			float fin = Math.min(def, val);
+			Console.debug("--| Players speed needs to be fixed it is stuck under default speed.");
+			Bukkit.getScheduler().runTaskLater(manager.getTempFly(), () -> {
+				Console.debug("-----> | changing player speed");
+				if (p.isOnline()) {
+					Console.debug("player speed: " + p.getFlySpeed(), "value: " + val);
+					p.setFlySpeed(fin);
 				}
 			}, delay);
 		}
