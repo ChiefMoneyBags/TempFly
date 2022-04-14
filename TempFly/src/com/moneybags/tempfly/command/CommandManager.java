@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.admin.CmdGive;
 import com.moneybags.tempfly.command.admin.CmdGiveAll;
+import com.moneybags.tempfly.command.admin.CmdMigrate;
 import com.moneybags.tempfly.command.admin.CmdReload;
 import com.moneybags.tempfly.command.admin.CmdRemove;
 import com.moneybags.tempfly.command.admin.CmdSet;
@@ -307,7 +308,8 @@ public class CommandManager {
 		SHOP(CmdShop.class, "shop"),
 		SPEED(CmdSpeed.class, "speed"),
 		TIME(CmdTime.class, "time"),
-		TRAILS(CmdTrails.class, "trails");
+		TRAILS(CmdTrails.class, "trails"),
+		MIGRATE(CmdMigrate.class, "migrate");
 		
 		private Class<? extends TempFlyCommand> clazz;
 		private String base;
