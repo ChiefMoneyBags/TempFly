@@ -45,9 +45,9 @@ public class TimeManager implements Listener {
 	private boolean alreadyThrown;
 	public double getTime(UUID u) {
 		FlightUser user = tempfly.getFlightManager().getUser(u);
-		if (user == null && tempfly.getDataBridge().getConnection() != null && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
+		if (user == null && tempfly.getDataBridge().hasSqlEnabled() && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
 			alreadyThrown = true;
-			try {throw new IllegalStateException("Invocation of getTime() for an offline player should be performed from an asychronous thread! It is not safe to access a database on the main server thread! This error will only be thrown once just to inform you of the issue and provide a stacktrace.");} catch (IllegalStateException e) {
+			try {throw new IllegalStateException("Invocation of getTime() for an offline player should be performed from an asychronous thread! It is not safe to access a database on the main server thread!");} catch (IllegalStateException e) {
 				e.printStackTrace();
 			}
 		}
@@ -135,7 +135,12 @@ public class TimeManager implements Listener {
 		if (user != null) {
 			user.setTime(seconds);
 		} else {
-			tempfly.getDataBridge().stageChange(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), seconds);
+			if (tempfly.getDataBridge().hasSqlEnabled()) {
+				Console.warn("It is currently unsafe to alter player time for offline players while using MYSQL storage! The tempfly plugin currently does not sync player time between servers on a network. If this player is currently on a different server their time will not update and will be overwritten when they log off or switch servers.");
+			}
+			DataPointer pointer = DataPointer.of(DataValue.PLAYER_TIME, u.toString());
+			tempfly.getDataBridge().stageChange(pointer, seconds);
+			tempfly.getDataBridge().manualCommit(pointer);
 		}
 	}
 	
