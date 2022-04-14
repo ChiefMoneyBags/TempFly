@@ -79,6 +79,11 @@ public abstract class SkyblockHook extends TerritoryHook {
 	}
 	
 	@Override
+	public boolean forceYaml() {
+		return true;
+	}
+	
+	@Override
 	public boolean initializeFiles() throws Exception {
 		if (!super.initializeFiles()) {
 			return false;
