@@ -97,6 +97,7 @@ public class FlightManager implements Listener, Reloadable {
 
 		for (FlightUser user : getUsers()) {
 			user.evaluateFlightRequirements(user.getPlayer().getLocation(), user.hasFlightEnabled());
+			user.applySpeedCorrect(true, 0);
 		}
 
 	}
