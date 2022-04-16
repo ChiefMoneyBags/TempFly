@@ -139,7 +139,7 @@ public class FlightUser {
 		Console.debug("", "-----< Save FlightUser: (" + p.getUniqueId().toString() + ") >-----");
 		DataBridge bridge = manager.getTempFly().getDataBridge();
 		String u = p.getUniqueId().toString();
-		bridge.manualCommit(
+		bridge.commit(
 				DataPointer.of(DataValue.PLAYER_TIME, u),
 				DataPointer.of(DataValue.PLAYER_DAILY_BONUS, u),
 				DataPointer.of(DataValue.PLAYER_DAMAGE_PROTECTION, u),
