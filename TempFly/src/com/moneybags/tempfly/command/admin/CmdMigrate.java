@@ -49,6 +49,7 @@ public class CmdMigrate extends TempFlyCommand{
 			return;
 		}
 		
+		
 		if (!tempfly.getDataBridge().hasSqlEnabled()) {
 			s.sendMessage("You must enable MySql in the config to migrate your tempfly data...");
 			return;
@@ -98,7 +99,7 @@ public class CmdMigrate extends TempFlyCommand{
 	 				}
 	 				index++;
 	 			}
-	 			Console.debug(sb.toString());
+	 			Console.info("Migrating (" + sb.toString() + ")");
 	 			Object obj = data.get(sb.toString());
 	 			if (obj == null) {
 	 				continue;
@@ -129,7 +130,7 @@ public class CmdMigrate extends TempFlyCommand{
 	 	    }
 	    }
 	    
-	    String statement = "U";
+	    Console.info("Tempfly has finished migrating player data to the MySql database. If you experienced any issues please contact the developer.");
 	  
 	}
 
