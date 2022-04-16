@@ -103,7 +103,11 @@ public abstract class TerritoryHook extends TempFlyHook {
 	}
 	
 	public void evaluate(Player p) {
-		getUser(p).submitFlightResult(checkFlightRequirements(p.getUniqueId(), p.getLocation()));
+		FlightUser user = getUser(p);
+		if (user == null) {
+			return;
+		}
+		user.submitFlightResult(checkFlightRequirements(p.getUniqueId(), p.getLocation()));
 	}
 	
 	public abstract FlightResult checkFlightRequirements(UUID playerId, Location loc);
