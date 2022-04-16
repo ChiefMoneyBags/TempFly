@@ -140,7 +140,7 @@ public class TimeManager implements Listener {
 			}
 			DataPointer pointer = DataPointer.of(DataValue.PLAYER_TIME, u.toString());
 			tempfly.getDataBridge().stageChange(pointer, seconds);
-			tempfly.getDataBridge().manualCommit(pointer);
+			tempfly.getDataBridge().commit(pointer);
 		}
 	}
 	
