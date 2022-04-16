@@ -1,5 +1,5 @@
 
-CREATE TABLE IF NOT EXISTS TEMPFLY_DATA
+CREATE TABLE IF NOT EXISTS tempfly_data
 (
     uuid                    CHAR(36)                       NOT NULL,
     player_time             DOUBLE(10, 2)    DEFAULT 0,
