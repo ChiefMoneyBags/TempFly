@@ -240,6 +240,7 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	 * @param faction
 	 */
 	public void onLandClaimed(Chunk chunk, FactionWrapper faction) {
+		Console.debug("--| Claimed land");
 		for (Entity ent: chunk.getEntities()) {
 			if (!(ent instanceof Player)) {
 				continue;
@@ -249,6 +250,7 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	}
 	
 	public void onLandOverClaimed(Chunk chunk, FactionWrapper victim, FactionWrapper agressor) {
+		Console.debug("--| Land overclaimed from (" + getFactionName(victim));
 		for (Entity ent: chunk.getEntities()) {
 			if (!(ent instanceof Player)) {
 				continue;
@@ -259,7 +261,7 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	}
 	
 	public void onLandUnclaimed(Chunk chunk) {
-		Console.debug("unclaimed land");
+		Console.debug("--| Unclaimed land");
 		for (Entity ent: chunk.getEntities()) {
 			if (!(ent instanceof Player)) {
 				continue;
@@ -674,6 +676,11 @@ public abstract class FactionsHook extends TerritoryHook implements Listener {
 	@Override
 	public boolean needsDataFile() {
 		return false;
+	}
+	
+	@Override
+	public boolean forceYaml() {
+		return true;
 	}
 	
 	@Override

@@ -131,33 +131,20 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 			Console.debug("--| This hook does not require a data file.");
 			return;
 		}
-		Connection connection;
-		if ((connection = tempfly.getDataBridge().getConnection()) == null) {
-			File hookDataf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory() + File.separator + getDataName() + "_data.yml");
-			Console.debug("--<[ Sql connection null, using YAML: " + hookDataf.getName());
-			Console.debug("--<[ Path: " + hookDataf.getAbsolutePath());
-			Console.debug("--<[ Exists?: " + hookDataf.exists());
-		    if (!hookDataf.exists()) {
-		    	Console.debug("--<[ Creating new file: " + hookDataf.getName());
-		    	hookDataf.getParentFile().mkdirs();
-		    	hookDataf.createNewFile();
-		    }
-		    FileConfiguration hookData = new YamlConfiguration();
-		    hookData.load(hookDataf);
-		    
-		    setDataFile(hookDataf);
-		    setDataConfiguration(hookData);
-		} else {
-			@SuppressWarnings("unused")
-			DatabaseMetaData meta = connection.getMetaData();
-			/**
-			ResultSet results = meta.getTables(null, null, table.getSqlTable(), null);
-			if (!results.next()) {
-				PreparedStatement statement = connection.prepareStatement("create table if not exists " + table.getSqlTable());
-				statement.executeQuery();
-			}
-			*/
-		}
+		File hookDataf = new File(tempfly.getDataFolder() + File.separator + getGenre().getDirectory() + File.separator + getDataName() + "_data.yml");
+		Console.debug("--<[ Sql connection null, using YAML: " + hookDataf.getName());
+		Console.debug("--<[ Path: " + hookDataf.getAbsolutePath());
+		Console.debug("--<[ Exists?: " + hookDataf.exists());
+	    if (!hookDataf.exists()) {
+	    	Console.debug("--<[ Creating new file: " + hookDataf.getName());
+	    	hookDataf.getParentFile().mkdirs();
+	    	hookDataf.createNewFile();
+	    }
+	    FileConfiguration hookData = new YamlConfiguration();
+	    hookData.load(hookDataf);
+	    
+	    setDataFile(hookDataf);
+	    setDataConfiguration(hookData);
 	}
 	
 	public TempFly getTempFly() {

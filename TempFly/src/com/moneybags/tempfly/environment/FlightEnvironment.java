@@ -176,7 +176,7 @@ public class FlightEnvironment implements RequirementProvider {
 	}
 	
 	public float getDefaultSpeed() {
-		return 1;
+		return speedGlobal;
 	}
 	
 	public float getMaxSpeed(World world) {

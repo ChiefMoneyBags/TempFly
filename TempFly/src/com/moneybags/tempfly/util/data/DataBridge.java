@@ -1,8 +1,15 @@
 package com.moneybags.tempfly.util.data;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,6 +18,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import java.util.zip.DataFormatException;
 
 import org.bukkit.Bukkit;
@@ -25,15 +35,19 @@ import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
 
 
-public class DataBridge extends Thread implements DataFileHolder {
+public class DataBridge implements DataFileHolder {
 
 	private TempFly tempfly;
-	private Connection connection;
+	private MysqlDataSource dataSource;
 	
 	private File dataf;
 	private FileConfiguration data;
+	
+	private ExecutorService executor;
 	
 	// Staged changes are held in local memory until either the autosave runs, or they are forcefully committed.
 	// The databridge will act like these changes are part of the database even though they are local. 
@@ -45,36 +59,64 @@ public class DataBridge extends Thread implements DataFileHolder {
 
 	private List<DataPointer> manualCommit = new ArrayList<>();
 	
-	public Connection getConnection() {
-		return connection;
+	public MysqlDataSource getDataSource() {
+		return dataSource;
 	}
 	
 	public boolean hasSqlEnabled() {
-		return connection != null;
+		return dataSource != null;
 	}
 	
-	public DataBridge(TempFly tempfly) {
+	public boolean connectSql() throws SQLException {
+		String
+		host = Files.config.getString("system.mysql.host"),
+		name = Files.config.getString("system.mysql.name"),
+		user = Files.config.getString("system.mysql.user"),
+		pass = Files.config.getString("system.mysql.pass");
+		
+		MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
+		dataSource.setServerName(host);
+		dataSource.setPortNumber(Files.config.getInt("system.mysql.port"));
+		dataSource.setDatabaseName(name);
+		dataSource.setUser(user);
+		dataSource.setPassword(pass);
+		
+	    try (Connection conn = dataSource.getConnection()) {
+	        if (!conn.isValid(1)) {
+	        	Console.severe("Could not establish a connection to the database!");
+	            return false;
+	        }
+	    } 
+	    
+	    this.dataSource = dataSource;
+	    return true;
+	}
+	
+	private void initDb() throws IOException, SQLException {
+	    String setup;
+	    try (InputStream in = tempfly.getResource("dbsetup.sql")) {
+	        setup = new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
+	    } 
+	    String[] queries = setup.split(";");
+	    for (String query : queries) {
+	        if (query.isBlank()) continue;
+	        try (Connection conn = dataSource.getConnection();
+	             PreparedStatement stmt = conn.prepareStatement(query)) {
+	            stmt.execute();
+	        } 
+	    }
+	    Console.info("§2Database setup complete.");
+	}
+	
+	public DataBridge(TempFly tempfly) throws IOException, SQLException {
 		this.tempfly = tempfly;
-		if (Files.config.getBoolean("system.sql.enabled")) {
-			String
-			host = Files.config.getString("system.sql.host"),
-			port = Files.config.getString("system.sql.port"),
-			name = Files.config.getString("system.sql.name"),
-			user = Files.config.getString("system.sql.user"),
-			pass = Files.config.getString("system.sql.pass");
-			try {
-				Class.forName("com.mysql.jdbc.Driver");
-				connection = DriverManager.getConnection(
-						"jdbc:mysql://" + host + ":"+ port + "/" + name, user, pass);
-			} catch (Exception e) {
-				connection = null;
-				Console.severe("There was a problem connecting to sql database. Yaml storage will be used.");
-				e.printStackTrace();
-			}
+		if (Files.config.getBoolean("system.mysql.enabled")) {
+			connectSql();
+			initDb();
 		}
 		
 		// If connection is null we will default to yaml storage.
-		if (connection == null) {
+		if (!hasSqlEnabled()) {
 			dataf = new File(tempfly.getDataFolder(), "data.yml");
 		    if (!dataf.exists()){
 		    	dataf.getParentFile().mkdirs();
@@ -87,7 +129,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 		    }
 		    formatYamlData(tempfly);
 		}
-		this.start();
+		this.executor = Executors.newCachedThreadPool();
 	}
 	
 	
@@ -175,90 +217,16 @@ public class DataBridge extends Thread implements DataFileHolder {
 	public void stageChange(DataPointer pointer, Object data, DataFileHolder fileHolder) {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
-		if (V.debug) {
-			//Console.debug(""); Console.debug("-----------Staging new change-----------"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | ")); Console.debug("--| Data: " + String.valueOf(data));
+		if (V.debug) {//Console.debug(""); Console.debug("-----------Staging new change-----------"); Console.debug("--| Type: " + value.toString()); Console.debug("--| Path: " + U.arrayToString(pointer.getPath(), " | ")); Console.debug("--| Data: " + String.valueOf(data));
 		}
+		
 		
 		changes.put(pointer, new StagedChange(value, data, path, fileHolder));
-		
-		/**
-		if (changes.containsKey(pointer)) {
-			changes.put(pointer)
-		}
-		
-		for (StagedChange change: changes) {
-			if (change.isDuplicate(value, path)) {
-				Console.debug("--|> Data already exists for this type, overwriting it...");
-				changes.remove(change);
-			}
-		}
-		changes.add(new StagedChange(value, data, path, fileHolder));
-		*/
-		//Console.debug("-----------End of stage-----------");
-	}
-
-	/**
-	public static String getMonitorOwner(Object obj) {
-	    if (Thread.holdsLock(obj)) return Thread.currentThread().getName();
-	    for (java.lang.management.ThreadInfo ti :
-	            java.lang.management.ManagementFactory.getThreadMXBean()
-	            .dumpAllThreads(true, false)) {
-	        for (java.lang.management.MonitorInfo mi : ti.getLockedMonitors()) {
-	            if (mi.getIdentityHashCode() == System.identityHashCode(obj)) {
-	            	return ti.getThreadName();
-	                
-	            }
-	        }
-	    }
-	    return "null";
-	}
-	*/
-	
-	public void requestUpdates(DataValue listener) {
-		
-	}
-	
-	public void stopListening(DataValue listen) {
-		
 	}
 	
 	public boolean isStaged(DataPointer pointer) {
-		
-		
-		
-		
 		return changes.containsKey(pointer);
-		
-		/**
-		for (StagedChange change: changes) {
-			if (change.isDuplicate(pointer)) {
-				return true;	
-			}
-		}
-		return false;
-		*/
 	}
-	
-	/**
-	public synchronized boolean isStagedPath(String... path) {
-		for (StagedChange change: changes.values()) {
-			if (change.comparePath(path)) {
-				return true;	
-			}
-		}
-		return false;
-	}
-	
-	public synchronized StagedChange getStageFromPath(String... path) {
-		Console.debug(U.arrayToString(path, "-"));
-		for (StagedChange change: changes.values()) {
-			if (change.comparePath(path)) {
-				return change;
-			}
-		}
-		return null;
-	}
-	*/
 	
 	/**
 	 * Commit all changes to the database or yaml if applicable.
@@ -268,38 +236,12 @@ public class DataBridge extends Thread implements DataFileHolder {
 		Console.debug("", "--------> DataBridge Commit <--------", "--|>> Adding (ALL) changes to the commit queue");
 		manualCommit.clear();
 		manualCommit.addAll(changes.keySet());
-		synchronized (this) {
-			this.notifyAll();
+		if (manualCommit.size() == 0) {
+			return;
 		}
-	}
-	
-	
-	
-	/**
-	 * An infinitely looping async thread that commits any data in the manual commit queue.
-	 * Thread waits until notified by one of the manual commit methods that there is data to collect,
-	 * it then collects the data in batches, pulls it out of the sync thread and commits it to the database.
-	 */
-	@Override
-	public void run() {
-		this.setName("tempfly batch manager");
-		while(true) {
-			Console.debug(manualCommit.toString());
-			if (manualCommit.size() > 0) {
-				executeCommit();
-			}
-			synchronized (this) {
-				try {wait();} catch (InterruptedException e) {e.printStackTrace();}
-			}
-			/**
-			synchronized (this) {
-				if (manualCommit.size() == 0) {
-					try {wait();} catch (InterruptedException e) {e.printStackTrace();}
-				}
-				executeCommit();
-			}
-			*/
-		}
+		executor.submit(() -> {
+			executeCommit();
+		});
 	}
 	
 	/**
@@ -325,18 +267,6 @@ public class DataBridge extends Thread implements DataFileHolder {
 				changes.remove(pointer);
 				continue pointers;
 			}
-					
-					
-				/**
- 			for (StagedChange change: changes) {
- 				if (change.isDuplicate(pointer)) {
-					Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
-					commit.add(change);
-					changes.remove(change);
-					continue pointers;
-				}
-			}
-			*/
  			Console.debug("--|> No changes to save for this type...");
 		}	
 		
@@ -352,10 +282,15 @@ public class DataBridge extends Thread implements DataFileHolder {
 			if (!altered.contains(holder)) {
 				altered.add(holder);
 			}
-			setValue(change);
+			try {
+				setValue(change, holder.forceYaml());
+			} catch (SQLException e) {
+				e.printStackTrace();
+				continue;
+			}
 		}
-		if (connection == null) {
-			for (DataFileHolder holder: altered) {
+		for (DataFileHolder holder: altered) {
+			if (!hasSqlEnabled() || holder.forceYaml()) {
 				holder.saveData();
 			}
 		}
@@ -369,9 +304,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 	public void manualCommit(DataPointer... pointers) {
 		manualCommit.addAll(Arrays.asList(pointers));
 		Console.debug(manualCommit.toString());
-		synchronized (this) {
-			this.notifyAll();
-		}
+		executor.submit(() -> {
+			executeCommit();
+		});
 	}
 	
 	/**
@@ -387,9 +322,10 @@ public class DataBridge extends Thread implements DataFileHolder {
 	 * @param value
 	 * @param row
 	 * @return
+	 * @throws SQLException 
 	 * @throws DataFormatException
 	 */
-	public Object getValue(DataPointer pointer) {
+	public Object getValue(DataPointer pointer) throws SQLException {
 		DataValue value = pointer.getValue();
 		String[] path = pointer.getPath();
 		if (V.debug) {Console.debug("", "-----Data Bridge Get Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(pointer.getPath(), " | "));	}
@@ -401,18 +337,9 @@ public class DataBridge extends Thread implements DataFileHolder {
 			Console.debug("--|> found cached value... Returning local data!");
 			return change.getData();
 		}
-		
-		/**
-		for (StagedChange change: changes) {
-			if (change.isDuplicate(value, path)) {
-				Console.debug("--|> found duplicate... Returning local data!");
-				return change.getData();
-			}
-		}
-		*/
 		Console.debug("--|> No local data found, prepare for data retrieval!");
 		
-		if (connection == null) {
+		if (!hasSqlEnabled()) {
 			Console.debug("--| Using YAML");
 			int index = 0;
 			StringBuilder sb = new StringBuilder();
@@ -426,16 +353,42 @@ public class DataBridge extends Thread implements DataFileHolder {
 			return value.getTable().getDataFileHolder(tempfly).getDataConfiguration().get(sb.toString());
 		} else {
 			Console.debug("--| Using SQL");
-			String table = value.getTable().getSqlTable();
+			DataTable table = value.getTable();
 			
-			@SuppressWarnings("unused")
-			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table + " WHERE " + path[0] + "=" + path[1];
+			
+			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table.getSqlTable() + " WHERE " + table.getPrimaryKey() + " = ?";
+			Console.debug(statement);
+			try (PreparedStatement st = dataSource.getConnection().prepareStatement(statement)) {
+				st.setString(1, path[0]);
+				ResultSet result = st.executeQuery();
+		        if (result.next()) {
+		            return result.getObject(value.getSqlColumn());
+		        }
+			}
 		}
 		return null;
 	}
 	
+	public PreparedStatement prepareStatement(String statement) {
+		if (!hasSqlEnabled()) {
+			return null;
+		}
+		try {
+			return getDataSource().getConnection().prepareStatement(statement);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	public Object getOrDefault(DataPointer pointer, Object def) {
-		Object object = getValue(pointer);
+		Object object;
+		try {
+			object = getValue(pointer);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return def;
+		}
 		if (V.debug) {Console.debug("", "-----Data Bridge Get or Default Value-----", "--|> Got: " + object, "--|> Returning: " + String.valueOf(object == null ? def : object));}
 		return object == null ? def : object;
 	}
@@ -454,39 +407,17 @@ public class DataBridge extends Thread implements DataFileHolder {
 	
 	public Map<String, Object> getValues(DataTable table, DataFileHolder fileHolder, String yamlPathTo, String row, String... extra) {
 		Map<String, Object> values = new HashMap<>();
-		if (connection == null) {
+		if (!hasSqlEnabled() || fileHolder.forceYaml()) {
 			FileConfiguration df = fileHolder == null ?
-					table.getDataFileHolder(tempfly).getDataConfiguration() : fileHolder.getDataConfiguration();
-			try {
-				String path = yamlPathTo + "." + row + "." + U.arrayToString(extra, ".");
-				ConfigurationSection csValues = df.getConfigurationSection(path);
+					table.getDataFileHolder(tempfly).getDataConfiguration()
+					: fileHolder.getDataConfiguration();
+			String path = yamlPathTo + "." + row + "." + U.arrayToString(extra, ".");
+			ConfigurationSection csValues = df.getConfigurationSection(path);
+			if (csValues != null) {
 				for (String key: csValues.getKeys(false)) {
 					values.put(key, df.get(path + "." + key));
-				}	
-			} catch (NullPointerException e) {}
-		} else {
-			/**
-			try {
-				
-				//TODO PreparedStatement statement = connection.prepareStatement("select * from " + table.getSqlTable() + " where " + column + " = " + row);
-				ResultSet rs = statement.executeQuery();
-				ResultSetMetaData meta = rs.getMetaData();
-				Map<Integer, String> columns = new HashMap<>();
-				for (int index = 1; index < meta.getColumnCount(); index++) {
-					columns.put(index, meta.getColumnName(index));
-				}
-				
-				int index = 0;
-				while (rs.next()) {
-					index++;
-					values.put(columns.get(index), rs.getObject(index));
-				}
-				
-			} catch (SQLException e) {
-				e.printStackTrace();
-				return null;
+				}		
 			}
-			*/
 		}
 		for (StagedChange local: changes.values()) {
 			if (local.comparePathPartial(row)) {
@@ -496,11 +427,11 @@ public class DataBridge extends Thread implements DataFileHolder {
 		return values;
 	}
 	
-	public void setValue(StagedChange change) {
+	public void setValue(StagedChange change, boolean forceYaml) throws SQLException {
 		DataValue value = change.getValue();
 		String[] path = change.getPath();
 		if (V.debug) {Console.debug("", "-----Data Bridge Set Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(path, " | "));	}
-		if (connection == null) {
+		if (!hasSqlEnabled() || forceYaml) {
 			int index = 0;
 			StringBuilder sb = new StringBuilder();
 			for (String s: value.getYamlPath()) {
@@ -519,14 +450,43 @@ public class DataBridge extends Thread implements DataFileHolder {
 			}
 			yaml.set(sb.toString(), change.getData());
 		} else {
-			//TODO sql
+			Console.debug("UPDATE " + value.getTable().getSqlTable() + " SET " + value.getSqlColumn()
+					+ " = ? WHERE " + value.getTable().getPrimaryKey() + " = " + path[0]);
+			PreparedStatement st = dataSource.getConnection().prepareStatement(
+					"UPDATE " + value.getTable().getSqlTable() + " SET " + value.getSqlColumn()
+					+ " = ? WHERE " + value.getTable().getPrimaryKey() + " = ?");
+			Class<?> type = value.getType();
+			if (type.equals(Boolean.TYPE)) {
+				st.setBoolean(1, (boolean) change.getData());
+			} else if (type.equals(Double.TYPE)) {
+				st.setDouble(1, (double) change.getData());
+			} else if (type.equals(String.class)) {
+				st.setString(1, (String) change.getData());
+			} else if (type.equals(Long.TYPE)) {
+				st.setLong(1, (long) change.getData());
+			}
+			st.setString(2, path[0]);
+			st.execute();
+			st.close();
 		}
 	}
 
 	
 	public static enum DataTable {
-		TEMPFLY_DATA,
+		TEMPFLY_DATA("uuid"),
 		ISLAND_SETTINGS;
+		
+		private DataTable() {}
+		
+		private String primary;
+		
+		private DataTable(String primary) {
+			this.primary = primary;
+		}
+		
+		public String getPrimaryKey() {
+			return primary;
+		}
 		
 		public DataFileHolder getDataFileHolder(TempFly tempfly) {
 			switch (this) {
@@ -548,7 +508,7 @@ public class DataBridge extends Thread implements DataFileHolder {
 		public String getSqlTable() {
 			switch (this) {
 			case TEMPFLY_DATA:
-				return "TEMPFLY_DATA";
+				return "tempfly_data";
 			case ISLAND_SETTINGS:
 				//return tempfly.getHookManager().getGenre(Genre.SKYBLOCK)[0].getHookedPlugin() + "_island_settings";
 			default:
@@ -560,8 +520,8 @@ public class DataBridge extends Thread implements DataFileHolder {
 	public static enum DataValue {
 		PLAYER_TIME(
 				DataTable.TEMPFLY_DATA,
-				Long.TYPE,
-				"time",
+				Double.TYPE,
+				"player_time",
 				new String[] {"players", "time"},
 				false),
 		PLAYER_FLIGHT_LOG(
@@ -596,19 +556,19 @@ public class DataBridge extends Thread implements DataFileHolder {
 				false),
 		PLAYER_INFINITE(
 				DataTable.TEMPFLY_DATA,
-				String.class,
+				Boolean.TYPE,
 				"infinite",
 				new String[] {"players", "infinite"},
 				false),
 		PLAYER_BYPASS(
 				DataTable.TEMPFLY_DATA,
-				String.class,
+				Boolean.TYPE,
 				"bypass",
 				new String[] {"players", "bypass"},
 				false),
 		PLAYER_SPEED(
 				DataTable.TEMPFLY_DATA,
-				Float.TYPE,
+				Double.TYPE,
 				"speed",
 				new String[] {"players", "speed"},
 				false),
@@ -694,35 +654,6 @@ public class DataBridge extends Thread implements DataFileHolder {
 			return data;
 		}
 		
-		/**
-		public boolean isDuplicate(DataPointer pointer) {
-			return isDuplicate(pointer.getValue(), pointer.getPath());
-		}
-		
-		/**
-		public boolean isDuplicate(DataValue value, String[] path) {
-			if (value != this.value || path.length != this.path.length) {
-				return false;
-			}
-			for (int index = 0; path.length > index && this.path.length > index; index++) {
-				if (!path[index].equals(this.path[index])) {
-					return false;
-				}
-			}
-			return true;
-		}
-		*/
-		
-		/**
-		public boolean comparePath(String[] path) {
-			for (int index = 0; path.length > index && this.path.length > index; index++) {
-				if (!path[index].equals(this.path[index])) {
-					return false;
-				}
-			}
-			return true;
-		}
-		*/
 		public boolean comparePathPartial(String... path) {
 			for (int index = 0; path.length > index; index++) {
 				if (this.path.length <= index || !path[index].equals(this.path[index])) {

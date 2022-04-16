@@ -1,5 +1,7 @@
 package com.moneybags.tempfly;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -74,13 +76,20 @@ public class TempFly extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		tfApi = new TempFlyAPI(this);
 		Console.setLogger(this.getLogger());
 		
 		Files.createFiles(this);
 		V.loadValues();
 		
-		this.bridge   = new DataBridge(this);
+		try {
+			this.bridge   = new DataBridge(this);
+		} catch (IOException | SQLException e1) {
+			e1.printStackTrace();
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
+		
+		tfApi = new TempFlyAPI(this);
 		this.flight   = new FlightManager(this);
 		this.time     = new TimeManager(this);
 		this.hooks    = new HookManager(this);

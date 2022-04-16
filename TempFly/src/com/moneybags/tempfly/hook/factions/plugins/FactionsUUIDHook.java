@@ -47,10 +47,10 @@ public class FactionsUUIDHook extends FactionsHook implements Listener {
 	
 	@EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onClaim(LandClaimEvent e) {
+		FLocation loc = e.getLocation();
+		Faction current = Board.getInstance().getFactionAt(loc);
 		Bukkit.getScheduler().runTask(tempfly, () -> {
-			FLocation loc = e.getLocation();
 			Faction claimer = e.getFaction();
-			Faction current = Board.getInstance().getFactionAt(loc);
 			if (!claimer.equals(current)) {
 				super.onLandOverClaimed(loc.getChunk(), getFactionWrapper(current), getFactionWrapper(claimer));
 			} else {
