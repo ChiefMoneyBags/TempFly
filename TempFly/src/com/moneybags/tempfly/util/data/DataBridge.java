@@ -54,10 +54,6 @@ public class DataBridge implements DataFileHolder {
 	// It will look to see if there is data here first before it queries the database or YAML file.
 
 	private Map<DataPointer, StagedChange> changes = new ConcurrentHashMap<>();
-	// A list of pointers that tell the asynchronous batch manager to save the data they point to
-	// if it exists in the list of changes.
-
-	private List<DataPointer> manualCommit = new ArrayList<>();
 	
 	public MysqlDataSource getDataSource() {
 		return dataSource;
@@ -90,6 +86,10 @@ public class DataBridge implements DataFileHolder {
 	    
 	    this.dataSource = dataSource;
 	    return true;
+	}
+	
+	public TempFly getTempFly() {
+		return tempfly;
 	}
 	
 	private void initDb() throws IOException, SQLException {
@@ -127,88 +127,20 @@ public class DataBridge implements DataFileHolder {
 		    	Console.severe("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
 		        e1.printStackTrace();
 		    }
-		    formatYamlData(tempfly);
+		    LegacyDataFile.formatYamlData(this, data);
 		}
 		this.executor = Executors.newCachedThreadPool();
 	}
 	
-	
 	/**
-	 * format the data file from legacy TempFly version.
-	 * @param plugin
+	 * Stage a data change to be sent to the database later.
+	 * @param pointer
+	 * @param data
 	 */
-	private void formatYamlData(TempFly plugin) {
-		double version = data.getDouble("version", 0.0);
-		if (version < 2.0) {
-			Console.warn("Your data file needs to update to support the current version. Updating to version 2.0 now...");
-			if (!backupLegacyData("update_2_backup_")) {
-				Bukkit.getPluginManager().disablePlugin(plugin);
-				return;
-			}
-			
-			data.set("version", 2.0);
-			ConfigurationSection csPlayers = data.getConfigurationSection("players");
-			if (csPlayers != null) {
-				Map<String, Double> time = new HashMap<>();
-				for (String key: csPlayers.getKeys(false)) {
-					time.put(key, data.getDouble("players." + key));
-				}
-				for (Entry<String, Double> entry: time.entrySet()) {
-					String uuid = entry.getKey();
-					double value = entry.getValue();
-					data.set("players." + uuid + ".time", value);
-					data.set("players." + uuid + ".logged_in_flight", false);
-					data.set("players." + uuid + ".trail", "");
-				}	
-			}
-			List<String> disco = data.getStringList("flight_disconnect");
-			if (disco != null) {
-				for (String uuid: disco) {
-					data.set("players." + uuid + ".logged_in_flight", true);
-				}
-			}
-			data.set("flight_disconnect", null);
-			saveData();
-			
-		} else if (version < 3.0) {
-			Console.warn("", "This tempfly version has a new data management system, (data.yml) will be backed for your safety.", "");
-			if (!backupLegacyData("update_3_backup_")) {
-				Bukkit.getPluginManager().disablePlugin(plugin);
-				return;
-			}
-			data.set("version", 3.0);
-			saveData();
-		} else if (version < 4.0) {
-			if (!backupLegacyData("update_4_backup_")) {
-				Bukkit.getPluginManager().disablePlugin(plugin);
-				return;
-			}
-			data.set("version", 4.0);
-			saveData();
-		}
-	}
-	
-	/**
-	 * Create a data backup from legacy TempFly version when updating.
-	 * @return
-	 */
-	private boolean backupLegacyData(String file) {
-		Console.info("Creating a backup of your data file...");
-		File f = new File(tempfly.getDataFolder(), file + String.valueOf(new Random().nextInt(99999)) + ".yml");
-		try {
-			data.save(f);
-		} catch (Exception e) {
-			Console.severe("-----------------------------------", "There was an error while trying to backup the data file", "For your safety the plugin will disable. Please contact the tempfly developer.");
-			e.printStackTrace();
-			return false;
-		}
-		return true;
-	}
-	
-	
 	public void stageChange(DataPointer pointer, Object data) {
 		stageChange(pointer, data, null);
 	}
+	
 	/**
 	 * Stage a change to be sent to the database later.
 	 * @param pointer The type and path of the data
@@ -224,6 +156,11 @@ public class DataBridge implements DataFileHolder {
 		changes.put(pointer, new StagedChange(value, data, path, fileHolder));
 	}
 	
+	/**
+	 * Checks if there is a data change pending.
+	 * @param pointer
+	 * @return
+	 */
 	public boolean isStaged(DataPointer pointer) {
 		return changes.containsKey(pointer);
 	}
@@ -233,45 +170,48 @@ public class DataBridge implements DataFileHolder {
 	 * Adds all the staged changes to the manual batch and runs the async batch collector.
 	 */
 	public void commitAll() {
-		Console.debug("", "--------> DataBridge Commit <--------", "--|>> Adding (ALL) changes to the commit queue");
-		manualCommit.clear();
-		manualCommit.addAll(changes.keySet());
-		if (manualCommit.size() == 0) {
-			return;
-		}
 		executor.submit(() -> {
 			executeCommit();
 		});
 	}
 	
 	/**
-	 * Collects StagedChanges using the pointers collected in the manual batch and sends data to the database.
+	 * Commit specific data to the database.
+	 * @param pointers
 	 */
-	private void executeCommit() {
+	public void commit(DataPointer... pointers) {
+		executor.submit(() -> {
+			executeCommit(pointers);
+		});
+	}
+	
+	
+	private void executeCommit(DataPointer... pointers) {
 		List<StagedChange> commit = new ArrayList<>();
 		
 		if (V.debug) {Console.debug("", "-|>>>>> Preparing to execute the commit queue");}
 		
-		List<DataPointer> pl = new ArrayList<>();
-		pl.addAll(manualCommit);
-		manualCommit.clear();
-		
-		pointers:
-		for (DataPointer pointer: pl) {
-			if (V.debug) {Console.debug("", "--| Looking for data type:" + pointer.getValue().toString(), "--| Path:" + U.arrayToString(pointer.getPath(), " | "));}
-			Console.debug("looking for: " + pointer.hashCode());
-			StagedChange change = changes.get(pointer);
-			if (change != null) {
-				Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
-				commit.add(change);
-				changes.remove(pointer);
-				continue pointers;
+		if (pointers != null && pointers.length > 0) {
+			for (DataPointer pointer: pointers) {
+				if (V.debug) {Console.debug("", "--| Looking for data type:" + pointer.getValue().toString(), "--| Path:" + U.arrayToString(pointer.getPath(), " | "));}
+				StagedChange change = changes.get(pointer);
+				if (change != null) {
+					Console.debug("--|> Found a staged change that matches: data=(" + change.getData() + ")");
+					commit.add(change);
+					changes.remove(pointer);
+					continue;
+				}
+	 			Console.debug("--|> No changes to save for this type...");
 			}
- 			Console.debug("--|> No changes to save for this type...");
-		}	
+		} else {
+			Console.debug("", "--------> DataBridge Commit <--------", "--|>> Adding (ALL) changes to the commit queue");
+			commit.addAll(changes.values());
+			changes.clear();
+		}
 		
 		
-		if (commit.size() == 0 && V.debug) { Console.debug(">>>>> No changes to save...", "-----------End commit---------", "");
+		if (commit.size() == 0) {
+			Console.debug(">>>>> No changes to save...", "-----------End commit---------", "");
 			return;
 		}
 		
@@ -297,23 +237,11 @@ public class DataBridge implements DataFileHolder {
 		Console.debug("-----------End commit---------", "");
 	}
 	
-	/**
-	 * Manually add data pointers to the next manual commit and run the async batch collector.
-	 * @param pointers
-	 */
-	public void manualCommit(DataPointer... pointers) {
-		manualCommit.addAll(Arrays.asList(pointers));
-		Console.debug(manualCommit.toString());
-		executor.submit(() -> {
-			executeCommit();
-		});
-	}
 	
 	/**
 	 * Drop ALL changes, resets data back to the original state unless it has been commited. 
 	 */
 	public void dropChanges() {
-		manualCommit.clear();
 		changes.clear();
 	}
 	
