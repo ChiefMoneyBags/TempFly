@@ -1,6 +1,4 @@
-package com.moneybags.tempfly.util.data;
-
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+package com.moneybags.tempfly.util.data.values;
 
 public class DataPointer {
 

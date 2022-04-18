@@ -19,7 +19,7 @@ import com.moneybags.tempfly.hook.skyblock.plugins.IridiumHook;
 import com.moneybags.tempfly.hook.skyblock.plugins.SuperiorHook;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Reloadable;
+import com.moneybags.tempfly.util.data.files.Reloadable;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;

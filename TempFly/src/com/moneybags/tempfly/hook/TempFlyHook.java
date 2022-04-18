@@ -2,8 +2,6 @@ package com.moneybags.tempfly.hook;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,9 +20,8 @@ import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
-import com.moneybags.tempfly.util.data.Files;
-import com.moneybags.tempfly.util.data.Reloadable;
-import com.moneybags.tempfly.util.data.DataFileHolder;
+import com.moneybags.tempfly.util.data.files.DataFileHolder;
+import com.moneybags.tempfly.util.data.files.Reloadable;
 
 public abstract class TempFlyHook implements RequirementProvider, Reloadable, DataFileHolder {
 	
@@ -111,7 +108,7 @@ public abstract class TempFlyHook implements RequirementProvider, Reloadable, Da
 	    if (!hookConfigf.exists()) {
 	    	Console.info("Config for ("+ getHookName() + ") hook does not exist, creating...");
 	    	hookConfigf.getParentFile().mkdirs();
-	    	Files.createConfig(tempfly.getResource(getEmbeddedConfigName() + ".yml"), hookConfigf);
+	    	tempfly.getConfigProvider().createConfigFile(tempfly.getResource(getEmbeddedConfigName() + ".yml"), hookConfigf);
 	    }
 	    
 	    Console.debug("--<[ loading config into memory...");

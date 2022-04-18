@@ -8,7 +8,7 @@ import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Reloadable;
+import com.moneybags.tempfly.util.data.files.Reloadable;
 
 public interface RequirementProvider extends Reloadable {
 	

@@ -1,7 +1,7 @@
 package com.moneybags.tempfly;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +9,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -31,11 +32,14 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.ParticleTask;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
-import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.config.ConfigProvider;
+import com.moneybags.tempfly.util.data.config.SpigotConfigProvider;
+import com.moneybags.tempfly.util.data.config.SpigotConfigProvider.SpigotConfigSection;
+import com.moneybags.tempfly.util.data.files.LegacyDataFile;
+import com.moneybags.tempfly.util.data.files.ResourceProvider;
 
-public class TempFly extends JavaPlugin {
+public class TempFly extends JavaPlugin implements ResourceProvider {
 	
-	// static abusers unite
 	private static TempFlyAPI tfApi;
 	public static TempFlyAPI getAPI() {
 		return tfApi;
@@ -48,6 +52,7 @@ public class TempFly extends JavaPlugin {
 	private TimeManager time;
 	private CommandManager commands;
 	private GuiManager gui;
+	private ConfigProvider config;
 	private BukkitTask autosave;
 	
 	public HookManager getHookManager() {
@@ -77,17 +82,21 @@ public class TempFly extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		Console.setLogger(this.getLogger());
+
+		this.config = new SpigotConfigProvider(this, this);
+		try { config.loadConfigs("lang.yml", "page.yml"); } catch (IOException e1) {
+			e1.printStackTrace();
+		}
 		
-		Files.createFiles(this);
 		V.loadValues();
 		
-		try {
-			this.bridge   = new DataBridge(this);
-		} catch (IOException | SQLException e1) {
-			e1.printStackTrace();
-			getServer().getPluginManager().disablePlugin(this);
+		try {this.bridge   = new DataBridge(this);} catch (Exception e) {
+			e.printStackTrace();
+			this.getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
+		
+		LegacyDataFile.formatYamlData(this, bridge, ((SpigotConfigSection) config.getDefaultConfig()).getFileConfiguration());
 		
 		tfApi = new TempFlyAPI(this);
 		this.flight   = new FlightManager(this);
@@ -170,7 +179,9 @@ public class TempFly extends JavaPlugin {
 		gui.endAllSessions();
 		
 		bridge.commitAll();
-		Files.createFiles(this);
+		try { config.reload(); } catch (IOException | InvalidConfigurationException e) {
+			e.printStackTrace();
+		}
 		V.loadValues();
 		initializeGui();
 		
@@ -190,6 +201,16 @@ public class TempFly extends JavaPlugin {
 		} else {
 			return Arrays.asList(args);
 		}
+	}
+
+	@Override
+	public InputStream getResourceStream(String embedded) {
+		return getResource(embedded);
+	}
+
+	@Override
+	public ConfigProvider getConfigProvider() {
+		return config;
 	}
 	
 }

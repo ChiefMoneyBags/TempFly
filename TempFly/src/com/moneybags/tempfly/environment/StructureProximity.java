@@ -8,8 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.StructureType;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
-
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.fly.RequirementProvider;
 import com.moneybags.tempfly.fly.result.FlightResult;
@@ -17,10 +15,13 @@ import com.moneybags.tempfly.fly.result.ResultAllow;
 import com.moneybags.tempfly.fly.result.ResultDeny;
 import com.moneybags.tempfly.fly.result.FlightResult.DenyReason;
 import com.moneybags.tempfly.user.FlightUser;
-import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Files;
 
+/**
+ * I dont think this feature is going to work :(
+ * @author Kevin
+ *
+ */
 public class StructureProximity implements RequirementProvider {
 	
 	private FlightManager manager;
@@ -57,6 +58,7 @@ public class StructureProximity implements RequirementProvider {
 		return type != InquiryType.LOCATION;
 	}
 	
+	/**
 	@Override
 	public void onTempflyReload() {
 		ConfigurationSection csStruct = Files.config.getConfigurationSection("general.structure_proximity");
@@ -75,6 +77,7 @@ public class StructureProximity implements RequirementProvider {
 			this.structs.put(struct, range);
 		}
 	}
+	*/
 
 
 }

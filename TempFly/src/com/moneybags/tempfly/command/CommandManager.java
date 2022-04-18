@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
-import org.bukkit.configuration.ConfigurationSection;
-
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.admin.CmdGive;
 import com.moneybags.tempfly.command.admin.CmdGiveAll;
@@ -29,7 +27,7 @@ import com.moneybags.tempfly.command.player.CmdSpeed;
 import com.moneybags.tempfly.command.player.CmdTime;
 import com.moneybags.tempfly.command.player.CmdTrails;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.config.ConfigSection;
 
 public class CommandManager {
 
@@ -48,6 +46,7 @@ public class CommandManager {
 	
 	public CommandManager(TempFly tempfly) {
 		this.tempfly = tempfly;
+		ConfigSection lang = tempfly.getConfigProvider().getConfig("lang");
 		executor = new TempFlyExecutor(this);
 		tab = new TempFlyTabCompleter(this);
 		tempfly.getCommand("tempfly").setExecutor(executor);
@@ -57,7 +56,7 @@ public class CommandManager {
 			if (!type.isEnabled(tempfly)) {
 				continue;
 			}
-			List<String> subs = Files.lang.getStringList("command.base." + type.toString().toLowerCase());
+			List<String> subs = lang.getStringList("command.base." + type.toString().toLowerCase());
 			if (subs == null || subs.size() == 0) {
 				subCommands.put(type, Arrays.asList(type.getBase()));
 				continue;
@@ -65,14 +64,14 @@ public class CommandManager {
 			subCommands.put(type, subs);
 		}
 		
-		ConfigurationSection csUnits = Files.lang.getConfigurationSection("command.unit");
+		ConfigSection csUnits = lang.getConfigSection("command.unit");
 		if (csUnits != null) {
 			String path = "command.unit";
 			for (String key: csUnits.getKeys(false)) {
 				try {
 					TimeUnit unit = TimeUnit.valueOf(key.toUpperCase());
-					List<String> recognized = Files.lang.getStringList(path + "." + key + ".recognized");
-					String complete = Files.lang.getString(path + "." + key + ".tab_complete");
+					List<String> recognized = lang.getStringList(path + "." + key + ".recognized");
+					String complete = lang.getString(path + "." + key + ".tab_complete");
 					
 					if (recognized != null) timeArgs.put(unit, recognized);
 					if (complete != null) timeComplete.put(unit, complete);
@@ -100,9 +99,9 @@ public class CommandManager {
 		
 		List<String> temp = null;
 		
-		enable.addAll((temp = Files.lang.getStringList("command.enable")) == null || temp.size() == 0 ? 
+		enable.addAll((temp = lang.getStringList("command.enable")) == null || temp.size() == 0 ? 
 				Arrays.asList("on", "enable") : temp);
-		disable.addAll((temp = Files.lang.getStringList("command.disable")) == null || temp.size() == 0 ? 
+		disable.addAll((temp = lang.getStringList("command.disable")) == null || temp.size() == 0 ? 
 				Arrays.asList("off", "disable") : temp);
 	}
 	

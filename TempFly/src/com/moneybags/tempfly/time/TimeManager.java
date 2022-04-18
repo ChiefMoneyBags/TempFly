@@ -17,11 +17,11 @@ import com.moneybags.tempfly.util.DailyDate;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
-import com.moneybags.tempfly.util.data.DataPointer;
 
 import net.milkbowl.vault.permission.Permission;
 
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 public class TimeManager implements Listener {
 
@@ -45,7 +45,7 @@ public class TimeManager implements Listener {
 	private boolean alreadyThrown;
 	public double getTime(UUID u) {
 		FlightUser user = tempfly.getFlightManager().getUser(u);
-		if (user == null && tempfly.getDataBridge().hasSqlEnabled() && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
+		if (user == null && tempfly.getDataBridge().usingSql() && Bukkit.getServer().isPrimaryThread() && !alreadyThrown) {
 			alreadyThrown = true;
 			try {throw new IllegalStateException("Invocation of getTime() for an offline player should be performed from an asychronous thread! It is not safe to access a database on the main server thread!");} catch (IllegalStateException e) {
 				e.printStackTrace();
@@ -53,7 +53,7 @@ public class TimeManager implements Listener {
 		}
 		DataBridge bridge = tempfly.getDataBridge();
 		// If user is not online the data needs pulled from the database. Otherwise get it from memory.
-		return user == null ? (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
+		return user == null ? (double) bridge.getPrimaryDataProvider().getOrDefault(DataPointer.of(DataValue.PLAYER_TIME, u.toString()), 0d) : user.getTime();
 	}
 	
 	/**
@@ -135,7 +135,7 @@ public class TimeManager implements Listener {
 		if (user != null) {
 			user.setTime(seconds);
 		} else {
-			if (tempfly.getDataBridge().hasSqlEnabled()) {
+			if (tempfly.getDataBridge().usingSql()) {
 				Console.warn("It is currently unsafe to alter player time for offline players while using MYSQL storage! The tempfly plugin currently does not sync player time between servers on a network. If this player is currently on a different server their time will not update and will be overwritten when they log off or switch servers.");
 			}
 			DataPointer pointer = DataPointer.of(DataValue.PLAYER_TIME, u.toString());
@@ -246,7 +246,7 @@ public class TimeManager implements Listener {
 	public void loginBonus(Player p, double maxTime) {
 		Console.debug("--| Checking daily login bonus...");
 		DataBridge bridge = tempfly.getDataBridge();
-		long lastBonus = (long) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), 0L);
+		long lastBonus = (long) bridge.getPrimaryDataProvider().getOrDefault(DataPointer.of(DataValue.PLAYER_DAILY_BONUS, p.getUniqueId().toString()), 0L);
 		long sys = System.currentTimeMillis();
 		
 		if (new DailyDate(lastBonus).equals(new DailyDate(sys))) {

@@ -1,53 +1,45 @@
 package com.moneybags.tempfly.util.data;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.zip.DataFormatException;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import com.moneybags.tempfly.TempFly;
-import com.moneybags.tempfly.hook.TempFlyHook;
-import com.moneybags.tempfly.hook.HookManager;
-import com.moneybags.tempfly.hook.HookManager.Genre;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
-import com.mysql.cj.jdbc.MysqlDataSource;
+import com.moneybags.tempfly.util.data.config.SpigotConfigProvider.SpigotConfigSection;
+import com.moneybags.tempfly.util.data.files.DataFileHolder;
+import com.moneybags.tempfly.util.data.files.ResourceProvider;
+import com.moneybags.tempfly.util.data.provider.DataProvider;
+import com.moneybags.tempfly.util.data.provider.SqlProvider;
+import com.moneybags.tempfly.util.data.provider.YamlProvider;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataValue;
+import com.moneybags.tempfly.util.data.values.StagedChange;
 
-
+/**
+ * DataBridge provides the means of saving and retrieving data asynchronously through various
+ * means of data storage.
+ * @author Kevin
+ *
+ */
 public class DataBridge implements DataFileHolder {
 
-	private TempFly tempfly;
-	private MysqlDataSource dataSource;
-	
-	private File dataf;
-	private FileConfiguration data;
-	
+	private ResourceProvider resources;
 	private ExecutorService executor;
+	
+	private DataProvider primary;
+	
+	private List<DataProvider> providers = new ArrayList<>();
 	
 	// Staged changes are held in local memory until either the autosave runs, or they are forcefully committed.
 	// The databridge will act like these changes are part of the database even though they are local. 
@@ -55,81 +47,63 @@ public class DataBridge implements DataFileHolder {
 
 	private Map<DataPointer, StagedChange> changes = new ConcurrentHashMap<>();
 	
-	public MysqlDataSource getDataSource() {
-		return dataSource;
+	public ResourceProvider getResources() {
+		return resources;
 	}
 	
-	public boolean hasSqlEnabled() {
-		return dataSource != null;
-	}
-	
-	public boolean connectSql() throws SQLException {
-		String
-		host = Files.config.getString("system.mysql.host"),
-		name = Files.config.getString("system.mysql.name"),
-		user = Files.config.getString("system.mysql.user"),
-		pass = Files.config.getString("system.mysql.pass");
-		
-		MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
-		dataSource.setServerName(host);
-		dataSource.setPortNumber(Files.config.getInt("system.mysql.port"));
-		dataSource.setDatabaseName(name);
-		dataSource.setUser(user);
-		dataSource.setPassword(pass);
-		
-	    try (Connection conn = dataSource.getConnection()) {
-	        if (!conn.isValid(1)) {
-	        	Console.severe("Could not establish a connection to the database!");
-	            return false;
-	        }
-	    } 
-	    
-	    this.dataSource = dataSource;
-	    return true;
-	}
-	
-	public TempFly getTempFly() {
-		return tempfly;
-	}
-	
-	private void initDb() throws IOException, SQLException {
-	    String setup;
-	    try (InputStream in = tempfly.getResource("dbsetup.sql")) {
-	        setup = new BufferedReader(new InputStreamReader(in)).lines().collect(Collectors.joining("\n"));
-	    } 
-	    String[] queries = setup.split(";");
-	    for (String query : queries) {
-	        if (query.isBlank()) continue;
-	        try (Connection conn = dataSource.getConnection();
-	             PreparedStatement stmt = conn.prepareStatement(query)) {
-	            stmt.execute();
-	        } 
-	    }
-	    Console.info("§2Database setup complete.");
-	}
-	
-	public DataBridge(TempFly tempfly) throws IOException, SQLException {
-		this.tempfly = tempfly;
-		if (Files.config.getBoolean("system.mysql.enabled")) {
-			connectSql();
-			initDb();
+	public DataBridge(ResourceProvider resources) throws SQLException, IOException {
+		this.resources = resources;
+		DataProvider yml = new YamlProvider(resources);
+		providers.add(yml);
+		if (resources.getConfigProvider().getDefaultConfig().getBoolean("system.mysql.enabled")) {
+			this.primary = new SqlProvider(resources);
+			providers.add(primary);
+		} else {
+			this.primary = yml;
+			resources.getConfigProvider().loadConfig("data.yml");
 		}
 		
-		// If connection is null we will default to yaml storage.
-		if (!hasSqlEnabled()) {
-			dataf = new File(tempfly.getDataFolder(), "data.yml");
-		    if (!dataf.exists()){
-		    	dataf.getParentFile().mkdirs();
-		    	tempfly.saveResource("data.yml", false);
-		    }
-		    data = new YamlConfiguration();  
-		    try { data.load(dataf); } catch (Exception e1) {
-		    	Console.severe("There is a problem inside the data.yml, If you cannot fix the issue, please contact the developer.");
-		        e1.printStackTrace();
-		    }
-		    LegacyDataFile.formatYamlData(this, data);
-		}
 		this.executor = Executors.newCachedThreadPool();
+	}
+	
+	/**
+	 * Get whether the primary data provider of this bridge is an SQL database.
+	 * @return
+	 */
+	public boolean usingSql() {
+		return primary instanceof SqlProvider;
+	}
+	
+	/**
+	 * Get the default data provider for this data bridge.
+	 * @return The data provider this bridge is currently using.
+	 */
+	public DataProvider getPrimaryDataProvider() {
+		return primary;
+	}
+	
+	public void addDataProvider(DataProvider provider) {
+		if (providers.stream().anyMatch(registered -> provider.getClass().equals(registered.getClass()) )) {
+			throw new IllegalArgumentException("Cannot register more than one data provider of the same type...");
+		}
+		providers.add(provider);
+	}
+	
+	public void setPrimaryDataProvider(DataProvider provider) {
+		if (!providers.contains(provider)) {
+			providers.add(provider);
+		}
+		primary = provider;
+	}
+	
+	public <T extends DataProvider> T getDataProvider(Class<T> type) {
+		for (DataProvider provider: providers) {
+			if (!type.isAssignableFrom(provider.getClass())) {
+				continue;
+			}
+			return type.cast(provider);
+		}
+		return null;
 	}
 	
 	/**
@@ -166,8 +140,31 @@ public class DataBridge implements DataFileHolder {
 	}
 	
 	/**
-	 * Commit all changes to the database or yaml if applicable.
-	 * Adds all the staged changes to the manual batch and runs the async batch collector.
+	 * Get all pending changes.
+	 * @return All local changes.
+	 */
+	public Collection<StagedChange> getChanges() {
+		return changes.values();
+	}
+	
+	/**
+	 * Get a value from the data provider. If there is a local change pending the
+	 * value from the local cache will be returned.
+	 * @param pointer The pointer that represents the data to be retrieved.
+	 * @return The requested data or null if it doesn't exist.
+	 */
+	public Object getValue(DataPointer pointer) {
+		StagedChange change = changes.get(pointer);
+		if (change != null) {
+			Console.debug("--|> found cached value... Returning local data!");
+			return change.getData();
+		}
+		Console.debug("--|> No local data found, prepare for data retrieval!");
+		return getPrimaryDataProvider().getValue(pointer);
+	}
+	
+	/**
+	 * Commit all pending changes to the data provider.
 	 */
 	public void commitAll() {
 		executor.submit(() -> {
@@ -176,8 +173,8 @@ public class DataBridge implements DataFileHolder {
 	}
 	
 	/**
-	 * Commit specific data to the database.
-	 * @param pointers
+	 * Commit specific pending changes to the data provider if applicable.
+	 * @param pointers The pointers representing the data you want to commit.
 	 */
 	public void commit(DataPointer... pointers) {
 		executor.submit(() -> {
@@ -185,7 +182,10 @@ public class DataBridge implements DataFileHolder {
 		});
 	}
 	
-	
+	/**
+	 * Send pending changes to the data provider and remove them from the local cache.
+	 * @param pointers The pointers representing the data to send.
+	 */
 	private void executeCommit(DataPointer... pointers) {
 		List<StagedChange> commit = new ArrayList<>();
 		
@@ -218,19 +218,23 @@ public class DataBridge implements DataFileHolder {
 		if (V.debug) { Console.debug("Preparing to set value for (" + String.valueOf(commit.size()) + ") change" + (commit.size() > 1 ? "s" : "") + " found...");}
 		List<DataFileHolder> altered = new ArrayList<>();
 		for (StagedChange change: commit) {
-			DataFileHolder holder = change.getValue().getTable().getDataFileHolder(tempfly);
+			DataFileHolder holder = resources.getConfigProvider().getDataFileHolder(change.getValue().getTable());
 			if (!altered.contains(holder)) {
 				altered.add(holder);
 			}
 			try {
-				setValue(change, holder.forceYaml());
-			} catch (SQLException e) {
+				if (holder.forceYaml()) {
+					getDataProvider(YamlProvider.class).setValue(change);
+				} else {
+					primary.setValue(change);
+				}
+			} catch (Exception e) {
 				e.printStackTrace();
 				continue;
 			}
 		}
 		for (DataFileHolder holder: altered) {
-			if (!hasSqlEnabled() || holder.forceYaml()) {
+			if (holder.forceYaml() || primary instanceof YamlProvider) {
 				holder.saveData();
 			}
 		}
@@ -244,378 +248,30 @@ public class DataBridge implements DataFileHolder {
 	public void dropChanges() {
 		changes.clear();
 	}
-	
-	/**
-	 * Get a value from the table
-	 * @param value
-	 * @param row
-	 * @return
-	 * @throws SQLException 
-	 * @throws DataFormatException
-	 */
-	public Object getValue(DataPointer pointer) throws SQLException {
-		DataValue value = pointer.getValue();
-		String[] path = pointer.getPath();
-		if (V.debug) {Console.debug("", "-----Data Bridge Get Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(pointer.getPath(), " | "));	}
-		
-		Console.debug("--| Checking local staged changes");
-		
-		StagedChange change = changes.get(pointer);
-		if (change != null) {
-			Console.debug("--|> found cached value... Returning local data!");
-			return change.getData();
-		}
-		Console.debug("--|> No local data found, prepare for data retrieval!");
-		
-		if (!hasSqlEnabled()) {
-			Console.debug("--| Using YAML");
-			int index = 0;
-			StringBuilder sb = new StringBuilder();
-			for (String s: value.getYamlPath()) {
-				sb.append((sb.length() > 0 ? "." : "") + s);
-				if (path.length > index) {
-					sb.append("." + path[index]);
-				}
-				index++;
-			}
-			return value.getTable().getDataFileHolder(tempfly).getDataConfiguration().get(sb.toString());
-		} else {
-			Console.debug("--| Using SQL");
-			DataTable table = value.getTable();
-			
-			
-			String statement = "SELECT " + value.getSqlColumn() + " FROM " + table.getSqlTable() + " WHERE " + table.getPrimaryKey() + " = ?";
-			Console.debug(statement);
-			try (PreparedStatement st = dataSource.getConnection().prepareStatement(statement)) {
-				st.setString(1, path[0]);
-				ResultSet result = st.executeQuery();
-		        if (result.next()) {
-		            return result.getObject(value.getSqlColumn());
-		        }
-			}
-		}
-		return null;
-	}
-	
-	public PreparedStatement prepareStatement(String statement) {
-		if (!hasSqlEnabled()) {
-			return null;
-		}
-		try {
-			return getDataSource().getConnection().prepareStatement(statement);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	public Object getOrDefault(DataPointer pointer, Object def) {
-		Object object;
-		try {
-			object = getValue(pointer);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return def;
-		}
-		if (V.debug) {Console.debug("", "-----Data Bridge Get or Default Value-----", "--|> Got: " + object, "--|> Returning: " + String.valueOf(object == null ? def : object));}
-		return object == null ? def : object;
-	}
-	
-	public Map<String, Object> getValues(DataTable table, String yamlPathTo, String row, String... extra) {
-		return getValues(table, null, yamlPathTo, row, extra);
-	}
-	
-	/**
-	 * Get all values from the table for the given row.
-	 * Assumes the row is path to the ConfigurationSection in yaml
-	 * @param value
-	 * @param row
-	 * @return
-	 */
-	
-	public Map<String, Object> getValues(DataTable table, DataFileHolder fileHolder, String yamlPathTo, String row, String... extra) {
-		Map<String, Object> values = new HashMap<>();
-		if (!hasSqlEnabled() || fileHolder.forceYaml()) {
-			FileConfiguration df = fileHolder == null ?
-					table.getDataFileHolder(tempfly).getDataConfiguration()
-					: fileHolder.getDataConfiguration();
-			String path = yamlPathTo + "." + row + "." + U.arrayToString(extra, ".");
-			ConfigurationSection csValues = df.getConfigurationSection(path);
-			if (csValues != null) {
-				for (String key: csValues.getKeys(false)) {
-					values.put(key, df.get(path + "." + key));
-				}		
-			}
-		}
-		for (StagedChange local: changes.values()) {
-			if (local.comparePathPartial(row)) {
-				values.put(local.getPath()[local.getPath().length-1], local.getData());
-			}
-		}	
-		return values;
-	}
-	
-	public void setValue(StagedChange change, boolean forceYaml) throws SQLException {
-		DataValue value = change.getValue();
-		String[] path = change.getPath();
-		if (V.debug) {Console.debug("", "-----Data Bridge Set Value-----", "--| Type: " + value.toString(), "--| Path: " + U.arrayToString(path, " | "));	}
-		if (!hasSqlEnabled() || forceYaml) {
-			int index = 0;
-			StringBuilder sb = new StringBuilder();
-			for (String s: value.getYamlPath()) {
-				sb.append((sb.length() > 0 ? "." : "") + s);
-				if (path.length > index) {
-					sb.append("." + path[index]);
-				}
-				index++;
-			}
-			if (V.debug) {Console.debug("--| Setting yaml value: " + sb.toString(), "--| New data: " + String.valueOf(change.getData()));}
-			FileConfiguration yaml = change.getFileHolder() == null ?
-					value.getTable().getDataFileHolder(tempfly).getDataConfiguration()
-					: change.getFileHolder().getDataConfiguration();
-			if (!yaml.contains(sb.toString())) {
-				yaml.createSection(sb.toString());
-			}
-			yaml.set(sb.toString(), change.getData());
-		} else {
-			Console.debug("UPDATE " + value.getTable().getSqlTable() + " SET " + value.getSqlColumn()
-					+ " = ? WHERE " + value.getTable().getPrimaryKey() + " = " + path[0]);
-			PreparedStatement st = dataSource.getConnection().prepareStatement(
-					"UPDATE " + value.getTable().getSqlTable() + " SET " + value.getSqlColumn()
-					+ " = ? WHERE " + value.getTable().getPrimaryKey() + " = ?");
-			Class<?> type = value.getType();
-			if (type.equals(Boolean.TYPE)) {
-				st.setBoolean(1, (boolean) change.getData());
-			} else if (type.equals(Double.TYPE)) {
-				st.setDouble(1, (double) change.getData());
-			} else if (type.equals(String.class)) {
-				st.setString(1, (String) change.getData());
-			} else if (type.equals(Long.TYPE)) {
-				st.setLong(1, (long) change.getData());
-			}
-			st.setString(2, path[0]);
-			st.execute();
-			st.close();
-		}
-	}
 
-	
-	public static enum DataTable {
-		TEMPFLY_DATA("uuid"),
-		ISLAND_SETTINGS;
-		
-		private DataTable() {}
-		
-		private String primary;
-		
-		private DataTable(String primary) {
-			this.primary = primary;
-		}
-		
-		public String getPrimaryKey() {
-			return primary;
-		}
-		
-		public DataFileHolder getDataFileHolder(TempFly tempfly) {
-			switch (this) {
-			case TEMPFLY_DATA:
-				return tempfly.getDataBridge();
-			case ISLAND_SETTINGS:
-				HookManager hooks = tempfly.getHookManager();
-				TempFlyHook[] hook;
-				if ((hook = hooks.getGenre(Genre.SKYBLOCK)) != null && hook.length > 0) {
-					return (DataFileHolder) hook[0];
-				}
-				break;
-			default:
-				return null;
-			}
-			return null;
-		}
-		
-		public String getSqlTable() {
-			switch (this) {
-			case TEMPFLY_DATA:
-				return "tempfly_data";
-			case ISLAND_SETTINGS:
-				//return tempfly.getHookManager().getGenre(Genre.SKYBLOCK)[0].getHookedPlugin() + "_island_settings";
-			default:
-				return null;
-			}
-		}
-	}
-	
-	public static enum DataValue {
-		PLAYER_TIME(
-				DataTable.TEMPFLY_DATA,
-				Double.TYPE,
-				"player_time",
-				new String[] {"players", "time"},
-				false),
-		PLAYER_FLIGHT_LOG(
-				DataTable.TEMPFLY_DATA,
-				Boolean.TYPE,
-				"logged_in_flight",
-				new String[] {"players", "logged_in_flight"},
-				false),
-		PLAYER_COMPAT_FLIGHT_LOG(
-				DataTable.TEMPFLY_DATA,
-				Boolean.TYPE,
-				"compat_logged_in_flight",
-				new String[] {"players", "compat_logged_in_flight"},
-				false),
-		PLAYER_DAMAGE_PROTECTION(
-				DataTable.TEMPFLY_DATA,
-				Boolean.TYPE,
-				"damage_protection",
-				new String[] {"players", "damage_protection"},
-				false),
-		PLAYER_DAILY_BONUS(
-				DataTable.TEMPFLY_DATA,
-				Long.TYPE,
-				"last_daily_bonus",
-				new String[] {"players", "last_daily_bonus"},
-				false),
-		PLAYER_TRAIL(
-				DataTable.TEMPFLY_DATA,
-				String.class,
-				"trail",
-				new String[] {"players", "trail"},
-				false),
-		PLAYER_INFINITE(
-				DataTable.TEMPFLY_DATA,
-				Boolean.TYPE,
-				"infinite",
-				new String[] {"players", "infinite"},
-				false),
-		PLAYER_BYPASS(
-				DataTable.TEMPFLY_DATA,
-				Boolean.TYPE,
-				"bypass",
-				new String[] {"players", "bypass"},
-				false),
-		PLAYER_SPEED(
-				DataTable.TEMPFLY_DATA,
-				Double.TYPE,
-				"speed",
-				new String[] {"players", "speed"},
-				false),
-		
-		
-		
-		
-		ISLAND_SETTING(
-				DataTable.ISLAND_SETTINGS,
-				Boolean.TYPE,
-				null,
-				new String[] {"islands", "settings"},
-				true);
-		
-		private DataTable table;
-		private Class<?> type;
-		private String
-		sqlColumn;
-		
-		private String[]
-		yamlPath;
-		private boolean dynamic;
-		
-		private DataValue(DataTable table, Class<?> type, String sqlColumn, String[] yamlPath, boolean dynamic) {
-			this.table = table;
-			this.type = type;
-			this.sqlColumn = sqlColumn;
-			this.yamlPath = yamlPath;
-			this.dynamic = dynamic;
-		}
-		
-		public DataTable getTable() {
-			return table;
-		}
-		
-		public Class<?> getType() {
-			return type;
-		}
-		
-		public String getSqlColumn() {
-			return sqlColumn;
-		}
-		
-		public String[] getYamlPath() {
-			return yamlPath;
-		}
-		
-		public boolean hasDynamicPath() {
-			return dynamic;
-		}
-	}
-	
-	protected class StagedChange {
-		DataValue value;
-		String[] path;
-		Object data;
-		DataFileHolder fileHolder;
-		
-		public StagedChange(DataValue value, Object data, String[] path, DataFileHolder fileHolder) {
-			this.value = value;
-			this.path = path;
-			this.data = data;
-			this.fileHolder = fileHolder;
-		}
-
-		public DataPointer getPointer() {
-			return DataPointer.of(value, path);
-		}
-
-		public DataFileHolder getFileHolder() {
-			return fileHolder;
-		}
-		
-		public DataValue getValue() {
-			return value;
-		}
-		
-		public String[] getPath() {
-			return path;
-		}
-		
-		public Object getData() {
-			return data;
-		}
-		
-		public boolean comparePathPartial(String... path) {
-			for (int index = 0; path.length > index; index++) {
-				if (this.path.length <= index || !path[index].equals(this.path[index])) {
-					return false;
-				}
-			}
-			return true;
-		}
-		
-	}
-
-	@Override
+	@Override @Deprecated
 	public File getDataFile() {
-		return dataf;
+		return ((SpigotConfigSection) resources.getConfigProvider().getDefaultConfig()).getFile();
 	}
 
-	@Override
+	@Override @Deprecated
 	public FileConfiguration getDataConfiguration() {
-		return data;
+		return ((SpigotConfigSection) resources.getConfigProvider().getDefaultConfig()).getFileConfiguration();
 	}
 
-	@Override
+	@Override @Deprecated
 	public void setDataFile(File file) {
-		this.dataf = file;
+		return;
 	}
 
-	@Override
+	@Override @Deprecated
 	public void setDataConfiguration(FileConfiguration data) {
-		this.data = data;
+		return;
 	}
 	
-	@Override
+	@Override @Deprecated
 	public void saveData() {
-		try { data.save(dataf); } catch (Exception e) {e.printStackTrace();}
+		try { resources.getConfigProvider().getDefaultConfig().saveConfig(); } catch (Exception e) {e.printStackTrace();}
 	}
 
 }

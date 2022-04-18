@@ -14,8 +14,8 @@ import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
-import com.moneybags.tempfly.util.data.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 public class Particles {
 
@@ -75,7 +75,7 @@ public class Particles {
 	}
 	
 	public static String loadTrail(UUID u) {
-		String particle = (String) tempfly.getDataBridge().getOrDefault(DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()), null);
+		String particle = (String) tempfly.getDataBridge().getPrimaryDataProvider().getOrDefault(DataPointer.of(DataValue.PLAYER_TRAIL, u.toString()), null);
 		if (V.debug) {Console.debug("", "------Loading particle trail------", "Player: " + u.toString(), "Value from data: " + String.valueOf(particle), "Default trail enabled: " + V.particleDefault, "Default trail is: " + V.particleType, "Returning trail: " +  (particle != null ? particle: (V.particleDefault ? V.particleType : "")), "------End particle trail------", "");}
 		return particle != null ? particle: (V.particleDefault ? V.particleType : "");
 	}

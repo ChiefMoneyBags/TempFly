@@ -1,4 +1,4 @@
-package com.moneybags.tempfly.util.data;
+package com.moneybags.tempfly.util.data.files;
 
 import java.io.File;
 

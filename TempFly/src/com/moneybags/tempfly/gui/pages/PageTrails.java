@@ -10,7 +10,6 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Particle;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -24,7 +23,7 @@ import com.moneybags.tempfly.gui.GuiSession;
 import com.moneybags.tempfly.gui.abstraction.DynamicPage;
 import com.moneybags.tempfly.util.CompatMaterial;
 import com.moneybags.tempfly.util.U;
-import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.config.ConfigSection;
 
 public class PageTrails extends DynamicPage {
 	
@@ -39,14 +38,14 @@ public class PageTrails extends DynamicPage {
 	
 	public static void initialize(TempFly plugin) {
 		tempfly = plugin;
-		FileConfiguration config = Files.page;
+		ConfigSection page = tempfly.getConfigProvider().getConfig("page");
 		String path = "page.trails";
-		title = U.cc(config.getString(path + ".title", "&dParticle Trails"));
-		background = U.getConfigItem(config, path + ".background");
-		toolbar = U.getConfigItem(config, path + ".toolbar");
-		next = U.getConfigItem(config, path + ".next");
-		prev = U.getConfigItem(config, path + ".prev");
-		remove = U.getConfigItem(config, path + ".remove");
+		title = U.cc(page.getString(path + ".title", "&dParticle Trails"));
+		background = U.getConfigItem(page, path + ".background");
+		toolbar = U.getConfigItem(page, path + ".toolbar");
+		next = U.getConfigItem(page, path + ".next");
+		prev = U.getConfigItem(page, path + ".prev");
+		remove = U.getConfigItem(page, path + ".remove");
 		
 		CompatMaterial.setType(background, CompatMaterial.GRAY_STAINED_GLASS_PANE);
 		CompatMaterial.setType(toolbar, CompatMaterial.BLACK_STAINED_GLASS_PANE);

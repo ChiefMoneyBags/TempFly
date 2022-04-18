@@ -7,7 +7,6 @@ import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.ConfigurationSection;
 
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.fly.RequirementProvider;
@@ -19,7 +18,7 @@ import com.moneybags.tempfly.hook.region.CompatRegion;
 import com.moneybags.tempfly.user.FlightUser;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.config.ConfigSection;
 
 public class FlightEnvironment implements RequirementProvider {
 
@@ -290,56 +289,58 @@ public class FlightEnvironment implements RequirementProvider {
 
 	@Override
 	public void onTempflyReload() {
-		blackRegions = Files.config.contains("general.disabled.regions") ? Files.config.getStringList("general.disabled.regions") : new ArrayList<>();
-		blackWorlds = Files.config.contains("general.disabled.worlds") ? Files.config.getStringList("general.disabled.worlds") : new ArrayList<>();
+		ConfigSection config = getFlightManager().getTempFly().getConfigProvider().getDefaultConfig();
 		
-		whiteRegions = Files.config.contains("general.whitelist.regions") ? Files.config.getStringList("general.whitelist.regions") : new ArrayList<>();
-		whiteWorlds = Files.config.contains("general.whitelist.worlds") ? Files.config.getStringList("general.whitelist.worlds") : new ArrayList<>();
+		blackRegions = config.contains("general.disabled.regions") ? config.getStringList("general.disabled.regions") : new ArrayList<>();
+		blackWorlds = config.contains("general.disabled.worlds") ? config.getStringList("general.disabled.worlds") : new ArrayList<>();
+		
+		whiteRegions = config.contains("general.whitelist.regions") ? config.getStringList("general.whitelist.regions") : new ArrayList<>();
+		whiteWorlds = config.contains("general.whitelist.worlds") ? config.getStringList("general.whitelist.worlds") : new ArrayList<>();
 	
-		whiteRegions = Files.config.contains("general.whitelist.regions") ? Files.config.getStringList("general.whitelist.regions") : new ArrayList<>();
-		whiteWorlds = Files.config.contains("general.whitelist.worlds") ? Files.config.getStringList("general.whitelist.worlds") : new ArrayList<>();
+		whiteRegions = config.contains("general.whitelist.regions") ? config.getStringList("general.whitelist.regions") : new ArrayList<>();
+		whiteWorlds = config.contains("general.whitelist.worlds") ? config.getStringList("general.whitelist.worlds") : new ArrayList<>();
 		
-		freeRegions = Files.config.contains("general.time.infinite.regions") ? Files.config.getStringList("general.time.infinite.regions") : new ArrayList<>();
-		freeWorlds = Files.config.contains("general.time.infinite.worlds") ? Files.config.getStringList("general.time.infinite.worlds") : new ArrayList<>();
+		freeRegions = config.contains("general.time.infinite.regions") ? config.getStringList("general.time.infinite.regions") : new ArrayList<>();
+		freeWorlds = config.contains("general.time.infinite.worlds") ? config.getStringList("general.time.infinite.worlds") : new ArrayList<>();
 		
-		ConfigurationSection csRtW = Files.config.getConfigurationSection("other.relative_time.worlds");
+		ConfigSection csRtW = config.getConfigSection("other.relative_time.worlds");
 		if (csRtW != null) {
 			for (String s : csRtW.getKeys(false)) {
 				rtWorlds.put(s, new RelativeTimeRegion(
-						Files.config.getDouble("other.relative_time.worlds." + s, 1), true, s));
+						config.getDouble("other.relative_time.worlds." + s, 1), true, s));
 			}
 		}
-		ConfigurationSection csRtR = Files.config.getConfigurationSection("other.relative_time.regions");
+		ConfigSection csRtR = config.getConfigSection("other.relative_time.regions");
 		if (csRtW != null) {
 			for (String s : csRtR.getKeys(false)) {
 				rtRegions.put(s, new RelativeTimeRegion(
-						Files.config.getDouble("other.relative_time.regions." + s, 1), false, s));
+						config.getDouble("other.relative_time.regions." + s, 1), false, s));
 			}
 		}
 		
-		ConfigurationSection csSpeedW = Files.config.getConfigurationSection("general.flight.speed.worlds");
+		ConfigSection csSpeedW = config.getConfigSection("general.flight.speed.worlds");
 		if (csSpeedW != null) {
 			for (String s : csSpeedW.getKeys(false)) {
-				speedWorlds.put(s, (float) Files.config.getDouble("general.flight.speed.worlds." + s, 1));
+				speedWorlds.put(s, (float) config.getDouble("general.flight.speed.worlds." + s, 1));
 			}
 		}
-		ConfigurationSection csSpeedR = Files.config.getConfigurationSection("general.flight.speed.regions");
+		ConfigSection csSpeedR = config.getConfigSection("general.flight.speed.regions");
 		if (csSpeedR != null) {
 			for (String s : csSpeedR.getKeys(false)) {
-				Console.debug(s, Files.config.getDouble("general.flight.speed.regions." + s));
+				Console.debug(s, config.getDouble("general.flight.speed.regions." + s));
 				
-				speedRegions.put(s, (float) Files.config.getDouble("general.flight.speed.regions." + s, 1));
+				speedRegions.put(s, (float) config.getDouble("general.flight.speed.regions." + s, 1));
 			}
 		}
 		
 		// legacy default speed.
-		speedGlobal = (float) Files.config.getDouble("general.flight.default_speed");
+		speedGlobal = (float) config.getDouble("general.flight.default_speed");
 		// new default speed.
 		if (speedGlobal == 0) {
-			speedGlobal = (float) Files.config.getDouble("general.flight.speed.default", 1);
+			speedGlobal = (float) config.getDouble("general.flight.speed.default", 1);
 		}
 		
-		allowPreferredSpeed = Files.config.getBoolean("general.flight.speed.user_preference", true);
+		allowPreferredSpeed = config.getBoolean("general.flight.speed.user_preference", true);
 		
 		
 	}

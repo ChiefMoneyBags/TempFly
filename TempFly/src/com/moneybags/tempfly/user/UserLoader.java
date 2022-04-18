@@ -11,8 +11,10 @@ import com.moneybags.tempfly.aesthetic.particle.Particles;
 import com.moneybags.tempfly.fly.FlightManager;
 import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.data.DataBridge;
-import com.moneybags.tempfly.util.data.DataPointer;
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+import com.moneybags.tempfly.util.data.provider.DataProvider;
+import com.moneybags.tempfly.util.data.provider.SqlProvider;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 public class UserLoader implements Runnable {
 
@@ -45,8 +47,8 @@ public class UserLoader implements Runnable {
 		final DataBridge bridge = manager.getTempFly().getDataBridge();
 		final TimeManager timeManager = manager.getTempFly().getTimeManager();
 		
-		if (bridge.hasSqlEnabled()) {
-			PreparedStatement st = bridge.prepareStatement("INSERT IGNORE INTO tempfly_data(uuid) VALUES(?)");
+		if (bridge.usingSql()) {
+			PreparedStatement st = ((SqlProvider) bridge.getPrimaryDataProvider()).prepareStatement("INSERT IGNORE INTO tempfly_data(uuid) VALUES(?)");
 			try {
 				st.setString(1, u.toString());
 				st.execute();
@@ -58,14 +60,14 @@ public class UserLoader implements Runnable {
 			
 		}
 		
-		
+		DataProvider provider = bridge.getPrimaryDataProvider();
 		time = timeManager.getTime(u);
 		particle = Particles.loadTrail(u);
-		infinite = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()), true); 
-		bypass = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()), true);
-		logged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()), false);
-		compatLogged = (boolean) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u.toString()), false);
-		selectedSpeed = (double) bridge.getOrDefault(DataPointer.of(DataValue.PLAYER_SPEED, u.toString()), -999D);
+		infinite = (boolean) provider.getOrDefault(DataPointer.of(DataValue.PLAYER_INFINITE, u.toString()), true); 
+		bypass = (boolean) provider.getOrDefault(DataPointer.of(DataValue.PLAYER_BYPASS, u.toString()), true);
+		logged = (boolean) provider.getOrDefault(DataPointer.of(DataValue.PLAYER_FLIGHT_LOG, u.toString()), false);
+		compatLogged = (boolean) provider.getOrDefault(DataPointer.of(DataValue.PLAYER_COMPAT_FLIGHT_LOG, u.toString()), false);
+		selectedSpeed = (double) provider.getOrDefault(DataPointer.of(DataValue.PLAYER_SPEED, u.toString()), -999D);
 		ready = true;
 		if (async) {
 			manager.addUser(Bukkit.getPlayer(u));

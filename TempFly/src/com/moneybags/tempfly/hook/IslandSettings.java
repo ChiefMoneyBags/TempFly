@@ -14,9 +14,10 @@ import com.moneybags.tempfly.hook.skyblock.SkyblockHook;
 import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
-import com.moneybags.tempfly.util.data.DataBridge.DataTable;
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
-import com.moneybags.tempfly.util.data.DataPointer;
+import com.moneybags.tempfly.util.data.provider.YamlProvider;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataTable;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 public class IslandSettings {
 
@@ -30,7 +31,8 @@ public class IslandSettings {
 		String id = hook.getIslandIdentifier(island.getRawIsland());
 		DataBridge bridge = hook.getTempFly().getDataBridge();
 		
-		Map<String, Object> values = bridge.getValues(DataTable.ISLAND_SETTINGS, hook, "islands", id, "settings");
+		@SuppressWarnings("deprecation")
+		Map<String, Object> values = bridge.getDataProvider(YamlProvider.class).getValues(DataTable.ISLAND_SETTINGS, hook, "islands." + id + ".settings", id);
 		for (Entry<String, Object> entry: values.entrySet()) {
 			if (entry.getKey().equalsIgnoreCase("OWNER")) {
 				continue;

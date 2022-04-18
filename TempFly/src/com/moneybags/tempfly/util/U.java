@@ -3,6 +3,8 @@ package com.moneybags.tempfly.util;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.primitives.Doubles;
+import com.moneybags.tempfly.util.data.config.ConfigSection;
+
 import org.bukkit.*;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -99,6 +101,27 @@ public class U {
 	
 	public static Location locFromString(String loc) {
 		return locationFromString(loc);
+	}
+	
+	public static ItemStack getConfigItem(ConfigSection config, String path) {
+		ConfigSection section = config.getConfigSection(path);
+
+		if (section == null) {
+			return new ItemStack(Material.STONE);
+		}
+
+		ItemStack item = new ItemStack(Material.STONE, Math.max(1, section.getInt("amount", 1)));
+		ItemMeta meta = item.getItemMeta();
+		
+		meta.setDisplayName(cc(ChatColor.RESET + section.getString("name", "&cThis item is broken. :'(")));
+		meta.setLore(
+				section.getStringList("lore").stream()
+						.map(it -> cc(ChatColor.RESET + it))
+						.collect(Collectors.toList())
+		);
+
+		item.setItemMeta(meta);
+		return item;
 	}
 	
 	public static ItemStack getConfigItem(FileConfiguration config, String path) {

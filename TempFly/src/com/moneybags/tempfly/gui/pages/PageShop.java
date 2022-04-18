@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -24,7 +22,7 @@ import com.moneybags.tempfly.time.TimeManager;
 import com.moneybags.tempfly.util.CompatMaterial;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
-import com.moneybags.tempfly.util.data.Files;
+import com.moneybags.tempfly.util.data.config.ConfigSection;
 
 import net.milkbowl.vault.economy.Economy;
 
@@ -37,14 +35,14 @@ public class PageShop extends DynamicPage {
 	private static ItemStack background, toolbar, next, prev;
 	
 	public static void initialize(TempFly plugin) {
-		FileConfiguration config = Files.page;
+		ConfigSection page = tempfly.getConfigProvider().getConfig("page");
 		String path = "page.shop";
 		tempfly = plugin;
-		title = U.cc(config.getString(path + ".title", "&dParticle Trails"));
-		background = U.getConfigItem(config, path + ".background");
-		toolbar = U.getConfigItem(config, path + ".toolbar");
-		next = U.getConfigItem(config, path + ".next");
-		prev = U.getConfigItem(config, path + ".prev");
+		title = U.cc(page.getString(path + ".title", "&dParticle Trails"));
+		background = U.getConfigItem(page, path + ".background");
+		toolbar = U.getConfigItem(page, path + ".toolbar");
+		next = U.getConfigItem(page, path + ".next");
+		prev = U.getConfigItem(page, path + ".prev");
 		
 		CompatMaterial.setType(background, CompatMaterial.GRAY_STAINED_GLASS_PANE);
 		CompatMaterial.setType(toolbar, CompatMaterial.BLACK_STAINED_GLASS_PANE);
@@ -52,11 +50,12 @@ public class PageShop extends DynamicPage {
 		CompatMaterial.setType(prev, CompatMaterial.REDSTONE_TORCH);
 		
 		allOptions.clear();
-		ConfigurationSection csOptons = Files.config.getConfigurationSection("shop.options");
+		ConfigSection config = tempfly.getConfigProvider().getDefaultConfig();
+		ConfigSection csOptons = config.getConfigSection("shop.options");
 		if (csOptons != null) {
 			for (String s: csOptons.getKeys(false)) {
 				path = "shop.options." + s;
-				allOptions.add(new ShopOption(Files.config.getInt(path + ".time", 0), Files.config.getDouble(path + ".cost", 1000000)));
+				allOptions.add(new ShopOption(config.getInt(path + ".time", 0), config.getDouble(path + ".cost", 1000000)));
 			}
 		}
 	}
@@ -149,15 +148,15 @@ public class PageShop extends DynamicPage {
 			this.cost = cost;
 			item = CompatMaterial.get(CompatMaterial.FEATHER);
 			ItemMeta meta = item.getItemMeta();
-			
+			ConfigSection page = tempfly.getConfigProvider().getConfig("page");
 			String name = U.cc(
 					tempfly.getTimeManager().regexString(
-							Files.page.getString("page.shop.option.name", "{FORMATTED_TIME}"), time)
+							page.getString("page.shop.option.name", "{FORMATTED_TIME}"), time)
 							.replaceAll("\\{COST}", String.valueOf(cost))
 								);
 			meta.setDisplayName(name);
 			
-			List<String> l = Files.page.getStringList("page.shop.option.lore");
+			List<String> l = page.getStringList("page.shop.option.lore");
 			List<String> lore = new ArrayList<>();
 			if (l != null) {
 				DecimalFormat df = new DecimalFormat("##.##");

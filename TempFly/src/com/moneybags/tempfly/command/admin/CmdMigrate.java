@@ -16,8 +16,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import com.moneybags.tempfly.TempFly;
 import com.moneybags.tempfly.command.TempFlyCommand;
 import com.moneybags.tempfly.util.Console;
-import com.moneybags.tempfly.util.data.DataBridge.DataTable;
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+import com.moneybags.tempfly.util.data.provider.SqlProvider;
+import com.moneybags.tempfly.util.data.values.DataTable;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 public class CmdMigrate extends TempFlyCommand{
 
@@ -50,7 +51,7 @@ public class CmdMigrate extends TempFlyCommand{
 		}
 		
 		
-		if (!tempfly.getDataBridge().hasSqlEnabled()) {
+		if (!tempfly.getDataBridge().usingSql()) {
 			s.sendMessage("You must enable MySql in the config to migrate your tempfly data...");
 			return;
 		}
@@ -72,10 +73,13 @@ public class CmdMigrate extends TempFlyCommand{
 	    	s.sendMessage("There is no data to migrate...");
 	    	return;
 	    }
+	    
+	    SqlProvider sql = (SqlProvider) tempfly.getDataBridge().getPrimaryDataProvider(); 
+	    
 	    for (String key: csPlayers.getKeys(false)) {
 	    	String[] path = new String[] {key};
 	    
-			try (PreparedStatement stCreate = tempfly.getDataBridge().prepareStatement("INSERT IGNORE INTO tempfly_data(uuid) VALUES(?)")){
+			try (PreparedStatement stCreate = sql.prepareStatement("INSERT IGNORE INTO tempfly_data(uuid) VALUES(?)")){
 				stCreate.setString(1, key);
 				stCreate.execute();
 				stCreate.close();
@@ -105,7 +109,7 @@ public class CmdMigrate extends TempFlyCommand{
 	 				continue;
 	 			}
 	 			
-	 			PreparedStatement st = tempfly.getDataBridge().prepareStatement(
+	 			PreparedStatement st = sql.prepareStatement(
 						"UPDATE " + value.getTable().getSqlTable() + " SET " + value.getSqlColumn()
 						+ " = ? WHERE " + value.getTable().getPrimaryKey() + " = ?");
 				Class<?> type = value.getType();

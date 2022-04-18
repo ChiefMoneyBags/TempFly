@@ -32,8 +32,8 @@ import com.moneybags.tempfly.util.Console;
 import com.moneybags.tempfly.util.U;
 import com.moneybags.tempfly.util.V;
 import com.moneybags.tempfly.util.data.DataBridge;
-import com.moneybags.tempfly.util.data.DataPointer;
-import com.moneybags.tempfly.util.data.DataBridge.DataValue;
+import com.moneybags.tempfly.util.data.values.DataPointer;
+import com.moneybags.tempfly.util.data.values.DataValue;
 
 
 public class FlightUser {
