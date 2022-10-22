@@ -1,0 +1,326 @@
+##======================================================================================##
+#|                                                                                      |#
+#|                ,--------.                       ,------.,--.                         |# 
+#|                '--.  .--',---. ,--,--,--. ,---. |  .---'|  |,--. ,--.                |# 
+#|                   |  |  | .-. :|        || .-. ||  `--, |  | \  '  /                 |# 
+#|                   |  |  \   --.|  |  |  || '-' '|  |`   |  |  \   '                  |# 
+#|                   `--'   `----'`--`--`--'|  |-' `--'    `--'.-'  /                   |# 
+#|                                          `--'               `---'                    |#
+#|                                                                                      |#
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                                       Author                                         |#
+#|                                  =---=------=---=                                    |#
+#|                                     Chief Beef                                       |#
+#|                                                                                      |#
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                            <--Commands & Permissions-->                              |#
+#|                                                                                      |#
+#|    https://github.com/ChiefMoneyBags/TempFly/blob/Master/TempFly/permissions.yml     |#
+#|                                                                                      |#
+##--------------------------------------------------------------------------------------##
+#|                                                                                      |#
+#|                              Time Placeholder Usage                                  |#
+#|                                                                                      |#
+#|                                    Single Units                                      |#
+#|                        {SECONDS} {MINUTES} {HOURS} {DAYS}                            |#
+#|                        ----------------------------------                            |#
+#|  Single unit placeholders will show the amount of time for only the unit specified   |#
+#|    If a player has 65 secs of time {SECONDS} will be 5s and {MINUTES} will be 1m     |#
+#|                                                                                      |#
+#|                                  Formatted Time                                      |#
+#|                                 {TIME_FORMATTED}                                     |#
+#|                        ----------------------------------                            |#
+#|      Formatted time only includes time units currently applicable to the player      |#
+#|         It does not display zeroes in between units like this [1d 0h 0m 1s]          |#
+#|            If a player has 86401 seconds of time it will display [1d 1s]             |#
+#|                                                                                      |#
+##======================================================================================##
+
+
+system:
+  # Time in minutes to backup data
+  backup: 5
+  # If true your console will be subjected to spam from the internal workings of the plugin.
+  # If you have an issue i may ask you to turn it on.
+  debug: false
+  # If true tempfly will not track player regions. This can improve performance but will disable ALL
+  # features of tempfly that rely on regions to function, such as disabled regions, relative time regions etc..
+  disable_region_tracking: false
+  # If true this will disable all tab completions for tempfly commands
+  # Can be bypassed with tempfly.disable_tab.bypass
+  disable_tab: false
+  # database
+  mysql:
+    enabled: false
+    host: "127.0.0.1"
+    port: 3306
+    name: "name"
+    user: "user"
+    pass: "pass"
+
+general:
+  # This feature prevents conflictions with other plugins fly features.
+  # By default tempfly will steal priority and take the command /fly away from other plugins.
+  # If the player has a permission listed below tempfly will not override the command /fly for them.
+  fly_override_permissions:
+    - 'essentials.fly'
+  
+  # This setting allows you to disable flight in specific worlds or regions.
+  disabled:
+    worlds:
+      - 'example_world'
+    regions:
+      - 'example_region'
+
+  # This setting enables you to allow flight only in whitelisted worlds or regions.
+  whitelist:
+    worlds:
+    # - 'world'
+    
+    regions:
+    # - 'example_region'
+
+  timer:
+    # If true the players timer will count down even when they have flight disabled.
+    # If you want the time to count down while they are offline please see the feature "time_decay"
+    constant: false
+    # If false the player will not lose flight time if standing on the ground with flight enabled.
+    ground: false
+    # If false the player will not lose flight time if they go idle with flight enabled.
+    # This will override the constant and ground timers.
+    idle: false
+    # If false the timer will not count down while a player uses creative flight.
+    # If true the player will be subject to all normal tempfly flight restrictions and time usage while in creative flight.
+    creative: false
+    # If false the timer will not count down while a player is in spectator.
+    # Due to the nature of spectator mode when the player runs out of flight time their flight cannot be disabled until
+    # they return to another gamemode.
+    spectator: false
+  
+  idle:
+    # The threshold in seconds to consider a player idle. -1 for no idle timer
+    threshold: 300
+    # If true players tempfly will be disabled if they go idle in the sky (dropping them).
+    drop_player: false
+
+  flight:
+    # Speed settings.
+    speed:
+      # Default global speed for all players. This speed is used as a base unless a value is otherwise specified below.
+      default: 1
+      # If false the users speed will be forcefully set to the values defined below upon entering valid areas regardless of the
+      # speed chosen by the player or the default speed. This also overrides permission speeds.
+
+      # If true the configured speeds will act as a maximum speed for the area
+      # and will only be forced if the users speed exceeds the maximum defined for the area.
+      # Upon leaving the area the users selected / default speed will be restored.
+      user_preference: true
+      # Default maximum speeds for worlds.
+      worlds:
+        #world: 1.25
+        #world_nether: 0.35
+        #world_the_end: 0.25
+      # Default maximum speed for regions. Regions take priority over worlds. If 2 regions overlap the highest value is used.
+      regions:
+        despacito: 0.1
+        initial_d: 10
+
+    # The maximum y level a player can reach before flight is disabled.
+    maximum_height: 275
+    # If true a user will start flying again when they no longer have flight restrictions so long as their flight is enabled.
+    # Example;
+    # - A user flies into a disabled region and loses flight.
+    # - If auto_fly is true they will fly again automatically without needing to use the fly command.
+    auto_enable: true
+    # If true a user will always have their flight enabled for them when they receive flight time so
+    # long as their balance previous to receiving the time was 0.
+    enable_on_time_received: false
+  
+  time:
+    # If true players can send eachother time as if it were a currency.
+    payable: true
+    # Here you can set the maximum time players can have in their balance. -1 for no limit.
+    max:
+      # The base maximum time in seconds applied to everyone.
+      base: -1
+      # Optionally you can include permission groups for a different max time.
+      # The groups listed below will override the global base defined above.
+      # If a player inherits more than 1 group the highest value will always be used.
+      # The permission is "tempfly.max.[group]"
+      groups:
+        # member: 60
+        # vip: 120
+
+    # This setting allows you to give players infinite flight while they are in specific worlds or regions.
+    # Players do not need a permission to obtain infinite flight in these areas.
+    infinite:
+      worlds:
+        - 'example_world'
+      regions:
+        - 'example_region'
+  
+  bonus:
+    # Time in seconds given to a player when they first join the server.
+    first_join: 10
+    # Permission based time given to a player as a daily login bonus.
+    # The permission is "tempfly.bonus.[group]"
+    # Time will stack for each permission the player inherits. Make sure to configure your permissions properly.
+    daily_login: 
+      member: 10
+      vip: 30
+
+    
+  time_decay:
+    # If enabled a player will lose time when logged off the server.
+    # info:
+    # - This will not track every offline player, it only updates when the player rejoins the server. no lags.
+    # - To use this in tandem with the constant_timer, set threshold and seconds_lost both to 1. (1 second lost per 1 second offline).
+    enabled: false
+    # The interval in which players will lose time (seconds)
+    threshold: 3600
+    # Seconds of flight lost per interval
+    seconds_lost: 15
+
+  # If true, flight is disabled when the player;
+  combat:
+    # attacks another player
+    attack_player: true
+    # attacks a mob
+    attack_mob: false
+    # is attacked by a player
+    attacked_by_player: true
+    # is attacked by a mob
+    attacked_by_mob: false
+    # attacks themself
+    self_inflicted: false
+
+    # Seconds before flight can be enabled after pvp 
+    pvp_tag: 10
+    # Seconds before flight can be enabled after pve 
+    pve_tag: 5
+  
+  # If false the player will not take fall damage when flight is disabled;
+  damage:
+    # ...by command
+    on_command: false
+    # ...by running out of time
+    out_of_time: true
+    # ...from combat
+    combat: true
+    # ...from going idle
+    idle: false
+    # ...from entering a disabled world
+    world: false
+    # ...from entering a disabled region
+    region: false
+
+aesthetic:
+  # Features that allow you to easily see if a player is flying using tempfly.
+  identifier:
+
+    tab_list:
+      # If enabled, the players name on tab will change to this when they are in tempflight.
+      enabled: true
+      # Valid placeholders: {PLAYER} The players name | {OLD_TAG} The original name on tab, including prefixes.
+      # Supports placeholders for time
+      name: "&d~{OLD_TAG}"
+      # For use on servers with a custom tab overlay. This option will allow you to implement placeholders
+      # for tempfly in the tablist plugin so long as it supports placeholders from the authors clip or maximvdw.
+      # If you are using the placeholder you can set enabled to false so tempfly doesn't try to alter tab.
+      placeholder:
+        enabled: "&8[&6Fly&8]"
+        disabled: ""
+
+    name_tag:
+      # If enabled, the players name tag above their head will change to this when they are in tempflight.
+      # (Not currently compatible with plugin "essentials")
+      enabled: true
+      # Valid placeholders: {PLAYER} The players name | {OLD_TAG} The original name tag, including prefixes.
+      # Supports placeholders for time      
+      name: "&d~{OLD_TAG}"
+      # For use on servers with a custom name tags. This option will allow you to implement placeholders
+      # for tempfly in the tablist plugin so long as it supports placeholders from the authors clip or maximvdw.
+      # If you are using the placeholder you can set enabled to false so tempfly doesn't try to alter the name.
+      placeholder:
+        enabled: "&8[&6Fly&8]"
+        disabled: ""
+
+    particles:
+      # If false all trails are disabled.
+      enabled: true
+      # The default particle type.
+      type: 'VILLAGER_HAPPY'
+      # If true all players will have the default particle trail enabled by default.
+      display_by_default: true
+      # If true particles will not be displayed if the player is vanished.
+      # Tested with plugins SuperVanish, PremiumVanish, VanishNoPacket.
+      hide_vanish: true
+
+  # Title to warn players of remaining flight time
+  warning:
+    # If enabled, players will recieve a warning title when they reach a flight marker defined under seconds.
+    enabled: true
+    # Supports placeholders for time.
+    title: "&cWARNING!"
+    subtitle: "&fYou have {FORMATTED_TIME} &fof flight remaining!"
+    # Time intervals in seconds to display the title to players.
+    # ONLY use numbers
+    seconds:
+      - 30
+      - 15
+      - 5
+
+  action_bar:
+    enabled: true
+    text: "&6Flight meter&7: {FORMATTED_TIME}"
+
+# Oddball features and things many people probably wont use can be found here.
+other:
+  # relative time is a feature that lets you control how fast time will be used in worlds and regions.
+  # In the example below;
+  # - time will pass '0.5' times or 50% slower than in real time on world 'example_world'
+  # - time will pass '1.5' times or 50% faster than in real time in region 'example_region'.
+  # If the player is in both 'example_world' and 'example_region' at once the values will
+  # be factored together resulting in a value of 0.75 or 25% slower.
+  relative_time:
+    worlds:
+      example_world: 0.5
+    regions:
+      example_region: 1.5
+    
+# Quality of life feature for servers that dont want to implement a whole shop gui plugin, but just want a simple tempfly shop.
+shop:
+  general:
+    # If false the built in shop will not exist.
+    enabled: false
+  # You can add as many options with any name you want
+  options:
+    five_mins:
+      # The time to give the player in seconds
+      time: 300
+      # The cost of the time, any vault currency is supported
+      cost: 7500
+    thirty_mins:
+      time: 1800
+      cost: 30000
+    one_hour:
+      time: 3600
+      cost: 50000
+      
+# This is where i will put last ditch efforts to fix bugs I either cannot reproduce or otherwise fix.
+workarounds:
+  # Regarding the infinite flight bug. This bug has been produced in a wide range of situations and
+  # conflictions with various plugins. Everytime I fix it something else will cause it to occur.
+  # If you encounter an unlimited flight bug this may help you.
+  infinite_flight:
+    # If true a player will ALWAYS have flight disabled if they are not using tempfly.
+    # This workaround can be disabled for users with the permission
+    # tempfly.workaround.infinite.bypass.fix_a
+    fix_a: false
+    # If true a player will Always have tempfly enabled if they are flying without
+    # a tempfly timer. If the player has no time flight will be disabled.
+    # This workaround can be disabled for users with the permission
+    # tempfly.workaround.infinite.bypass.fix_b
+    fix_b: false

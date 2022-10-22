@@ -1,0 +1,123 @@
+# This setting allows you to disable the skyblock hook even if you have askyblock plugin on the server.
+# If you just want to disable flight in the island worlds use disabled worlds in the base config and disable the hook.
+enable_hook: true
+
+# Unlockables allow you to set island requirements to allow users flight on islands and elsewhere on the server.
+##---------------------------------------------------------##
+#|               Valid requirements include                |#
+##-------------------+-------------------------------------##
+#| player_level      | the island level for the player     |#
+#|                   | trying to fly.                      |#
+##-------------------+-------------------------------------##
+#| player_challenges | the challenges for the player       |#
+#|                   | trying to fly.                      |#
+##-------------------+-------------------------------------##
+#| If the role specified is a member of the island,        |#
+#| for example, (team, moderator, owner) there is no need  |#
+#| to specify both island_level and owner_level.           |#
+##---------------------------------------------------------##
+unlockables:
+
+  environment:
+    # Requirements needed for island members to fly in specified regions
+    regions:
+      super_awesome_vip_region:
+        player_level: 950
+        player_challenges:
+          alchemist: 1
+          beaconator: 1
+  
+    # Requirements needed for island members to fly in specified worlds
+    worlds:
+      example_world:
+        player_level: 1
+  
+    # requirements to fly when not on an island.
+    wilderness:
+      player_level: 0
+
+  ##---------------------------------------------------------##
+  #|        Additional requirements for island roles         |#
+  ##-------------------+-------------------------------------##
+  #| island_level      | the island level for the island     |#
+  #|                   | they are trying to fly on.          |#
+  ##-------------------+-------------------------------------##
+  #| island_challenges | the challenges for the owner of the |#
+  #|                   | island they are trying to fly on.   |#
+  ##-------------------+-------------------------------------##
+  island_roles:
+    owner:
+      player_level: 5
+
+    member:
+      player_level: 50
+
+    coop:
+      player_level: 75
+      island_level: 75
+
+    visitor:
+      player_level: 100
+      island_level: 75
+
+      player_challenges:
+        stewmaker:
+          completed: 1
+      island_challenges:
+        papermaker:
+          completed: 1
+
+flight_settings:
+  # If false the player cannot fly when they are not on an island
+  wilderness: true
+
+  # The following settings are the default values for the tempfly's island protection panel
+  # Island owners may allow or disallow island roles flight on their island.
+  # You will need to enter the roles specific to your skyblock plugin here. The defaults may not apply to you.
+  base_permissions:
+    # Team members can fly on the island
+    team: true
+    # Coop players can fly on the island
+    coop: true
+    # Visitors can fly on the island
+    visitor: false
+
+language:
+  invalid:
+    island: "{PREFIX} &cYou must have an island to fly here!"
+
+  requirements:
+    # Challenges support the placeholders; {CHALLENGE} | {COMPLETIONS} | {ROLE}
+    challenge_self: "{PREFIX} &f{CHALLENGE} &cmust be completed &f{COMPLETIONS} &ctimes to fly here!"
+    challenge_other: "{PREFIX} &cThis island has not unlocked flight for &f{ROLE}&c's!"
+    # Levels support the placeholders; {LEVEL} | {ROLE}
+    level_self: "{PREFIX} &cYou must have an island level of &f{LEVEL} &cto fly here!"
+    level_other: "{PREFIX} &cThis island needs level &f{LEVEL} &cfor &f{ROLE}'s &cto fly!"
+    role_denied: "{PREFIX} &cThis island does not allow &f{ROLE}'s &cto fly!"
+
+gui:
+  # This setting will allow you to place a button inside the island settings panel for your respective
+  # skyblock plugin that will take the user to the tempfly island settings page.
+  hook_settings:
+    enabled: true
+    button:
+      name: "&dTemp&fFly &fIsland Settings"
+
+  page:
+    # Placeholders; {ROLE}
+    settings:
+      title: "&dIsland Flight Settings"
+      background:
+        name: "&7- Please select an option"
+      toolbar:
+        name: "&7- Please select an option"
+      allowed:
+        name: "&e&l{ROLE}"
+        lore:
+          - "&a&m================"
+          - "&7- {ROLE}'s can currently fly"
+      disallowed:
+        name: "&e&l{ROLE}"
+        lore:
+          - "&c&m================"
+          - "&7- {ROLE}'s can not currently fly"

@@ -1,0 +1,31 @@
+page:
+  
+  trails:
+    title: '&dParticle Trails'
+    background:
+      name: '&7- Please select an option'
+    toolbar:
+      name: '&7- Please select an option'
+    next:
+      name: '&fNext page'
+    prev:
+      name: '&fPrevious page'
+    remove:
+      name: '&cRemove trail'
+
+  shop:
+    title: '&dTempfly Shop'
+    background:
+      name: '&7- Please select an option'
+    toolbar:
+      name: '&7- Please select an option'
+    next:
+      name: '&fNext page'
+    prev:
+      name: '&fPrevious page'
+    option:
+      name: '&f{FORMATTED_TIME}'
+      lore:
+        - '&8&m================'
+        - '&fPurchase: &e{FORMATTED_TIME}'
+        - '&fCost: &e${COST}'
