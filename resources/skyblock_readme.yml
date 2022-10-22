@@ -1,0 +1,63 @@
+##==================================================================##
+#|          ____  __ _  _  _  ____  __     __    ___  __ _          |#
+#|         / ___)(  / )( \/ )(  _ \(  )   /  \  / __)(  / )         |#
+#|         \___ \ )  (  )  /  ) _ (/ (_/\(  O )( (__  |  (          |#
+#|         (____/(__\_)(__/  (____/\____/ \__/  \___)(__\_)         |#
+#|                                                                  |#
+##------------------------------------------------------------------##
+#| This file contains all the information you need to know in order |#
+#|     to properly configure tempfly for your skyblock plugin       |#
+##------------------------------------------------------------------##
+#|                   Supported Skyblock Plugins                     |#
+#|                   --------------------------                     |#
+#|                            AskyBlock                             |#
+#|                        Iridium Skyblock                          |#
+##==================================================================##
+
+##================================================##
+#|                                                |#
+#|                   ASkyBlock                    |#
+#|                                                |#
+##------------------------------------------------##
+#|              Valid Island Roles                |#
+#|              ------------------                |#
+#|        owner | team | coop | visitor           |#
+##------------------------------------------------##
+#|               Challenge info                   |#
+#|              ------------------                |#
+#| When specifying challenges for askyblock you   |#
+#| only have the option to specify whether        |#
+#| the challenge has been completed or not.       |#
+#| askyblock does not support challenge progress  |#
+#| or multiple completions, below is an example.  |#
+##================================================##
+unlockables:
+  wilderness:
+    island_level: 50
+    challenges:
+      stewmaker:
+        completed: 1
+
+  island_roles:
+    owner:
+      challenges:
+        papermaker:
+          completed: 1
+    team:
+      island_level: 75
+
+
+##================================================##
+#|                                                |#
+#|                IridiumSkyblock                 |#
+#|                                                |#
+##------------------------------------------------##
+#|              Valid Island Roles                |#
+#|              ------------------                |#
+#|          owner |  coowner  | coop              |#
+#|         member | moderator | visitor           |#
+##------------------------------------------------##
+#|               Challenge info                   |#
+#|              ------------------                |#
+#| When specifying challenges for iridiumskyblock |#
+#| you may specify 

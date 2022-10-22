@@ -1,0 +1,131 @@
+
+tempfly.toggle.self:
+  desc: Allows user to toggle the use of temp flight.         
+  command:
+    -/tempfly
+    -/fly
+    -/tf
+
+tempfly.toggle.other:
+  desc: Allows user to toggle anothers use of temp flight.
+  command: /tf toggle [player]
+
+tempfly.speed.self:
+  desc: Allows user to set their fly speed.
+  command: /tf speed [speed]
+
+tempfly.speed.other:
+  desc: Allows user to set another users fly speed.
+  command: /tf speed [speed] [player]
+
+tempfly.speed.region.[region_name].[speed]:
+  desc: Define the users max fly speed for a world. goes up to 10.
+
+tempfly.speed.world.[world_name].[speed]:
+  desc: Define the users max fly speed for a region. goes up to 10. Takes priority over world speed.
+
+tempfly.time.self:
+  desc: Allow user to view thier remaining time.
+  command: /tf time
+
+tempfly.time.other:
+  desc: Allow user to view another players remaining time.
+  command: /tf time [player]
+
+tempfly.max.[group]:
+  desc: Define the users max time. These groups should be set in the config under max_time.
+
+tempfly.pay:
+  desc: Allow user to pay another player time.
+  command: /tf pay [player]
+
+tempfly.give:
+  desc: Allow user to give time. valid arguments; [s {secs}] [m {mins}] [h {hours}] [d {days}]
+  command: /tf give [player] [amount]
+
+tempfly.giveall:
+  desc: Gives all users on the server time
+  command: /tf giveall [player] [amount]
+
+tempfly.remove:
+  desc: Allow user to remove time. valid arguments; [s {secs}] [m {mins}] [h {hours}] [d {days}]
+  command: /tf remove [player] [amount]
+
+tempfly.set:
+  desc: Allow user to set time. valid arguments; [s {secs}] [m {mins}] [h {hours}] [d {days}]
+  command: /tf set [player] [amount]
+
+tempfly.reload:
+  desc: Reloads the plugins configs and settings.
+  command: /tf reload
+
+tempfly.help:
+  desc: Allow user to see the help page.
+  command: /tf help
+
+tempfly.help.admin:
+  desc: Allow user to see the help page with admin commands.
+  command: /tf help
+
+tempfly.shop:
+  desc: Allow user to open the tempfly shop
+  command: /tf shop
+
+tempfly.infinite:
+  desc:
+    - Infinite flight. This simply will not charge the player flight time for flying.
+    - However, they will still have their actual time balance stored in the background. They dont lose it.
+    - IT DOES NOT let them pay infinite time to other players.
+    - In addition it does not affect their max_time, they are completely seperate things.
+
+tempfly.infinite.toggle:
+  desc: Allow the user to toggle their infinite flight.
+
+tempfly.bonus.[group]:
+  desc: Gives user the bonus defined for this group in the config daily.
+
+tempfly.bypass:
+  desc: Allow the user to bypass flight requirements.
+
+tempfly.bypass.toggle:
+  desc: Allow the user to toggle their tempfly bypass.
+
+
+#  Servers using old versions of spigot will need to use the 'Effect' list for trails
+#           OLD VERSIONS = https://helpch.at/docs/1.8/org/bukkit/Effect.html           
+#                                                                                      
+#                                  Newer versions                                      
+#         https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Particle.html 
+
+tempfly.trails:
+  desc: Allow user access to the praticle trail gui
+  command: /tf trails
+
+tempfly.trails.remove.self:
+  desc: Allow user to remove their trail.
+
+tempfly.trails.remove.other:
+  desc: Allow user to remove another players trail.
+
+tempfly.trails.set.self:
+  desc: Allow user to set their trail with command.
+  command: /tf trail {player} {trail}
+
+tempfly.trails.set.other:
+  desc: Allow user to set another players trail with command.
+  command: /tf trail {player} {trail}
+
+tempfly.trail.[particle]: 
+  desc: Gives user access to use individual trails
+
+
+#-----------------#
+# Hook permissions
+#-----------------#
+
+
+tempfly.skyblock.island.settings:
+  desc:
+    - Allows island owners to adjust fly settings for skyblock plugins.
+    - Select hooks will implement this functionality directly into the island protection panel.
+  command: /tf settings               

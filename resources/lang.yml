@@ -1,0 +1,202 @@
+system:
+  prefix:  "&8[&dTemp&fFly&8]"
+  reload: "{PREFIX} &aYou reloaded the plugin."
+  help:
+    - "&8&l------&dTemp&fFly&8&l------"
+    - "&6/tf"
+    - "&7- Toggle tempfly"
+    - "&6/tf time"
+    - "&7- View remaining fly time"
+    - "&6/tf pay [player] [time]"
+    - "&7- send another player fly time"
+  help_extended:
+    - "&6/tf give [player] [time]"
+    - "&7- Give a player fly time"
+    - "&6/tf remove [player] [time]"
+    - "&7- Remove fly time from a player"
+    - "&6/tf set [player] [time]"
+    - "&7- Set a players fly time"
+
+general:
+
+  unit:
+    seconds: "s"
+    minutes: "m"
+    hours: "h"
+    days: "d"
+
+  invalid:
+    time_other: "{PREFIX} &f{PLAYER} &chas no more flight time!"
+    time_self: "{PREFIX} &cYou have no more flight time!"
+    number: "{PREFIX} &f{NUMBER} &cis not a valid number!"
+    particle: "{PREFIX} &f{PARTICLE} &cis not a valid particle type!"
+    player: "{PREFIX} &cThe player &f{PLAYER} &cwas not found..."
+    permission: "{PREFIX} &cYou have insufficient permissions..."
+    command: "&fUnknown command. Type /help for more information."
+    reciever: "{PREFIX} &cYou cannot pay yourself!"
+    sender: "{PREFIX} &cOnly players can use this command!"
+    flyer_self: "{PREFIX} &cYou are not flying!"
+    funds: "{PREFIX} &cThis costs &f{COST}&c! You do not have enough money!"
+    economy: "{PREFIX} &cYou must have a (&fvault&c) economy installed to use the shop!"
+    vault_perms: "{PREFIX} &cYou must install the plugin (&fvault&c) for the ability to set offline player time!"
+    
+  time:
+    format: "&f{QUANTITY}&f{UNIT}"
+    given_other: "{PREFIX} &f{PLAYER} &agot {FORMATTED_TIME}&a."
+    given_all: "{PREFIX} &aYou gave &fALL &aplayers {FORMATTED_TIME}&a."
+    given_self: "{PREFIX} &aYou recieved {FORMATTED_TIME}&a."
+    removed_other: "{PREFIX} &f{PLAYER} &clost {FORMATTED_TIME}&c."
+    removed_self: "{PREFIX} &cYou lost {FORMATTED_TIME}&c."
+    sent_other: "{PREFIX} &aYou sent &f{PLAYER}&a {FORMATTED_TIME}&a."
+    sent_self: "{PREFIX} &f{PLAYER} &asent you {FORMATTED_TIME}&a."
+    set_other: "{PREFIX} &f{PLAYER} &ahad their time set to {FORMATTED_TIME}&a."
+    set_self: "{PREFIX} &aYour time was set to {FORMATTED_TIME}&a."
+    max_other: "{PREFIX} &f{PLAYER} &chas reached the maximum allowed time&c!"
+    max_self: "{PREFIX} &cYou have reached the maximum allowed time&c!"
+    decay: "{PREFIX} &cYou lost {FORMATTED_TIME} &cfor inactivity!"
+    first_join: "{PREFIX} &aYou recieved {FORMATTED_TIME} &aof flight time. Fly with &f/tf&a."
+    daily_login: "{PREFIX} &aYou recieved a daily bonus of {FORMATTED_TIME}&a!"
+    purchased: "{PREFIX} &aYou purchased {FORMATTED_TIME} &afor &e${COST}&a!"
+  
+  info:
+    header: "&8&m--------&dTime&8&m--------"
+    player: "&fPlayer&7: &e{PLAYER}"
+    infinite: "&fInfinite: &c&lUser has unlimited flight!"
+    days: "&fDays&7: &e{DAYS}"
+    hours: "&fHours&7: &e{HOURS}"
+    minutes: "&fMinutes&7: &e{MINUTES}"
+    seconds: "&fSeconds&7: &e{SECONDS}"
+    footer: "&8&m-------------------"
+    
+  fly:
+    enabled_other: "{PREFIX} &f{PLAYER} &ais now flying"
+    enabled_self: "{PREFIX} &aYour flight was enabled!"
+    disabled_other: "{PREFIX} &f{PLAYER} &cis no longer flying!"
+    disabled_self: "{PREFIX} &cYour flight was disabled!"
+    speed_other: "{PREFIX} &f{PLAYER} &ahad their speed set to {SPEED}&a."
+    speed_self: "{PREFIX} &aYour fly speed was set to &f{SPEED}&a."
+    speed_limit_other: "{PREFIX} &f{PLAYER} &cIs currently limited to fly speed &f{SPEED}&c."
+    speed_limit_self: "{PREFIX} &cYour fly speed is currently limited to &f{SPEED}&c."
+    speed_restricted: "{PREFIX} &cYou are not allowed to change your fly speed!"
+    already_enabled: "{PREFIX} &aYour flight is already enabled!"
+    already_disabled: "{PREFIX} &cYour flight is already disabled!"
+    idle_drop: "{PREFIX} &cYou lost flight due to being idle!"
+    idle: "{PREFIX} &cYou are now considered idle."
+    infinite_enabled: "{PREFIX} &aYou enabled your infinite flight!"
+    infinite_disabled: "{PREFIX} &cYou disabled your infinite flight!"
+    bypass_enabled: "{PREFIX} &aYou enabled flight bypass mode!"
+    bypass_disabled: "{PREFIX} &cYou disabled flight bypass mode!"
+
+  requirement:
+    fail:
+      default_other: "{PREFIX} &f{PLAYER} &ccannot currently fly!"
+      default: "{PREFIX} &cThe requirements have not been met to fly in this area."
+      region: "{PREFIX} &cFlight is disabled in this region!"
+      world: "{PREFIX} &cFlight is disabled in this world!"
+      combat: "{PREFIX} &cYou are currently combat tagged!"
+      height: "{PREFIX} &f{MAX_Y} &cis the maximum altitude for flight!"
+    pass: 
+      default: "{PREFIX} &aYou may now fly!"
+      combat: "{PREFIX} &aYou are no longer combat tagged, fly away!"
+    
+aesthetic:
+  symbols:
+    infinity: "∞"
+  featherboard:
+    days: "&e{DAYS}&fd "
+    hours: "&e{HOURS}&fh "
+    minutes: "&e{MINUTES}&fm "
+    seconds: "&e{SECONDS}&fs "
+  trail:
+    removed_self: "{PREFIX} &aYour trail was removed!"
+    removed_other: "{PREFIX} &e{PLAYER} &ahad their trail removed!"
+    set_self: "{PREFIX} &aYour trail was set to &f{PARTICLE}&a!"
+    set_other: "{PREFIX} &f{PLAYER} &ahad their trail set to &f{PARTICLE}&a!"
+
+command:
+  # Here you can configure the command arguments. This will help players on foriegn servers that dont understand english.
+  # Everything here must be unique so be careful, you could break the commands if you put duplicate entries.
+  # Note: It is  not reccomended to put hundreds of translations in here. just the main ones your server would need.
+  unit:
+    seconds:
+      # The unit that will be shown on tab completion of the command
+      tab_complete: "second"
+      # Identifiers that represent this time unit.
+      recognized:
+        - "s"
+        - "sec"
+        - "second"
+        - "zweite" #German
+    minutes:
+      tab_complete: "minute"
+      recognized:
+        - "m"
+        - "min"
+        - "minute" # english and german
+    hours:
+      tab_complete: "hour"
+      recognized:
+        - "h"
+        - "hour"
+        - "stunde" #German
+    days:
+      tab_complete: "day"
+      recognized:
+        - "d"
+        - "day"
+        - "tag" #German
+
+  # Here you can specify all the tempfly sub commands.
+  base:
+    give:
+      - "give"
+      - "add"
+    givall:
+      - "givall"
+      - "addall"
+    reload:
+      - "reload"
+    remove:
+      - "remove"
+      - "take"
+    set:
+      - "set"
+    trail_remove:
+      - "remove_trail"
+    bypass:
+      - "bypass"
+    help:
+      - "help"
+      - "commands"
+    infinite:
+      - "infinite"
+    pay:
+      - "pay"
+      - "send"
+    shop:
+      - "shop"
+      - "buy"
+    speed:
+      - "speed"
+    time:
+      - "time"
+      - "bal"
+      - "balance"
+    trails:
+      - "trails"
+      - "particles"
+    trail_set:
+      - "trail"
+
+  enable:
+    - "on"
+    - "enable"
+  disable:
+    - "off"
+    - "disable"
+
+  syntax_error:
+    cmd_fly:
+      toggle_other: "&c/tf [player] [on / off]"
+      toggle_self: "&c/tf [on / off]"
+    
