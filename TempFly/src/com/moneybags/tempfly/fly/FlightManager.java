@@ -219,7 +219,7 @@ public class FlightManager implements Listener, Reloadable {
 	 * Called on plugin disable, saves users and cleans up.
 	 */
 	public void onDisable() {
-		for (FlightUser user : getUsers()) {
+		for (FlightUser user : new ArrayList<>(users.values())) {
 			removeUser(user.getPlayer(), true);
 		}
 	}
